@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Wargame Simulator</title>
+<style>
+body, div, canvas {
+    margin: 0;
+    padding: 0;
+}
+</style>
+<!-- External Dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="external/OrbitControls.js"></script>
+</head>
+<body>
+<div id="playfield"></div>
+<script src="resources/maps/1000x500/map.js"></script>
+<script src="js/generators/mapGenerator.js"></script>
+<script src="js/plotter.js"></script>
+<script language="javascript">
+    document.querySelector('#playfield').style.height = window.innerHeight + "px";
+    Plotter.initialize();
+    var map = MapGenerator.parse(Maps[0]);
+    Plotter.scene.add(map);
+    // var spriteTexture = THREE.ImageUtils.loadTexture('resources/sprites/sprite.png');
+    // var spriteMaterial = new THREE.SpriteMaterial({ map: spriteTexture, useScreenCoordinates: true });
+    // var sprite = new THREE.Sprite(spriteMaterial);
+    // sprite.scale.set(64, 64, 1.0);
+    // Plotter.scene.add(sprite);
+    var boxGeometry = new THREE.BoxGeometry(10, 10, 30);
+    var boxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    var box = new THREE.Mesh(boxGeometry, boxMaterial);
+    box.position.z = -3
+    box.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+    Plotter.scene.add(box);
+    function animate() {
+        requestAnimationFrame(animate);
+        // map.rotation.x -= 0.01;
+        Plotter.render();
+    }
+    animate();
+</script>
+</body>
+</html>
