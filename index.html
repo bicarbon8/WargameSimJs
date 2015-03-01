@@ -33,6 +33,8 @@ body, div, canvas {
     var box = new THREE.Mesh(boxGeometry, boxMaterial);
     box.position.z = -3
     box.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+    box.castShadow = true;
+    box.receiveShadow = true;
     Plotter.scene.add(box);
     function animate() {
         requestAnimationFrame(animate);

@@ -1,6 +1,6 @@
 var MapGenerator = {
     parse: function (json) {
-        var geometry = new THREE.PlaneGeometry(json.width, json.height, 1, 1);
+        var geometry = new THREE.PlaneGeometry(json.width, json.height, json.width, json.height);
         var texture = THREE.ImageUtils.loadTexture(json.texture, THREE.RepeatWrapping, function() {
             Plotter.render();
         });
@@ -11,7 +11,6 @@ var MapGenerator = {
         });
         var map = new THREE.Mesh(geometry, material);
         map.rotateOnAxis(new THREE.Vector3(1, 0, 0), -(Math.PI / 2));
-        map.position.z += 0.01;
         return map;
     }
 };

@@ -17,20 +17,33 @@ var Plotter = {
         Plotter.camera.position.set(0, 200, 200);
         Plotter.camera.lookAt(Plotter.scene.position);
 
-        var sunLight = new THREE.SpotLight(0xFFFF44, 3); // orange light
+        var sunLight = new THREE.SpotLight(0xFFFF44, 1); // orange light
         sunLight.castShadow = true;
         sunLight.shadowCameraNear = 0;
-        sunLight.shadowCameraFar = 100000;
+        sunLight.shadowCameraFar = 1000;
+        sunLight.shadowCameraVisible = true;
+        sunLight.shadowBias = 0.0001;
+        sunLight.shadowDarkness = 0.5;
+        sunLight.shadowMapWidth = 1024;
+        sunLight.shadowMapHeight = 1024;
         sunLight.position.set(0, 50, 400);
-        var moonLight = new THREE.SpotLight(0x0000FF, 2); // blue light
-        moonLight.castShadow = true;
-        moonLight.shadowCameraFar = 100000;
+        var moonLight = new THREE.SpotLight(0x0000FF, 0.75); // blue light
+        // moonLight.castShadow = true;
+        // moonLight.shadowCameraFar = 1000;
         moonLight.position.set(0, -50, -400);
-        var ambientLight = new THREE.AmbientLight(0x202020); // soft white light
+        var ambientLight = new THREE.AmbientLight(0x444444); // soft white light
         Plotter.moon = moonLight;
         Plotter.lights = new THREE.Object3D();
         Plotter.lights.add(sunLight);
         Plotter.lights.add(moonLight);
+
+        var waterGeometry = new THREE.PlaneGeometry(10000, 10000, 1, 1);
+        var waterMaterial = new THREE.MeshBasicMaterial({
+            color: 0x0000ff
+        });
+        var water = new THREE.Mesh(waterGeometry, waterMaterial);
+        water.rotateOnAxis(new THREE.Vector3(1, 0, 0), -(Math.PI / 2));
+        water.position.z -= 0.5;
 
         var skyboxGeometry = new THREE.BoxGeometry(10000, 10000, 10000);
         var skyboxMaterial = new THREE.MeshBasicMaterial({ color: 0x9999ff, side: THREE.DoubleSide });
@@ -38,6 +51,7 @@ var Plotter = {
 
         Plotter.renderer = new THREE.WebGLRenderer();
         Plotter.renderer.setSize(dims.width, dims.height);
+        Plotter.renderer.shadownMapEnabled = true;
 
         Plotter.controls = new THREE.OrbitControls(Plotter.camera);
         Plotter.controls.damping = 0.2;
@@ -55,6 +69,7 @@ var Plotter = {
         Plotter.scene.add(Plotter.camera);
         Plotter.scene.add(ambientLight);
         Plotter.scene.add(skybox);
+        Plotter.scene.add(water);
 
         Plotter.render();
     },
