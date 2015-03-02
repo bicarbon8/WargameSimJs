@@ -6,7 +6,7 @@ var PlayerGenerator = {
         var bodyMaterial = new THREE.MeshLambertMaterial({ color: 0xffff00 });
         var body = new THREE.Mesh(bodyGeometry, bodyMaterial);
         body.castShadow = true;
-        body.position.z = 1.1;
+        body.position.y = 1.1;
 
         // var spriteTexture = THREE.ImageUtils.loadTexture('resources/sprites/sprite.png');
         // var spriteMaterial = new THREE.SpriteMaterial({ map: spriteTexture, useScreenCoordinates: true });
@@ -18,8 +18,8 @@ var PlayerGenerator = {
         var baseMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
         var base = new THREE.Mesh(baseGeometry, baseMaterial);
         base.castShadow = true;
-        base.position.z = 0.1;
-        base.rotateOnAxis(new THREE.Vector3(1, 0, 0), -(Math.PI / 2));
+        base.position.y = 0.1;
+        // base.rotateOnAxis(new THREE.Vector3(1, 0, 0), -(Math.PI / 2));
 
         player.add(base);
         player.add(body);

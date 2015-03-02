@@ -4,17 +4,17 @@ var Plotter = {
     lights: null,
     renderer: null,
     field: null,
-    timeStep: 0.001,
+    timeStep: 0.0001,
 
     initialize: function () {
         Plotter.field = document.querySelector('#playfield');
         var dims = Plotter.getWidthHeight();
 
         Plotter.scene = new THREE.Scene();
-        Plotter.scene.fog = new THREE.FogExp2(0xffffff, 0.00015);
+        Plotter.scene.fog = new THREE.FogExp2(0xffffff, 0.015);
 
         Plotter.camera = new THREE.PerspectiveCamera(45, dims.width / dims.height, 0.1, 100000);
-        Plotter.camera.position.set(0, -100, 100);
+        Plotter.camera.position.set(50, 50, 0);
         Plotter.camera.lookAt(Plotter.scene.position);
 
         Plotter.lights = new THREE.Object3D();
@@ -24,15 +24,15 @@ var Plotter = {
                 sunLight.castShadow = true;
                 sunLight.shadowCameraNear = 100;
                 sunLight.shadowCameraFar = 1100;
-                // sunLight.shadowCameraVisible = true;
+                sunLight.shadowCameraVisible = true;
                 sunLight.shadowBias = 0.0001;
                 sunLight.shadowDarkness = 0.5;
                 sunLight.shadowMapWidth = 2048;
                 sunLight.shadowMapHeight = 2048;
-                sunLight.position.set(i, j, 600);
+                sunLight.position.set(i, 600, j);
 
                 var moonLight = new THREE.PointLight(0x3333FF, 0.25, 0, Math.PI / 2, 1); // blue light
-                moonLight.position.set(i, j, -600);
+                moonLight.position.set(i, -600, j);
 
                 Plotter.lights.add(sunLight);
                 Plotter.lights.add(moonLight);
@@ -44,7 +44,8 @@ var Plotter = {
         var waterGeometry = new THREE.PlaneGeometry(10000, 10000, 1, 1);
         var waterMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff });
         var water = new THREE.Mesh(waterGeometry, waterMaterial);
-        water.position.z -= 0.5;
+        water.position.y -= 0.5;
+        water.rotation.x -= Math.PI / 2;
 
         var skyboxGeometry = new THREE.BoxGeometry(10000, 10000, 10000);
         var skyboxMaterial = new THREE.MeshBasicMaterial({ color: 0x9999ff, side: THREE.DoubleSide });
@@ -80,9 +81,9 @@ var Plotter = {
     },
 
     render: function () {
-        Plotter.lights.rotateOnAxis(new THREE.Vector3(0,1,0), Plotter.timeStep);
-        if (Plotter.lights.rotation.y > 6.27) {
-            Plotter.lights.rotation.y = 0;
+        Plotter.lights.rotateOnAxis(new THREE.Vector3(1,0,0), Plotter.timeStep);
+        if (Plotter.lights.rotation.x > 6.27) {
+            Plotter.lights.rotation.x = 0;
         }
         Plotter.renderer.render(Plotter.scene, Plotter.camera);
     },
