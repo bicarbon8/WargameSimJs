@@ -11,38 +11,39 @@ var Plotter = {
         var dims = Plotter.getWidthHeight();
 
         Plotter.scene = new THREE.Scene();
-        Plotter.scene.fog = new THREE.FogExp2(0x808080, 0.001);
+        Plotter.scene.fog = new THREE.FogExp2(0xffffff, 0.00015);
 
         Plotter.camera = new THREE.PerspectiveCamera(45, dims.width / dims.height, 0.1, 100000);
-        Plotter.camera.position.set(0, 200, 200);
+        Plotter.camera.position.set(0, -100, 100);
         Plotter.camera.lookAt(Plotter.scene.position);
 
-        var sunLight = new THREE.SpotLight(0xFFFF44, 1); // orange light
-        sunLight.castShadow = true;
-        sunLight.shadowCameraNear = 0;
-        sunLight.shadowCameraFar = 1000;
-        sunLight.shadowCameraVisible = true;
-        sunLight.shadowBias = 0.0001;
-        sunLight.shadowDarkness = 0.5;
-        sunLight.shadowMapWidth = 1024;
-        sunLight.shadowMapHeight = 1024;
-        sunLight.position.set(0, 50, 400);
-        var moonLight = new THREE.SpotLight(0x0000FF, 0.75); // blue light
-        // moonLight.castShadow = true;
-        // moonLight.shadowCameraFar = 1000;
-        moonLight.position.set(0, -50, -400);
-        var ambientLight = new THREE.AmbientLight(0x444444); // soft white light
-        Plotter.moon = moonLight;
         Plotter.lights = new THREE.Object3D();
-        Plotter.lights.add(sunLight);
-        Plotter.lights.add(moonLight);
+        for (var i=-20; i<30; i+=40) {
+            for (var j=-20; j<30; j+=40) {
+                var sunLight = new THREE.SpotLight(0xFFFF44, 0.25, 0, Math.PI / 2, 1); // orange light
+                sunLight.castShadow = true;
+                sunLight.shadowCameraNear = 100;
+                sunLight.shadowCameraFar = 1100;
+                // sunLight.shadowCameraVisible = true;
+                sunLight.shadowBias = 0.0001;
+                sunLight.shadowDarkness = 0.5;
+                sunLight.shadowMapWidth = 2048;
+                sunLight.shadowMapHeight = 2048;
+                sunLight.position.set(i, j, 600);
+
+                var moonLight = new THREE.PointLight(0x3333FF, 0.25, 0, Math.PI / 2, 1); // blue light
+                moonLight.position.set(i, j, -600);
+
+                Plotter.lights.add(sunLight);
+                Plotter.lights.add(moonLight);
+            }
+        }
+
+        var ambientLight = new THREE.AmbientLight(0x606060); // soft white light
 
         var waterGeometry = new THREE.PlaneGeometry(10000, 10000, 1, 1);
-        var waterMaterial = new THREE.MeshBasicMaterial({
-            color: 0x0000ff
-        });
+        var waterMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff });
         var water = new THREE.Mesh(waterGeometry, waterMaterial);
-        water.rotateOnAxis(new THREE.Vector3(1, 0, 0), -(Math.PI / 2));
         water.position.z -= 0.5;
 
         var skyboxGeometry = new THREE.BoxGeometry(10000, 10000, 10000);
@@ -51,13 +52,13 @@ var Plotter = {
 
         Plotter.renderer = new THREE.WebGLRenderer();
         Plotter.renderer.setSize(dims.width, dims.height);
-        Plotter.renderer.shadownMapEnabled = true;
+        Plotter.renderer.shadowMapEnabled = true;
 
         Plotter.controls = new THREE.OrbitControls(Plotter.camera);
         Plotter.controls.damping = 0.2;
         Plotter.controls.addEventListener('change', function () { Plotter.render(); });
         // Plotter.controls.minDistance = 20;
-        // Plotter.controls.maxDistance = 500;
+        // Plotter.controls.maxDistance = 1000;
         // Plotter.controls.minPolarAngle = Math.PI / 2;
         // Plotter.controls.maxPolarAngle = Math.PI - (Math.PI * 0.1);
         // Plotter.controls.minAzimuthAngle = -Math.PI / 2 + (Math.PI * 0.1);
@@ -79,7 +80,10 @@ var Plotter = {
     },
 
     render: function () {
-        Plotter.lights.rotation.y += Plotter.timeStep;
+        Plotter.lights.rotateOnAxis(new THREE.Vector3(0,1,0), Plotter.timeStep);
+        if (Plotter.lights.rotation.y > 6.27) {
+            Plotter.lights.rotation.y = 0;
+        }
         Plotter.renderer.render(Plotter.scene, Plotter.camera);
     },
 };
