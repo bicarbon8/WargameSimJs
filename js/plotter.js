@@ -1,4 +1,5 @@
-var Plotter = {
+var WarGame = WarGame || {};
+WarGame.Plotter = {
     scene: null,
     camera: null,
     lights: null,
@@ -7,26 +8,26 @@ var Plotter = {
     timeStep: 0.0001,
 
     initialize: function () {
-        Plotter.field = document.querySelector('#playfield');
-        var dims = Plotter.getWidthHeight();
+        WarGame.Plotter.field = document.querySelector('#playfield');
+        var dims = WarGame.Plotter.getWidthHeight();
 
-        Plotter.scene = new THREE.Scene();
-        Plotter.scene.fog = new THREE.FogExp2(0xffffff, 0.015);
+        WarGame.Plotter.scene = new THREE.Scene();
+        WarGame.Plotter.scene.fog = new THREE.FogExp2(0xffffff, 0.015);
 
-        Plotter.camera = new THREE.PerspectiveCamera(45, dims.width / dims.height, 0.1, 100000);
-        Plotter.camera.position.set(50, 50, 0);
-        Plotter.camera.lookAt(Plotter.scene.position);
+        WarGame.Plotter.camera = new THREE.PerspectiveCamera(45, dims.width / dims.height, 0.1, 100000);
+        WarGame.Plotter.camera.position.set(50, 50, 0);
+        WarGame.Plotter.camera.lookAt(WarGame.Plotter.scene.position);
 
-        Plotter.lights = new THREE.Object3D();
+        WarGame.Plotter.lights = new THREE.Object3D();
         for (var i=-20; i<30; i+=40) {
             for (var j=-20; j<30; j+=40) {
                 var sunLight = new THREE.SpotLight(0xFFFF44, 0.25, 0, Math.PI / 2, 1); // orange light
                 sunLight.castShadow = true;
                 sunLight.shadowCameraNear = 100;
                 sunLight.shadowCameraFar = 1100;
-                sunLight.shadowCameraVisible = true;
+                // sunLight.shadowCameraVisible = true;
                 sunLight.shadowBias = 0.0001;
-                sunLight.shadowDarkness = 0.5;
+                sunLight.shadowDarkness = 0.25;
                 sunLight.shadowMapWidth = 2048;
                 sunLight.shadowMapHeight = 2048;
                 sunLight.position.set(i, 600, j);
@@ -34,8 +35,8 @@ var Plotter = {
                 var moonLight = new THREE.PointLight(0x3333FF, 0.25, 0, Math.PI / 2, 1); // blue light
                 moonLight.position.set(i, -600, j);
 
-                Plotter.lights.add(sunLight);
-                Plotter.lights.add(moonLight);
+                WarGame.Plotter.lights.add(sunLight);
+                WarGame.Plotter.lights.add(moonLight);
             }
         }
 
@@ -51,40 +52,41 @@ var Plotter = {
         var skyboxMaterial = new THREE.MeshBasicMaterial({ color: 0x9999ff, side: THREE.DoubleSide });
         var skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
 
-        Plotter.renderer = new THREE.WebGLRenderer();
-        Plotter.renderer.setSize(dims.width, dims.height);
-        Plotter.renderer.shadowMapEnabled = true;
+        WarGame.Plotter.renderer = new THREE.WebGLRenderer();
+        WarGame.Plotter.renderer.setSize(dims.width, dims.height);
+        WarGame.Plotter.renderer.shadowMapEnabled = true;
 
-        Plotter.controls = new THREE.OrbitControls(Plotter.camera);
-        Plotter.controls.damping = 0.2;
-        Plotter.controls.addEventListener('change', function () { Plotter.render(); });
-        // Plotter.controls.minDistance = 20;
-        // Plotter.controls.maxDistance = 1000;
-        // Plotter.controls.minPolarAngle = Math.PI / 2;
-        // Plotter.controls.maxPolarAngle = Math.PI - (Math.PI * 0.1);
-        // Plotter.controls.minAzimuthAngle = -Math.PI / 2 + (Math.PI * 0.1);
-        // Plotter.controls.maxAzimuthAngle = Math.PI / 2 - (Math.PI * 0.1);
+        WarGame.Plotter.controls = new THREE.OrbitControls(WarGame.Plotter.camera);
+        WarGame.Plotter.controls.damping = 0.2;
+        WarGame.Plotter.controls.addEventListener('change', function () { WarGame.Plotter.render(); });
+        // WarGame.Plotter.controls.minDistance = 20;
+        // WarGame.Plotter.controls.maxDistance = 1000;
+        // WarGame.Plotter.controls.minPolarAngle = Math.PI / 2;
+        // WarGame.Plotter.controls.maxPolarAngle = Math.PI - (Math.PI * 0.1);
+        // WarGame.Plotter.controls.minAzimuthAngle = -Math.PI / 2 + (Math.PI * 0.1);
+        // WarGame.Plotter.controls.maxAzimuthAngle = Math.PI / 2 - (Math.PI * 0.1);
 
-        Plotter.field.appendChild(Plotter.renderer.domElement);
+        WarGame.Plotter.field.appendChild(WarGame.Plotter.renderer.domElement);
 
-        Plotter.scene.add(Plotter.lights);
-        Plotter.scene.add(Plotter.camera);
-        Plotter.scene.add(ambientLight);
-        Plotter.scene.add(skybox);
-        Plotter.scene.add(water);
+        WarGame.Plotter.scene.add(WarGame.Plotter.lights);
+        WarGame.Plotter.scene.add(WarGame.Plotter.camera);
+        WarGame.Plotter.scene.add(ambientLight);
+        WarGame.Plotter.scene.add(skybox);
+        WarGame.Plotter.scene.add(water);
 
-        Plotter.render();
+        WarGame.Plotter.render();
     },
 
     getWidthHeight: function () {
-        return { width: Plotter.field.offsetWidth, height: Plotter.field.offsetHeight };
+        return { width: WarGame.Plotter.field.offsetWidth, height: WarGame.Plotter.field.offsetHeight };
     },
 
     render: function () {
-        Plotter.lights.rotateOnAxis(new THREE.Vector3(1,0,0), Plotter.timeStep);
-        if (Plotter.lights.rotation.x > 6.27) {
-            Plotter.lights.rotation.x = 0;
+        // WarGame.Plotter.lights.rotateOnAxis(new THREE.Vector3(1,0,0), WarGame.Plotter.timeStep);
+        WarGame.Plotter.lights.rotation.x += WarGame.Plotter.timeStep;
+        if (WarGame.Plotter.lights.rotation.x > 6.27) {
+            WarGame.Plotter.lights.rotation.x = 0;
         }
-        Plotter.renderer.render(Plotter.scene, Plotter.camera);
+        WarGame.Plotter.renderer.render(WarGame.Plotter.scene, WarGame.Plotter.camera);
     },
 };

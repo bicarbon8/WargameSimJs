@@ -15,21 +15,30 @@ body, div, canvas {
 </head>
 <body>
 <div id="playfield"></div>
+
+<script src="js/player.js"></script>
+<script src="js/map.js"></script>
+
+<script src="js/generators/mapObjGenerator.js"></script>
+<script src="js/generators/playerObjGenerator.js"></script>
+<script src="js/plotter.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/wargame.js"></script>
+
 <script src="resources/maps/100x100/map.js"></script>
 <script src="resources/players/basic/player.js"></script>
-<script src="js/generators/mapGenerator.js"></script>
-<script src="js/generators/playerGenerator.js"></script>
-<script src="js/plotter.js"></script>
+
 <script language="javascript">
     document.querySelector('#playfield').style.height = window.innerHeight + "px";
-    Plotter.initialize();
-    var map = MapGenerator.parse(Maps[0]);
-    Plotter.scene.add(map);
-    var player = PlayerGenerator.parse(Players[0]);
-    Plotter.scene.add(player);
+    WarGame.initialize();
+    WarGame.setMap("100x100");
+    WarGame.addPlayer("basic", "one", { x: 51, z: 49 });
+    WarGame.addPlayer("basic", "one", { x: 51, z: 51 });
+    WarGame.addPlayer("basic", "two", { x: 50, z: 50 });
+    WarGame.addPlayer("basic", "two", { x: 49, z: 50 });
     function animate() {
         requestAnimationFrame(animate);
-        Plotter.render();
+        WarGame.render();
     }
     animate();
 </script>

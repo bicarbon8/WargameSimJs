@@ -1,4 +1,7 @@
-var MapGenerator = {
+var WarGame = WarGame || {};
+WarGame.MapObjGenerator = {
+    STEP_OFFSET: 0.5,
+    MAX_BLOCK_HEIGHT: 5,
     parse: function (json) {
         var mapGeometry = new THREE.Geometry();
         var matrix = new THREE.Matrix4();
@@ -9,10 +12,10 @@ var MapGenerator = {
             var gridRow = json.grid[i];
             startZ = -(gridRow.length / 2);
             for (var j=0; j<gridRow.length; j++) {
-                var boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+                var boxGeometry = new THREE.BoxGeometry(1, WarGame.MapObjGenerator.MAX_BLOCK_HEIGHT, 1);
                 matrix.makeTranslation(
                     startX + i,
-                    -0.5 + (gridRow[j] * 0.5),
+                    -(WarGame.MapObjGenerator.MAX_BLOCK_HEIGHT / 2) + (gridRow[j] * WarGame.MapObjGenerator.STEP_OFFSET),
                     (startZ + j) * -1
                 );
                 mapGeometry.merge(boxGeometry, matrix);
@@ -20,10 +23,10 @@ var MapGenerator = {
         }
 
         var mapMaterial = new THREE.MeshLambertMaterial({ color: 0x44ff44 });
-        var map = new THREE.Mesh(mapGeometry, mapMaterial);
-        map.receiveShadow = true;
-        map.castShadow = true;
+        var mapObj = new THREE.Mesh(mapGeometry, mapMaterial);
+        mapObj.receiveShadow = true;
+        mapObj.castShadow = true;
 
-        return map;
+        return mapObj;
     }
 };
