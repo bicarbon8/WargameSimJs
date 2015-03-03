@@ -1,9 +1,8 @@
 WarGame.Players = WarGame.Players || [];
 WarGame.Players.push({
     name: 'Basic',
-    width: 0.5, // x
-    height: 2, // y
-    depth: 0.5, // z
+    width: 0.8, // x
+    height: 1, // y
     stats: {
         attack: {
             mele: 2,

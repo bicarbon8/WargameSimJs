@@ -32,10 +32,10 @@ body, div, canvas {
     document.querySelector('#playfield').style.height = window.innerHeight + "px";
     WarGame.initialize();
     WarGame.setMap("100x100");
-    WarGame.addPlayer("basic", "one", { x: 51, z: 49 });
-    WarGame.addPlayer("basic", "one", { x: 51, z: 51 });
-    WarGame.addPlayer("basic", "two", { x: 50, z: 50 });
-    WarGame.addPlayer("basic", "two", { x: 49, z: 50 });
+    WarGame.addPlayer("basic", 0xff0000, { x: 51, z: 49 });
+    WarGame.addPlayer("basic", 0xff0000, { x: 51, z: 51 });
+    WarGame.addPlayer("basic", 0x0000ff, { x: 50, z: 50 });
+    WarGame.addPlayer("basic", 0x0000ff, { x: 49, z: 50 });
     function animate() {
         requestAnimationFrame(animate);
         WarGame.render();
