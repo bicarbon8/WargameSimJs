@@ -10,15 +10,7 @@ WarGame.Player = function (obj, team, attributes) {
 };
 
 WarGame.Player.prototype.initialize = function () {
-    this.setColour(this.team);
-};
-
-WarGame.Player.prototype.select = function () {
-    this.setColour(WarGame.selectedColour);
-};
-
-WarGame.Player.prototype.unSelect = function () {
-    this.setColour(this.team);
+    this.setColour(this.team.colour);
 };
 
 WarGame.Player.prototype.setColour = function (colour) {

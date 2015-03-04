@@ -87,8 +87,8 @@ WarGame.Plotter = {
 
         function onDocumentMouseMove(event) {
             event.preventDefault();
-            WarGame.Plotter.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-            WarGame.Plotter.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+            WarGame.Plotter.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            WarGame.Plotter.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
             WarGame.Plotter.raycaster.setFromCamera(WarGame.Plotter.mouse, WarGame.Plotter.camera);
             var intersects = WarGame.Plotter.raycaster.intersectObjects(WarGame.map.players.map(function (p) { return p.obj; }));

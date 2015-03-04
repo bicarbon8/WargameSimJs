@@ -34,17 +34,14 @@ WarGame.WoundChart = {
             def = attacker.attributes.defence - 1;
         }
         var needed = WarGame.WoundChart.chart[atk][def];
-        var hit = false;
         for (var i=0; i<needed.length; i++) {
             var need = needed[i];
             var roll = WarGame.Utils.diceRoll();
-            if (roll >= need) {
-                hit = true;
-            } else {
-                hit = false;
+            if (roll < need) {
+                return false; // exit on failure
             }
         }
 
-        return hit;
+        return true;
     },
 };
