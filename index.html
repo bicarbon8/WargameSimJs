@@ -23,6 +23,7 @@ body, div, canvas {
 <script src="js/generators/playerObjGenerator.js"></script>
 <script src="js/plotter.js"></script>
 <script src="js/utils.js"></script>
+<script src="js/woundChart.js"></script>
 <script src="js/wargame.js"></script>
 
 <script src="resources/maps/100x100/map.js"></script>
@@ -34,8 +35,8 @@ body, div, canvas {
     WarGame.setMap("100x100");
     WarGame.addPlayer("basic", 0xff0000, { x: 51, z: 49 });
     WarGame.addPlayer("basic", 0xff0000, { x: 51, z: 51 });
-    WarGame.addPlayer("basic", 0x0000ff, { x: 50, z: 50 });
-    WarGame.addPlayer("basic", 0x0000ff, { x: 49, z: 50 });
+    WarGame.addPlayer("basic", 0x0044ff, { x: 50, z: 50 });
+    WarGame.addPlayer("basic", 0x0044ff, { x: 49, z: 50 });
     function animate() {
         requestAnimationFrame(animate);
         WarGame.render();

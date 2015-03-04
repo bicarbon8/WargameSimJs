@@ -1,6 +1,10 @@
 var WarGame = WarGame || {};
 WarGame.map = null;
-WarGame._players = [];
+WarGame.PRIORITY_PHASE = 0;
+WarGame.MOVEMENT_PHASE = 1;
+WarGame.SHOOTING_PHASE = 2;
+WarGame.FIGHTING_PHASE = 3;
+WarGame.CURRENT_PHASE = 0;
 
 WarGame.initialize = function () {
     WarGame.Plotter.initialize();
@@ -37,16 +41,7 @@ WarGame.addPlayer = function (type, team, startingLocation) {
     }
     var height = WarGame.map.attributes.grid[startingLocation.x][startingLocation.z];
     var player = new WarGame.Player(WarGame.PlayerObjGenerator.parse(p), team, p);
-    var matrix = new THREE.Matrix4();
-    var coordinates = WarGame.Utils.translateCoordinates({ x: startingLocation.x, y: height, z: startingLocation.z }, WarGame.map);
-    matrix.makeTranslation(
-        coordinates.x,
-        coordinates.y,
-        coordinates.z
-    );
-    player.obj.applyMatrix(matrix);
-    WarGame._players.push(player);
-    WarGame.Plotter.scene.add(player.obj);
+    WarGame.map.addPlayer(player, new THREE.Vector3(startingLocation.x, height, startingLocation.z));
 };
 
 WarGame.render = function () {
@@ -54,5 +49,10 @@ WarGame.render = function () {
 };
 
 WarGame.reset = function () {
-    // TODO:
+    WarGame.map = null;
+    WarGame.CURRENT_PHASE = WarGame.PRIORITY_PHASE;
+    if (WarGame.Plotter) {
+        WarGame.Plotter.reset();
+    }
+    // TODO: reset ALL THE THINGS!
 };

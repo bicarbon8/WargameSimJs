@@ -22,7 +22,10 @@ WarGame.MapObjGenerator = {
             }
         }
 
-        var mapMaterial = new THREE.MeshLambertMaterial({ color: 0x44ff44 });
+        var mapMaterial = new THREE.MeshLambertMaterial({
+            color: 0x44ff44,
+            // wireframe: true
+        });
         var mapObj = new THREE.Mesh(mapGeometry, mapMaterial);
         mapObj.receiveShadow = true;
         mapObj.castShadow = true;

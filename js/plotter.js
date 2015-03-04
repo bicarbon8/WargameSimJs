@@ -6,6 +6,9 @@ WarGame.Plotter = {
     renderer: null,
     field: null,
     timeStep: 0.0001,
+    raycaster: null,
+    mouse: null,
+    INTERSECTED: null,
 
     initialize: function () {
         WarGame.Plotter.field = document.querySelector('#playfield');
@@ -21,15 +24,7 @@ WarGame.Plotter = {
         WarGame.Plotter.lights = new THREE.Object3D();
         for (var i=-20; i<30; i+=40) {
             for (var j=-20; j<30; j+=40) {
-                var sunLight = new THREE.SpotLight(0xFFFF44, 0.25, 0, Math.PI / 2, 1); // orange light
-                sunLight.castShadow = true;
-                sunLight.shadowCameraNear = 100;
-                sunLight.shadowCameraFar = 1100;
-                // sunLight.shadowCameraVisible = true;
-                sunLight.shadowBias = 0.0001;
-                sunLight.shadowDarkness = 0.25;
-                sunLight.shadowMapWidth = 2048;
-                sunLight.shadowMapHeight = 2048;
+                var sunLight = new THREE.PointLight(0xFFFF44, 0.2, 0, Math.PI / 2, 1); // orange light
                 sunLight.position.set(i, 600, j);
 
                 var moonLight = new THREE.PointLight(0x3333FF, 0.25, 0, Math.PI / 2, 1); // blue light
@@ -39,10 +34,21 @@ WarGame.Plotter = {
                 WarGame.Plotter.lights.add(moonLight);
             }
         }
+        var sunShadowLight = new THREE.SpotLight(0xFFFF44, 0.2, 0, Math.PI / 2, 1);
+        sunShadowLight.castShadow = true;
+        sunShadowLight.shadowCameraNear = 100;
+        sunShadowLight.shadowCameraFar = 1100;
+        // sunShadowLight.shadowCameraVisible = true;
+        sunShadowLight.shadowBias = 0.0001;
+        sunShadowLight.shadowDarkness = 0.75;
+        sunShadowLight.shadowMapWidth = 2048;
+        sunShadowLight.shadowMapHeight = 2048;
+        sunShadowLight.position.set(0, 600, 0);
+        WarGame.Plotter.lights.add(sunShadowLight);
 
         var ambientLight = new THREE.AmbientLight(0x606060); // soft white light
 
-        var waterGeometry = new THREE.PlaneGeometry(10000, 10000, 1, 1);
+        var waterGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 1, 1);
         var waterMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff });
         var water = new THREE.Mesh(waterGeometry, waterMaterial);
         water.position.y -= 0.5;
@@ -75,6 +81,34 @@ WarGame.Plotter = {
         WarGame.Plotter.scene.add(water);
 
         WarGame.Plotter.render();
+
+        WarGame.Plotter.raycaster = new THREE.Raycaster();
+        WarGame.Plotter.mouse = new THREE.Vector2();
+
+        function onDocumentMouseMove(event) {
+            event.preventDefault();
+            WarGame.Plotter.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+            WarGame.Plotter.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+            WarGame.Plotter.raycaster.setFromCamera(WarGame.Plotter.mouse, WarGame.Plotter.camera);
+            var intersects = WarGame.Plotter.raycaster.intersectObjects(WarGame.map.players.map(function (p) { return p.obj; }));
+            if (intersects.length > 0) {
+                if (WarGame.Plotter.INTERSECTED != intersects[0].object) {
+                    if (WarGame.Plotter.INTERSECTED) WarGame.Plotter.INTERSECTED.material.emissive.setHex(WarGame.Plotter.INTERSECTED.currentHex);
+
+                    WarGame.Plotter.INTERSECTED = intersects[0].object;
+                    WarGame.Plotter.INTERSECTED.currentHex = WarGame.Plotter.INTERSECTED.material.emissive.getHex();
+                    WarGame.Plotter.INTERSECTED.material.emissive.setHex(0xff0000);
+                }
+            } else {
+                if (WarGame.Plotter.INTERSECTED) {
+                    WarGame.Plotter.INTERSECTED.material.emissive.setHex(WarGame.Plotter.INTERSECTED.currentHex);
+                    WarGame.Plotter.INTERSECTED = null;
+                }
+            }
+        }
+
+        document.addEventListener('mousemove', onDocumentMouseMove, false);
     },
 
     getWidthHeight: function () {
@@ -88,5 +122,15 @@ WarGame.Plotter = {
             WarGame.Plotter.lights.rotation.x = 0;
         }
         WarGame.Plotter.renderer.render(WarGame.Plotter.scene, WarGame.Plotter.camera);
+    },
+
+    reset: function () {
+        WarGame.Plotter.field.innerHTML = '';
+        WarGame.Plotter.scene = null;
+        WarGame.Plotter.camera = null;
+        WarGame.Plotter.lights = null;
+        WarGame.Plotter.renderer = null;
+        WarGame.Plotter.field = null;
+        WarGame.Plotter.initialize();
     },
 };

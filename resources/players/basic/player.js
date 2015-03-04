@@ -1,23 +1,23 @@
 WarGame.Players = WarGame.Players || [];
 WarGame.Players.push({
-    name: 'Basic',
+    name: 'basic',
+    cost: 10,
     width: 0.8, // x
     height: 1, // y
     stats: {
-        attack: {
-            mele: 2,
-            ranged: null,
-            magic: null
+        fight: {
+            mele: 3,
+            ranged: {
+                points: 0,
+                distance: 0,
+            }
         },
-        defense: {
-            mele: 2,
-            ranged: 3,
-            magic: 1
-        },
+        strength: 3,
+        defense: 5,
+        attacks: 1,
+        wounds: 2,
+        courage: 3,
+        move: 5,
         effect: null,
-        hp: 4,
-        mana: 0,
-        special: 0,
-        speed: 5
-    }
+    },
 });

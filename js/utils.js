@@ -12,4 +12,19 @@ WarGame.Utils = {
 
         return { x: actualX, y: actualY, z: actualZ };
     },
+
+    diceRoll: function (numDice, sides) {
+        var times = numDice || 1;
+        var s = sides || 6;
+        var results = [];
+        for (var i=0; i<times; i++) {
+            results.push(WarGame.Utils.getRandomInt(1, s));
+        }
+
+        return results;
+    },
+
+    getRandomInt: function (min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 };
