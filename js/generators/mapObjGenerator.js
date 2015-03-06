@@ -6,17 +6,15 @@ WarGame.MapObjGenerator = {
         var mapGeometry = new THREE.Geometry();
         var matrix = new THREE.Matrix4();
 
-        var startX = -(json.grid.length / 2);
-        var startZ;
-        for (var i=0; i<json.grid.length; i++) {
-            var gridRow = json.grid[i];
-            startZ = -(gridRow.length / 2);
-            for (var j=0; j<gridRow.length; j++) {
+        for (var z=0; z<json.grid.length; z++) {
+            for (var x=0; x<json.grid[z].length; x++) {
                 var boxGeometry = new THREE.BoxGeometry(1, WarGame.MapObjGenerator.MAX_BLOCK_HEIGHT, 1);
+                var y = -(WarGame.MapObjGenerator.MAX_BLOCK_HEIGHT) + json.grid[z][x];
+                var coordinates = WarGame.Utils.boardLocToCoordinates(new THREE.Vector3(x,y,z), json.grid);
                 matrix.makeTranslation(
-                    startX + i,
-                    -(WarGame.MapObjGenerator.MAX_BLOCK_HEIGHT / 2) + (gridRow[j] * WarGame.MapObjGenerator.STEP_OFFSET),
-                    (startZ + j) * -1
+                    coordinates.x,
+                    coordinates.y,
+                    coordinates.z
                 );
                 mapGeometry.merge(boxGeometry, matrix);
             }

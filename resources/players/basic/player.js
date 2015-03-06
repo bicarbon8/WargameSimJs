@@ -18,6 +18,9 @@ WarGame.Players.push({
         wounds: 2,
         courage: 3,
         move: 5,
+        might: 0,
+        will: 0,
+        fate: 0,
         effect: null,
     },
 });

@@ -18,7 +18,7 @@ WarGame.Plotter = {
         WarGame.Plotter.scene.fog = new THREE.FogExp2(0xffffff, 0.015);
 
         WarGame.Plotter.camera = new THREE.PerspectiveCamera(45, dims.width / dims.height, 0.1, 100000);
-        WarGame.Plotter.camera.position.set(50, 50, 0);
+        WarGame.Plotter.camera.position.set(0, 50, 50);
         WarGame.Plotter.camera.lookAt(WarGame.Plotter.scene.position);
 
         WarGame.Plotter.lights = new THREE.Object3D();
@@ -62,8 +62,7 @@ WarGame.Plotter = {
         WarGame.Plotter.renderer.setSize(dims.width, dims.height);
         WarGame.Plotter.renderer.shadowMapEnabled = true;
 
-        WarGame.Plotter.controls = new THREE.OrbitControls(WarGame.Plotter.camera);
-        WarGame.Plotter.controls.damping = 0.2;
+        WarGame.Plotter.controls = new THREE.OrbitControls(WarGame.Plotter.camera, WarGame.Plotter.renderer.domElement);
         WarGame.Plotter.controls.addEventListener('change', function () { WarGame.Plotter.render(); });
         // WarGame.Plotter.controls.minDistance = 20;
         // WarGame.Plotter.controls.maxDistance = 1000;
@@ -80,18 +79,25 @@ WarGame.Plotter = {
         WarGame.Plotter.scene.add(skybox);
         WarGame.Plotter.scene.add(water);
 
+        // var axisHelper = new THREE.AxisHelper(50);
+        // WarGame.Plotter.scene.add(axisHelper);
+
         WarGame.Plotter.render();
 
         WarGame.Plotter.raycaster = new THREE.Raycaster();
         WarGame.Plotter.mouse = new THREE.Vector2();
 
-        function onDocumentMouseMove(event) {
+        function onCanvasMouseMove(event) {
             event.preventDefault();
-            WarGame.Plotter.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            WarGame.Plotter.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            var dims = WarGame.Plotter.getWidthHeight();
+            var offset = WarGame.Plotter.renderer.domElement.getBoundingClientRect();
+            WarGame.Plotter.mouse.x = ((event.clientX - offset.left) / dims.width) * 2 - 1;
+            WarGame.Plotter.mouse.y = - ((event.clientY - offset.top) / dims.height) * 2 + 1;
 
             WarGame.Plotter.raycaster.setFromCamera(WarGame.Plotter.mouse, WarGame.Plotter.camera);
-            var intersects = WarGame.Plotter.raycaster.intersectObjects(WarGame.map.players.map(function (p) { return p.obj; }));
+            var intersects = WarGame.Plotter.raycaster.intersectObjects(WarGame.teams[WarGame.currentTeam].players.map(function (p) {
+                return p.obj;
+            }));
             if (intersects.length > 0) {
                 if (WarGame.Plotter.INTERSECTED != intersects[0].object) {
                     if (WarGame.Plotter.INTERSECTED) WarGame.Plotter.INTERSECTED.material.emissive.setHex(WarGame.Plotter.INTERSECTED.currentHex);
@@ -108,18 +114,31 @@ WarGame.Plotter = {
             }
         }
 
-        document.addEventListener('mousemove', onDocumentMouseMove, false);
+        WarGame.Plotter.renderer.domElement.addEventListener('mousemove', onCanvasMouseMove, false);
+        window.addEventListener('resize', WarGame.Plotter.resize, false);
     },
 
     getWidthHeight: function () {
         return { width: WarGame.Plotter.field.offsetWidth, height: WarGame.Plotter.field.offsetHeight };
     },
 
+    resize: function () {
+        var dims = WarGame.Plotter.getWidthHeight();
+        try {
+            WarGame.Plotter.camera.aspect = dims.width / dims.height;
+            WarGame.Plotter.camera.updateProjectionMatrix();
+            WarGame.Plotter.renderer.setSize(dims.width, dims.height);
+            WarGame.Plotter.controls.handleResize();
+        } catch (e) {
+            // TODO: log
+        }
+    },
+
     render: function () {
         // WarGame.Plotter.lights.rotateOnAxis(new THREE.Vector3(1,0,0), WarGame.Plotter.timeStep);
-        WarGame.Plotter.lights.rotation.x += WarGame.Plotter.timeStep;
-        if (WarGame.Plotter.lights.rotation.x > 6.27) {
-            WarGame.Plotter.lights.rotation.x = 0;
+        WarGame.Plotter.lights.rotation.z += WarGame.Plotter.timeStep;
+        if (WarGame.Plotter.lights.rotation.z > 6.27) {
+            WarGame.Plotter.lights.rotation.z = 0;
         }
         WarGame.Plotter.renderer.render(WarGame.Plotter.scene, WarGame.Plotter.camera);
     },

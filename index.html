@@ -2,29 +2,55 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wargame Simulator</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 <style>
+html, body { height: 100%; }
+html {
+    display: table;
+    width: 100%;
+}
 body, div, canvas {
-    margin: 0;
-    padding: 0;
     width: 100%;
 }
 </style>
 <!-- External Dependencies -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
 <script src="external/OrbitControls.js"></script>
 </head>
 <body>
-<div id="playfield"></div>
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="col-xs-3">
+                <div id="priorityRow" class="row-fluid">
+                    <h3>TURN: <span id="priorityTeam" class="label label-default">loading...</span></h3>
+                </div>
+                <div id="phaseRow" class="row-fluid">
+                    <h3>CURRENT PHASE: <span id="currentPhase" class="label label-default">loading...</span></h3>
+                </div>
+                <div id="moveRow" class="row-fluid"></div>
+                <div id="fightRow" class="row-fluid"></div>
+                <button type="submit" onclick="WarGame.endPhase();" class="btn btn-default">End Turn</button>
+            </div>
+            <div class="col-xs-9">
+                <div id="playfield"></div>
+            </div>
+        </div>
+    </div>
+</body>
 
 <script src="js/player.js"></script>
 <script src="js/map.js"></script>
-
 <script src="js/generators/mapObjGenerator.js"></script>
 <script src="js/generators/playerObjGenerator.js"></script>
 <script src="js/plotter.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/woundChart.js"></script>
+<script src="js/team.js"></script>
 <script src="js/wargame.js"></script>
 
 <script src="resources/maps/100x100/map.js"></script>
@@ -38,19 +64,31 @@ body, div, canvas {
     WarGame.initialize();
     WarGame.setMap("100x100");
 
+    /**
+     * available players are:
+     * - light: weak archers
+     * - basic: standard warriors
+     * - heavy: strong, slow warriors
+     * - hero: powerful warriors with high cost
+     */
     WarGame.addPlayer("light", 0, { x: 51, z: 49 }); // -10 points
     WarGame.addPlayer("basic", 0, { x: 51, z: 51 }); // -15 points
+    WarGame.addPlayer("basic", 0, { x: 52, z: 51 }); // -15 points
     WarGame.addPlayer("heavy", 0, { x: 55, z: 55 }); // -20 points
+    WarGame.addPlayer("heavy", 0, { x: 45, z: 45 }); // -20 points
+    WarGame.addPlayer("heavy", 0, { x: 50, z: 48 }); // -20 points
 
     WarGame.addPlayer("heavy", 1, { x: 50, z: 50 }); // -20 points
     WarGame.addPlayer("hero", 1, { x: 49, z: 51 });  // -50 points
-    WarGame.addPlayer("light", 1, { x: 30, z: 50 }); // -10 points
+    WarGame.addPlayer("light", 1, { x: 50, z: 30 }); // -10 points
+    WarGame.addPlayer("basic", 1, { x: 50, z: 60 }); // -15 points
 
     function animate() {
         requestAnimationFrame(animate);
         WarGame.render();
     }
     animate();
+
+    WarGame.doCurrentPhase();
 </script>
-</body>
 </html>
