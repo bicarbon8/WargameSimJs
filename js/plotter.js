@@ -5,7 +5,7 @@ WarGame.Plotter = {
     lights: null,
     renderer: null,
     field: null,
-    timeStep: 0.0001,
+    timeStep: 0.00001,
     raycaster: null,
     mouse: null,
     INTERSECTED: null,

@@ -43,15 +43,20 @@ WarGame.Map.prototype.movePlayerTo = function (player, location, restrict) {
     location.y = height;
     var coordinates = WarGame.Utils.boardLocToCoordinates({ x: location.x, y: location.y, z: location.z }, this.attributes.grid);
     var dist = this.getDistanceBetweenTwoPoints(player.obj.position, coordinates);
-    if ((!limitDistance || player.attributes.stats.move >= dist) && !this.locationOccupied(location)) {
-        if (player.boardLocation) {
-            this.playerMap[player.boardLocation.z][player.boardLocation.x] = null;
+    if (!limitDistance || player.attributes.stats.move >= dist) {
+        if (!this.locationOccupied(location)) {
+            if (player.boardLocation) {
+                this.playerMap[player.boardLocation.z][player.boardLocation.x] = null;
+            }
+            this.playerMap[location.z][location.x] = player;
+            player.boardLocation = location;
+            player.moveTo(coordinates);
+        } else {
+            alert("space is occupied, please choose another.");
         }
-        this.playerMap[location.z][location.x] = player;
-        player.boardLocation = location;
-        player.moveTo(coordinates);
     } else {
         // TODO: alert and allow retry
+        alert("distance too far. player can only move: " + player.attributes.stats.move);
     }
 };
 

@@ -48,16 +48,21 @@ WarGame.Player.prototype.battle = function (opponent) {
     // TODO: move loser back 1 space or handle trapped condition
     var winner, loser;
     if (myTopScore > oppTopScore) {
+        alert(this.team.name + ' wins the attack.');
         winner = this;
         loser = opponent;
     } else {
+        alert(opponent.team.name + ' wins the attack.');
         winner = opponent;
         loser = this;
     }
     for (i=0; i<winner.attributes.stats.attacks; i++) {
         var success = WarGame.WoundChart.tryWound(winner, loser);
         if (success) {
+            alert(winner.team.name + ' scored a hit.');
             loser.wound();
+        } else {
+            alert(winner.team.name + ' missed.');
         }
     }
 };
