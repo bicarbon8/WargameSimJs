@@ -173,6 +173,15 @@ WarGame.handleFightClick = function (event) {
     }
 };
 
+WarGame.doFightPhase = function () {
+    var battles = WarGame.map.getBattleGroups(WarGame.teams[WarGame.currentTeam]);
+    // TODO: let priority player choose battle order
+    for (var i=0; i<battles.length; i++) {
+        var battle = battles[i];
+        battle.start();
+    }
+};
+
 WarGame.doCurrentPhase = function () {
     var elem = document.querySelector('#currentPhase');
     switch (WarGame.CURRENT_PHASE) {
@@ -191,7 +200,8 @@ WarGame.doCurrentPhase = function () {
             break; // TODO: implement
         case WarGame.FIGHTING_PHASE:
             elem.innerHTML = 'FIGHTING';
-            WarGame.Plotter.renderer.domElement.addEventListener('click', WarGame.handleFightClick, false);
+            // WarGame.Plotter.renderer.domElement.addEventListener('click', WarGame.handleFightClick, false);
+            WarGame.doFightPhase();
             break;
         default:
             WarGame.CURRENT_PHASE = WarGame.MOVEMENT_PHASE;
@@ -200,22 +210,26 @@ WarGame.doCurrentPhase = function () {
 };
 
 WarGame.endPhase = function () {
-    WarGame.TEAMS_DONE_PHASE++;
-
-    // TODO: handle more than 2 teams
-    if (WarGame.currentTeam === 0) {
-        WarGame.currentTeam = 1;
-    } else {
-        WarGame.currentTeam = 0;
-    }
-    var elem = document.querySelector('#priorityTeam');
-    elem.innerHTML = WarGame.teams[WarGame.currentTeam].name;
-
-    if (WarGame.TEAMS_DONE_PHASE >= WarGame.teams.length) {
-        WarGame.TEAMS_DONE_PHASE = 0;
+    if (WarGame.CURRENT_PHASE === WarGame.FIGHTING_PHASE) {
         WarGame.nextPhase();
     } else {
-        WarGame.doCurrentPhase();
+        WarGame.TEAMS_DONE_PHASE++;
+
+        // TODO: handle more than 2 teams
+        if (WarGame.currentTeam === 0) {
+            WarGame.currentTeam = 1;
+        } else {
+            WarGame.currentTeam = 0;
+        }
+        var elem = document.querySelector('#priorityTeam');
+        elem.innerHTML = WarGame.teams[WarGame.currentTeam].name;
+
+        if (WarGame.TEAMS_DONE_PHASE >= WarGame.teams.length) {
+            WarGame.TEAMS_DONE_PHASE = 0;
+            WarGame.nextPhase();
+        } else {
+            WarGame.doCurrentPhase();
+        }
     }
 };
 

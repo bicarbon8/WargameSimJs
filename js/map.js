@@ -75,6 +75,40 @@ WarGame.Map.prototype.locationOccupied = function (location) {
     return false;
 };
 
+WarGame.Map.prototype.getBattleGroups = function (priorityTeam) {
+    var battles = [];
+    var pTeamPlayers = priorityTeam.players;
+    for (var i=0; i<pTeamPlayers.length; i++) {
+        var player = pTeamPlayers[i];
+        var opponents = this.getOpponentsInMeleRange(player);
+        if (opponents.length > 0) {
+            // see if this player's opponents are already in battle
+            var inBattle = false;
+            for (var j=0; j<battles.length; j++) {
+                for (var k=0; k<opponents.length; k++) {
+                    if (battles[j].hasOpponent(opponents[k])) {
+                        battles[j].addAttacker(player);
+                        battles[j].addOpponents(opponents);
+                        inBattle = true;
+                        break;
+                    }
+                }
+                if (inBattle) {
+                    break;
+                }
+            }
+            if (!inBattle) {
+                var battle = new WarGame.Battle();
+                battle.addAttacker(player);
+                battle.addOpponents(opponents);
+                battles.push(battle);
+            }
+        }
+    }
+
+    return battles;
+};
+
 /**
  * function will check for opposing team players in the 8 spaces around the
  * passed in player.
@@ -83,26 +117,18 @@ WarGame.Map.prototype.locationOccupied = function (location) {
  */
 WarGame.Map.prototype.getOpponentsInMeleRange = function (player) {
     var centre = player.boardLocation;
-    var opponents = [
-        [null,null,null],
-        [null,null,null],
-        [null,null,null]
-    ];
-    var i=0;
+    var opponents = [];
     for (var z=centre.z-1; z<=centre.z+1; z++) {
-        var j=0;
         if (z > 0 && z <= this.playerMap.length) {
             for (var x=centre.x-1; x<=centre.x+1; x++) {
                 if (x > 0 && x <= this.playerMap[z].length) {
                     var nearPlayer = this.locationOccupied(new THREE.Vector3(x, 0, z));
                     if (nearPlayer && nearPlayer.team.name !== player.team.name) {
-                        opponents[i][j] = nearPlayer;
+                        opponents.push(nearPlayer);
                     }
                 }
-                j++;
             }
         }
-        i++;
     }
 
     return opponents;
