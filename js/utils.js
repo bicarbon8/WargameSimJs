@@ -41,7 +41,7 @@ WarGame.Utils = {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     },
 
-    getMouseIntersects: function (objArray) {
+    getMouseIntersects: function (event, objArray) {
         var dims = WarGame.Plotter.getWidthHeight();
         var offset = WarGame.Plotter.renderer.domElement.getBoundingClientRect();
         WarGame.Plotter.mouse.x = ((event.clientX - offset.left) / dims.width) * 2 - 1;

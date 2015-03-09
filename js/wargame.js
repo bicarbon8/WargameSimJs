@@ -1,6 +1,7 @@
 var WarGame = WarGame || {};
 WarGame.map = null;
 WarGame.currentTeam = 0;
+WarGame.INTERSECTED = null;
 WarGame.POINTS_PER_TEAM = 100;
 WarGame.PRIORITY_PHASE = 0;
 WarGame.MOVEMENT_PHASE = 1;
@@ -8,6 +9,7 @@ WarGame.SHOOTING_PHASE = 2;
 WarGame.FIGHTING_PHASE = 3;
 WarGame.CURRENT_PHASE = 0;
 WarGame.TEAMS_DONE_PHASE = 0; // tracks number of teams who have completed current phase
+WarGame.currentBattles = null;
 
 WarGame.teams = [
     new WarGame.Team("RED", 0xff0000),
@@ -83,7 +85,7 @@ WarGame.handleMoveClick = function (event) {
     // get all players for team
     if (team) {
         var players = team.players;
-        var intersects = WarGame.Utils.getMouseIntersects(players.map(function (p) { return p.obj; }));
+        var intersects = WarGame.Utils.getMouseIntersects(event, players.map(function (p) { return p.obj; }));
         if (intersects.length > 0) {
             for (var i=0; i<players.length; i++) {
                 if (intersects[0].object === players[i].obj) {
@@ -112,73 +114,86 @@ WarGame.handleMoveClick = function (event) {
 
 WarGame.handleFightClick = function (event) {
     event.preventDefault();
-    var team = WarGame.teams[WarGame.currentTeam];
-    var container = document.querySelector('#fightRow');
-    container.innerHTML = '';
-    // get all players for team
-    if (team) {
-        var players = team.players;
-        var intersects = WarGame.Utils.getMouseIntersects(players.map(function (p) { return p.obj; }));
-        if (intersects.length > 0) {
-            for (var i=0; i<players.length; i++) {
-                if (intersects[0].object === players[i].obj) {
-                    var opponents = WarGame.map.getOpponentsInMeleRange(players[i]);
-                    var html = '' +
-'<div class="panel panel-default">' +
-'<div class="panel-heading">' +
-'<h5 class="panel-title">' + team.name + ' Player, Type: ' + players[i].attributes.name + '</h5>' +
-'</div>' +
-'<div class="panel-body">' +
-'<div class="form-group form-horizontal">' +
-'<table class="table table-bordered">' +
-'<tbody>';
-                    for (var z=0; z<opponents.length; z++) {
-                        html += '<tr>';
-                        for (var x=0; x<opponents[z].length; x++) {
-                            html += '<td>';
-                            var opponent = opponents[z][x];
-                            if (opponent) {
-                                html += '' +
-                                '<div class="radio">' +
-                                '<label>' +
-                                '<input type="radio" name="optionsRadios" value="' + opponent.boardLocation.x + '-' + opponent.boardLocation.z + '">' +
-                                opponent.attributes.name +
-                                '</label>' +
-                                '</div>';
-                            } else {
-                                html += '' +
-                                '<div class="radio disabled">' +
-                                '<label>' +
-                                '<input type="radio" name="optionsRadios" value="opponent" disabled>' +
-                                'none' +
-                                '</label>' +
-                                '</div>';
-                            }
-                            html += '</td>';
-                        }
-                        html += '</tr>';
-                    }
-                    html += '' +
-'</tbody>' +
-'</table>' +
-'<button type="submit" onclick="WarGame.fightPlayer(\'' + team.name + '\',' + i + ');" class="btn btn-default">Fight</button>' +
-'</div>' +
-'</div>' +
-'</div>';
-                    container.innerHTML = html;
+    var intersects = WarGame.Utils.getMouseIntersects(event, WarGame.map.getPlayers().map(function (p) {
+        return p.obj;
+    }));
+
+    var i;
+    if (intersects.length > 0) {
+        // get battle group
+        var started = false;
+        for (i=0; i<WarGame.currentBattles.length; i++) {
+            var players = WarGame.currentBattles[i].getPlayers();
+            for (var j=0; j<players.length; j++) {
+                if (players[j].obj === intersects[0].object) {
+                    started = true;
+                    var b = WarGame.currentBattles[i];
+                    WarGame.currentBattles.splice(i, 1); // remove this battle
+                    b.start();
                     break;
                 }
             }
         }
+
+        // end phase if no more battles exist
+        if (WarGame.currentBattles.length < 1) {
+            WarGame.endPhase();
+        }
     }
 };
 
-WarGame.doFightPhase = function () {
-    var battles = WarGame.map.getBattleGroups(WarGame.teams[WarGame.currentTeam]);
-    // TODO: let priority player choose battle order
-    for (var i=0; i<battles.length; i++) {
-        var battle = battles[i];
-        battle.start();
+WarGame.handleMoveMouseMove = function (event) {
+    event.preventDefault();
+    var intersects = WarGame.Utils.getMouseIntersects(event, WarGame.teams[WarGame.currentTeam].players.map(function (p) {
+        return p.obj;
+    }));
+
+    if (WarGame.INTERSECTED) {
+        WarGame.INTERSECTED.material.emissive.setHex(WarGame.INTERSECTED.currentHex);
+        WarGame.INTERSECTED = null;
+    }
+    if (intersects.length > 0) {
+        WarGame.INTERSECTED = intersects[0].object;
+        WarGame.INTERSECTED.currentHex = WarGame.INTERSECTED.material.emissive.getHex();
+        WarGame.INTERSECTED.material.emissive.setHex(0xff0000);
+    }
+};
+
+WarGame.handleFightMouseMove = function (event) {
+    event.preventDefault();
+    var intersects = WarGame.Utils.getMouseIntersects(event, WarGame.map.getPlayers().map(function (p) {
+        return p.obj;
+    }));
+
+    if (WarGame.INTERSECTED && WarGame.INTERSECTED.length > 0) {
+        for (i=0; i<WarGame.INTERSECTED.length; i++) {
+            WarGame.INTERSECTED[i].obj.material.emissive.setHex(WarGame.INTERSECTED.currentHex);
+        }
+        WarGame.INTERSECTED = null;
+    }
+
+    var i;
+    if (intersects.length > 0) {
+        // get battle group
+        for (i=0; i<WarGame.currentBattles.length; i++) {
+            var players = WarGame.currentBattles[i].getPlayers();
+            for (var j=0; j<players.length; j++) {
+                if (players[j].obj === intersects[0].object) {
+                    WarGame.INTERSECTED = players;
+                    break;
+                }
+            }
+            if (WarGame.INTERSECTED) {
+                break;
+            }
+        }
+
+        if (WarGame.INTERSECTED && WarGame.INTERSECTED.length > 0) {
+            for (i=0; i<WarGame.INTERSECTED.length; i++) {
+                WarGame.INTERSECTED[i].obj.currentHex = WarGame.INTERSECTED[i].obj.material.emissive.getHex();
+                WarGame.INTERSECTED[i].obj.material.emissive.setHex(0xff0000);
+            }
+        }
     }
 };
 
@@ -187,21 +202,25 @@ WarGame.doCurrentPhase = function () {
     switch (WarGame.CURRENT_PHASE) {
         case WarGame.PRIORITY_PHASE:
             elem.innerHTML = 'PRIORITY';
+            WarGame.Plotter.renderer.domElement.removeEventListener('mousemove', WarGame.handleFightMouseMove, false);
             WarGame.Plotter.renderer.domElement.removeEventListener('click', WarGame.handleFightClick, false);
             WarGame.doPriorityPhase();
             break;
         case WarGame.MOVEMENT_PHASE:
             elem.innerHTML = 'MOVEMENT';
+            WarGame.Plotter.renderer.domElement.addEventListener('mousemove', WarGame.handleMoveMouseMove, false);
             WarGame.Plotter.renderer.domElement.addEventListener('click', WarGame.handleMoveClick, false);
             break;
         case WarGame.SHOOTING_PHASE:
+            WarGame.Plotter.renderer.domElement.removeEventListener('mousemove', WarGame.handleMoveMouseMove, false);
             WarGame.Plotter.renderer.domElement.removeEventListener('click', WarGame.handleMoveClick, false);
             WarGame.nextPhase();
             break; // TODO: implement
         case WarGame.FIGHTING_PHASE:
             elem.innerHTML = 'FIGHTING';
-            // WarGame.Plotter.renderer.domElement.addEventListener('click', WarGame.handleFightClick, false);
-            WarGame.doFightPhase();
+            WarGame.currentBattles = WarGame.map.getBattleGroups(WarGame.teams[WarGame.currentTeam]);
+            WarGame.Plotter.renderer.domElement.addEventListener('mousemove', WarGame.handleFightMouseMove, false);
+            WarGame.Plotter.renderer.domElement.addEventListener('click', WarGame.handleFightClick, false);
             break;
         default:
             WarGame.CURRENT_PHASE = WarGame.MOVEMENT_PHASE;
@@ -225,7 +244,6 @@ WarGame.endPhase = function () {
         elem.innerHTML = WarGame.teams[WarGame.currentTeam].name;
 
         if (WarGame.TEAMS_DONE_PHASE >= WarGame.teams.length) {
-            WarGame.TEAMS_DONE_PHASE = 0;
             WarGame.nextPhase();
         } else {
             WarGame.doCurrentPhase();
@@ -235,6 +253,7 @@ WarGame.endPhase = function () {
 
 WarGame.nextPhase = function () {
     // end phase
+    WarGame.TEAMS_DONE_PHASE = 0;
     WarGame.CURRENT_PHASE++;
     if (WarGame.CURRENT_PHASE > WarGame.FIGHTING_PHASE) {
         WarGame.CURRENT_PHASE = WarGame.PRIORITY_PHASE;

@@ -87,34 +87,6 @@ WarGame.Plotter = {
         WarGame.Plotter.raycaster = new THREE.Raycaster();
         WarGame.Plotter.mouse = new THREE.Vector2();
 
-        function onCanvasMouseMove(event) {
-            event.preventDefault();
-            var dims = WarGame.Plotter.getWidthHeight();
-            var offset = WarGame.Plotter.renderer.domElement.getBoundingClientRect();
-            WarGame.Plotter.mouse.x = ((event.clientX - offset.left) / dims.width) * 2 - 1;
-            WarGame.Plotter.mouse.y = - ((event.clientY - offset.top) / dims.height) * 2 + 1;
-
-            WarGame.Plotter.raycaster.setFromCamera(WarGame.Plotter.mouse, WarGame.Plotter.camera);
-            var intersects = WarGame.Plotter.raycaster.intersectObjects(WarGame.teams[WarGame.currentTeam].players.map(function (p) {
-                return p.obj;
-            }));
-            if (intersects.length > 0) {
-                if (WarGame.Plotter.INTERSECTED != intersects[0].object) {
-                    if (WarGame.Plotter.INTERSECTED) WarGame.Plotter.INTERSECTED.material.emissive.setHex(WarGame.Plotter.INTERSECTED.currentHex);
-
-                    WarGame.Plotter.INTERSECTED = intersects[0].object;
-                    WarGame.Plotter.INTERSECTED.currentHex = WarGame.Plotter.INTERSECTED.material.emissive.getHex();
-                    WarGame.Plotter.INTERSECTED.material.emissive.setHex(0xff0000);
-                }
-            } else {
-                if (WarGame.Plotter.INTERSECTED) {
-                    WarGame.Plotter.INTERSECTED.material.emissive.setHex(WarGame.Plotter.INTERSECTED.currentHex);
-                    WarGame.Plotter.INTERSECTED = null;
-                }
-            }
-        }
-
-        WarGame.Plotter.renderer.domElement.addEventListener('mousemove', onCanvasMouseMove, false);
         window.addEventListener('resize', WarGame.Plotter.resize, false);
     },
 

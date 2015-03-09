@@ -30,7 +30,29 @@ WarGame.Battle.prototype.hasOpponent = function (player) {
     return this._hasPlayerIn(player, this.opponents);
 };
 
+WarGame.Battle.prototype.hasPlayer = function (player) {
+    var hasAtk = this.hasAttacker(player);
+    if (hasAtk) {
+        return true;
+    } else {
+        return this.hasOpponent(player);
+    }
+};
+
+WarGame.Battle.prototype.getPlayers = function () {
+    var players = [], i;
+    for (i=0; i<this.attackers.length; i++) {
+        players.push(this.attackers[i]);
+    }
+    for (i=0; i<this.opponents.length; i++) {
+        players.push(this.opponents[i]);
+    }
+
+    return players;
+};
+
 WarGame.Battle.prototype.start = function (opponent) {
+    // roll to determine which side wins the attack
     var attackScores = WarGame.Utils.diceRoll(this._getTotalAttackPoints(this.attackers));
     var opponentScores = WarGame.Utils.diceRoll(this._getTotalAttackPoints(this.opponents));
     var i, atkTopScore = 0;
@@ -50,6 +72,7 @@ WarGame.Battle.prototype.start = function (opponent) {
         // compare highest fight values
         var atkF = this._getHighestFightValue(this.attackers);
         var oppF = this._getHighestFightValue(this.opponents);
+        // handle matching fight values
         if (atkF === oppF) {
             // reroll to decide winner
             var roll = WarGame.Utils.diceRoll()[0];
@@ -67,11 +90,13 @@ WarGame.Battle.prototype.start = function (opponent) {
     // TODO: move loser back 1 space or handle trapped condition
     var winner, loser, attacks;
     if (atkTopScore > oppTopScore) {
+        // TODO: highlight winners
         alert(this.attackers[0].team.name + ' wins the attack.');
         winner = this.attackers;
         loser = this.opponents;
         attacks = attackScores;
     } else {
+        // TODO: highlight winners
         alert(this.opponents[0].team.name + ' wins the attack.');
         winner = this.opponents;
         loser = this.attackers;
