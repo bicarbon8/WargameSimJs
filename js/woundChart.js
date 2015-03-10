@@ -23,15 +23,15 @@ WarGame.WoundChart = {
      */
     tryWound: function (attacker, defender) {
         var atk, def;
-        if (attacker.attributes.stats.strength > 10) {
+        if (attacker.stats.strength > 10) {
             atk = 9;
         } else {
-            atk = attacker.attributes.stats.strength - 1;
+            atk = attacker.stats.strength - 1;
         }
-        if (attacker.attributes.stats.defense > 10) {
+        if (attacker.stats.defense > 10) {
             def = 9;
         } else {
-            def = attacker.attributes.stats.defense - 1;
+            def = attacker.stats.defense - 1;
         }
         var needed = WarGame.WoundChart.chart[atk][def];
         for (var i=0; i<needed.length; i++) {

@@ -8,7 +8,7 @@ WarGame.Utils = {
         var boardY = boardLocation.y;
         var actualX = -(xLength / 2) + boardX;
         var actualZ = -(zLength / 2) + boardZ;
-        var actualY = (boardY * WarGame.MapObjGenerator.STEP_OFFSET);
+        var actualY = (boardY * WarGame.STEP_OFFSET);
 
         return { x: actualX, y: actualY, z: actualZ };
     },
@@ -20,7 +20,7 @@ WarGame.Utils = {
         var actualY = coordinates.y;
         var actualZ = coordinates.z;
         var boardX = (xLength / 2) + actualX;
-        var boardY = actualY / WarGame.MapObjGenerator.STEP_OFFSET;
+        var boardY = actualY / WarGame.STEP_OFFSET;
         var boardZ = (zLength / 2) + actualZ;
 
         return { x: boardX, y: boardY, z: boardZ };

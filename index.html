@@ -33,8 +33,8 @@ body, div, canvas {
                     <h3>CURRENT PHASE: <span id="currentPhase" class="label label-default">loading...</span></h3>
                 </div>
                 <div id="moveRow" class="row-fluid"></div>
+                <div id="shootRow" class="row-fluid"></div>
                 <div id="fightRow" class="row-fluid"></div>
-                <button type="submit" onclick="WarGame.endPhase();" class="btn btn-default">End Turn</button>
             </div>
             <div class="col-xs-9">
                 <div id="playfield"></div>
@@ -43,15 +43,20 @@ body, div, canvas {
     </div>
 </body>
 
+<script src="js/stats.js"></script>
 <script src="js/player.js"></script>
 <script src="js/map.js"></script>
-<script src="js/generators/mapObjGenerator.js"></script>
-<script src="js/generators/playerObjGenerator.js"></script>
 <script src="js/plotter.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/woundChart.js"></script>
 <script src="js/team.js"></script>
 <script src="js/battle.js"></script>
+<script src="js/rangedBattle.js"></script>
+<script src="js/meleBattle.js"></script>
+<script src="js/priorityPhase.js"></script>
+<script src="js/movePhase.js"></script>
+<script src="js/shootPhase.js"></script>
+<script src="js/fightPhase.js"></script>
 <script src="js/wargame.js"></script>
 
 <script src="resources/maps/100x100/map.js"></script>

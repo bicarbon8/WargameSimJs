@@ -4,23 +4,19 @@ WarGame.Players.push({
     cost: 20,
     width: 1, // x
     height: 0.8, // y
+    move: 3,
+    shoot: 3,
+    effect: null,
     stats: {
-        fight: {
-            mele: 5,
-            ranged: {
-                points: 0,
-                distance: 0,
-            }
-        },
+        mele: 5,
+        ranged: 2,
         strength: 5,
         defense: 7,
         attacks: 1,
         wounds: 3,
         courage: 5,
-        move: 3,
         might: 1,
         will: 1,
         fate: 0,
-        effect: null,
     },
 });

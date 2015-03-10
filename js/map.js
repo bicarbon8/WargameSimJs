@@ -1,12 +1,13 @@
 var WarGame = WarGame || {};
-WarGame.Map = function (obj, attributes) {
-    this.obj = obj;
+WarGame.Map = function (attributes) {
+    this.obj = null;
     this.attributes = attributes;
     this.playerMap = new Array(this.attributes.grid.length);
     for (var z=0; z<this.attributes.grid.length; z++) {
         // TODO: handle irregular maps
         this.playerMap[z] = new Array(this.attributes.grid[z].length);
     }
+    this.generateObj();
 };
 
 WarGame.Map.prototype.addPlayer = function (player, location) {
@@ -43,7 +44,7 @@ WarGame.Map.prototype.movePlayerTo = function (player, location, restrict) {
     location.y = height;
     var coordinates = WarGame.Utils.boardLocToCoordinates({ x: location.x, y: location.y, z: location.z }, this.attributes.grid);
     var dist = this.getDistanceBetweenTwoPoints(player.obj.position, coordinates);
-    if (!limitDistance || player.attributes.stats.move >= dist) {
+    if (!limitDistance || player.attributes.move >= dist) {
         if (!this.locationOccupied(location)) {
             if (player.boardLocation) {
                 this.playerMap[player.boardLocation.z][player.boardLocation.x] = null;
@@ -56,7 +57,7 @@ WarGame.Map.prototype.movePlayerTo = function (player, location, restrict) {
         }
     } else {
         // TODO: alert and allow retry
-        alert("distance too far. player can only move: " + player.attributes.stats.move);
+        alert("distance too far. player can only move: " + player.attributes.move);
     }
 };
 
@@ -73,40 +74,6 @@ WarGame.Map.prototype.locationOccupied = function (location) {
         // TODO: invalid location so log it
     }
     return false;
-};
-
-WarGame.Map.prototype.getBattleGroups = function (priorityTeam) {
-    var battles = [];
-    var pTeamPlayers = priorityTeam.players;
-    for (var i=0; i<pTeamPlayers.length; i++) {
-        var player = pTeamPlayers[i];
-        var opponents = this.getOpponentsInMeleRange(player);
-        if (opponents.length > 0) {
-            // see if this player's opponents are already in battle
-            var inBattle = false;
-            for (var j=0; j<battles.length; j++) {
-                for (var k=0; k<opponents.length; k++) {
-                    if (battles[j].hasOpponent(opponents[k])) {
-                        battles[j].addAttacker(player);
-                        battles[j].addOpponents(opponents);
-                        inBattle = true;
-                        break;
-                    }
-                }
-                if (inBattle) {
-                    break;
-                }
-            }
-            if (!inBattle) {
-                var battle = new WarGame.Battle();
-                battle.addAttacker(player);
-                battle.addOpponents(opponents);
-                battles.push(battle);
-            }
-        }
-    }
-
-    return battles;
 };
 
 /**
@@ -132,4 +99,56 @@ WarGame.Map.prototype.getOpponentsInMeleRange = function (player) {
     }
 
     return opponents;
+};
+
+/**
+ * function will check for opposing team players within range of the passed in
+ * player.stats.shoot value
+ * @param {WarGame.Player} player - the attacker
+ * @returns an array of opponent players in range of the attacker
+ */
+WarGame.Map.prototype.getOpponentsInShootRange = function (player) {
+    var loc = player.obj.position;
+    var opponents = this.getPlayers().filter(function (p) {
+        return p.team !== player.team;
+    });
+    var filtered = [];
+    for (var i=0; i<opponents.length; i++) {
+        var oppLoc = opponents[i].obj.position;
+        var dist = this.getDistanceBetweenTwoPoints(loc, oppLoc);
+        if (dist <= player.attributes.shoot) {
+            filtered.push(opponents[i]);
+        }
+    }
+
+    return filtered;
+};
+
+WarGame.Map.prototype.generateObj = function () {
+    var mapGeometry = new THREE.Geometry();
+    var matrix = new THREE.Matrix4();
+
+    for (var z=0; z<this.attributes.grid.length; z++) {
+        for (var x=0; x<this.attributes.grid[z].length; x++) {
+            var boxGeometry = new THREE.BoxGeometry(1, WarGame.MAX_BLOCK_HEIGHT, 1);
+            var y = -(WarGame.MAX_BLOCK_HEIGHT) + this.attributes.grid[z][x];
+            var coordinates = WarGame.Utils.boardLocToCoordinates(new THREE.Vector3(x,y,z), this.attributes.grid);
+            matrix.makeTranslation(
+                coordinates.x,
+                coordinates.y,
+                coordinates.z
+            );
+            mapGeometry.merge(boxGeometry, matrix);
+        }
+    }
+
+    var mapMaterial = new THREE.MeshLambertMaterial({
+        color: 0x44ff44,
+        // wireframe: true
+    });
+    var mapObj = new THREE.Mesh(mapGeometry, mapMaterial);
+    mapObj.receiveShadow = true;
+    mapObj.castShadow = true;
+
+    this.obj = mapObj;
 };
