@@ -16,7 +16,7 @@ WarGame.RangedBattle.prototype.start = function () {
     var roll = WarGame.Utils.diceRoll();
     if (roll >= this.attackers[0].stats.ranged) {
         alert(this.attackers[0].team.name + ' scored a hit.');
-        var success = WarGame.WoundChart.tryWound(winner[i], this.opponents[0]);
+        var success = WarGame.WoundChart.tryWound(this.attackers[0], this.opponents[0]);
         if (success) {
             alert(this.attackers[0].team.name + ' damaged his opponent.');
             // TODO: let winner pick who to wound
