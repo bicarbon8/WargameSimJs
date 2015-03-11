@@ -9,7 +9,7 @@ WarGame.Players.push({
     effect: null,
     stats: {
         mele: 6,
-        ranged: 1,
+        ranged: 3,
         strength: 5,
         defense: 7,
         attacks: 2,

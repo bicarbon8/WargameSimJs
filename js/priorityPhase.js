@@ -10,13 +10,22 @@ WarGame.PriorityPhase = {
             WarGame.PriorityPhase.start();
         }
         if (one > two) {
-            WarGame.currentTeam = 0;
+            WarGame.CURRENT_TEAM = 0;
+            WarGame.PRIORITY_TEAM = 0;
         } else {
-            WarGame.currentTeam = 1;
+            WarGame.CURRENT_TEAM = 1;
+            WarGame.PRIORITY_TEAM = 1;
         }
 
         var elem = document.querySelector('#priorityTeam');
-        elem.innerHTML = WarGame.teams[WarGame.currentTeam].name;
+        elem.innerHTML = WarGame.teams[WarGame.PRIORITY_TEAM].name;
+
+        var players = WarGame.map.getPlayers();
+        for (var i=0; i<players.length; i++) {
+            if (players[i].team === WarGame.teams[WarGame.PRIORITY_TEAM]) {
+                players[i].history[WarGame.CURRENT_ROUND].priority = true;
+            }
+        }
 
         WarGame.PriorityPhase.end();
     },

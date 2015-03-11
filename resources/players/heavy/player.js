@@ -5,11 +5,11 @@ WarGame.Players.push({
     width: 1, // x
     height: 0.8, // y
     move: 3,
-    shoot: 3,
+    shoot: 6,
     effect: null,
     stats: {
         mele: 5,
-        ranged: 2,
+        ranged: 5,
         strength: 5,
         defense: 7,
         attacks: 1,

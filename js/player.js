@@ -1,27 +1,50 @@
 var WarGame = WarGame || {};
 WarGame.Player = function (team, attributes) {
+    this.id = WarGame.Utils.newId();
     this.obj = null;
     this.team = team;
     this.attributes = attributes;
     this.stats = new WarGame.Stats();
-    this.stats.parse(this.attributes.stats);
     this.boardLocation = null;
-    this.history = [];
+    this.history = []; // used to track actions in each round of play
 
     this.initialize();
 };
 
 WarGame.Player.prototype.initialize = function () {
+    this.stats.parse(this.attributes.stats);
     this.generateObj();
     this.setColour(this.team.colour);
+    this.history.push(new WarGame.History());
 };
 
 WarGame.Player.prototype.setColour = function (colour) {
     this.obj.material.color.setHex(colour);
 };
 
-WarGame.Player.prototype.moveTo = function (coordinates) {
-    this.obj.position.set(coordinates.x,coordinates.y,coordinates.z);
+WarGame.Player.prototype.moveTo = function (coordinates, overrideLimit) {
+    // ensure we can move this far by comparing location at start of round
+    var dist = 0;
+    if (!overrideLimit) {
+        dist = WarGame.map.getDistanceBetweenTwoPoints(
+            this.history[WarGame.CURRENT_ROUND].move.loc,
+            coordinates);
+    }
+
+    if (overrideLimit || dist <= this.attributes.move) {
+        this.boardLocation = WarGame.Utils.coordinatesToBoardLoc(coordinates);
+        this.obj.position.set(coordinates.x,coordinates.y,coordinates.z);
+    } else {
+        throw "distance too far. player can only move: " + this.attributes.move;
+    }
+};
+
+WarGame.Player.prototype.isBattling = function () {
+    var opponents = WarGame.map.getOpponentsInMeleRange(this);
+    if (opponents.length > 0) {
+        return true;
+    }
+    return false;
 };
 
 WarGame.Player.prototype.wound = function () {

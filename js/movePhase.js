@@ -4,6 +4,13 @@ WarGame.MovePhase = {
 
     start: function () {
         document.querySelector('#currentPhase').innerHTML = 'MOVEMENT';
+
+        var players = WarGame.map.getPlayers();
+        for (var i=0; i<players.length; i++) {
+            players[i].history[WarGame.CURRENT_ROUND].move.loc = players[i].obj.position;
+            players[i].history[WarGame.CURRENT_ROUND].move.boardLoc = players[i].boardLocation;
+        }
+
         WarGame.Plotter.renderer.domElement.addEventListener('mousemove', WarGame.MovePhase.handleMoveMouseMove, false);
         WarGame.Plotter.renderer.domElement.addEventListener('click', WarGame.MovePhase.handleMoveClick, false);
         document.querySelector('#moveRow').innerHTML = '' +
@@ -11,16 +18,11 @@ WarGame.MovePhase = {
     },
 
     endTurn: function () {
+        document.querySelector('#moveRow').innerHTML = '' +
+'<button type="submit" onclick="WarGame.MovePhase.endTurn();" class="btn btn-default">End Turn</button>';
         WarGame.MovePhase.TEAMS_DONE_PHASE++;
 
-        // TODO: handle more than 2 teams
-        if (WarGame.currentTeam === 0) {
-            WarGame.currentTeam = 1;
-        } else {
-            WarGame.currentTeam = 0;
-        }
-        var elem = document.querySelector('#priorityTeam');
-        elem.innerHTML = WarGame.teams[WarGame.currentTeam].name;
+        WarGame.nextTeam();
 
         if (WarGame.MovePhase.TEAMS_DONE_PHASE >= WarGame.teams.length) {
             WarGame.MovePhase.TEAMS_DONE_PHASE = 0;
@@ -36,22 +38,28 @@ WarGame.MovePhase = {
         WarGame.nextPhase();
     },
 
-    movePlayer: function (teamName, index) {
+    movePlayer: function (teamName, playerId) {
         var team = WarGame.teams[WarGame.getTeamIndexByName(teamName)];
         var container = document.querySelector('#moveRow');
         // get all players for team
         if (team) {
-            var players = team.players;
+            var players = team.players.filter(function (p) {
+                return p.id === playerId;
+            });
             var x = document.querySelector('#x').value;
             var z = document.querySelector('#z').value;
             // TODO: handle OOB errors
-            WarGame.map.movePlayerTo(players[index], new THREE.Vector3(parseInt(x), 0, parseInt(z)));
+            WarGame.map.movePlayerTo(players[0], new THREE.Vector3(parseInt(x), 0, parseInt(z)));
         }
     },
 
     handleMoveMouseMove: function (event) {
         event.preventDefault();
-        var intersects = WarGame.Utils.getMouseIntersects(event, WarGame.teams[WarGame.currentTeam].players.map(function (p) {
+
+        var players = WarGame.teams[WarGame.CURRENT_TEAM].players.filter(function (p) {
+            return !p.isBattling();
+        });
+        var intersects = WarGame.Utils.getMouseIntersects(event, players.map(function (p) {
             return p.obj;
         }));
 
@@ -68,10 +76,12 @@ WarGame.MovePhase = {
 
     handleMoveClick: function (event) {
         event.preventDefault();
-        var team = WarGame.teams[WarGame.currentTeam];
+        var team = WarGame.teams[WarGame.CURRENT_TEAM];
         // get all players for team
         if (team) {
-            var players = team.players;
+            var players = team.players.filter(function (p) {
+                return !p.isBattling();
+            });
             var intersects = WarGame.Utils.getMouseIntersects(event, players.map(function (p) { return p.obj; }));
             if (intersects.length > 0) {
                 for (var i=0; i<players.length; i++) {
@@ -90,7 +100,7 @@ WarGame.MovePhase = {
 '<input id="x" type="text" value="' + players[i].boardLocation.x + '">' +
 '<label for="verticalLocation">Vertical Location: ' + "(1-" + WarGame.map.attributes.grid.length + ")" + '</label>' +
 '<input id="z" type="text" value="' + players[i].boardLocation.z + '">' +
-'<button type="submit" onclick="WarGame.MovePhase.movePlayer(\'' + team.name + '\',' + i + ');" class="btn btn-default">Move</button>' +
+'<button type="submit" onclick="WarGame.MovePhase.movePlayer(\'' + team.name + '\',' + players[i].id + ');" class="btn btn-default">Move</button>' +
 '</div>' +
 '</div>' +
 '</div>' +

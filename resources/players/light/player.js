@@ -4,13 +4,13 @@ WarGame.Players.push({
     cost: 10,
     width: 0.5, // x
     height: 1.2, // y
-    move: 6,
-    shoot: 15,
+    move: 7,
+    shoot: 14,
     effect: null,
     stats: {
         mele: 1,
-        ranged: 2,
-        strength: 1,
+        ranged: 1,
+        strength: 2,
         defense: 2,
         attacks: 1,
         wounds: 1,

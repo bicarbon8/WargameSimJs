@@ -64,11 +64,11 @@ WarGame.Battle.prototype._getTotalAttackPoints = function (playerArray) {
     return points;
 };
 
-WarGame.Battle.prototype._getHighestFightValue = function (playerArray) {
+WarGame.Battle.prototype._getHighestMeleValue = function (playerArray) {
     var highest = 0;
     for (var i=0; i<playerArray.length; i++) {
         if (playerArray[i].stats.fight > highest) {
-            highest = playerArray[i].stats.fight;
+            highest = playerArray[i].stats.mele;
         }
     }
 

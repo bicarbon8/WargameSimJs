@@ -7,9 +7,13 @@ WarGame.RangedBattle = function () {
 WarGame.RangedBattle.prototype = Object.create(WarGame.Battle.prototype);
 WarGame.RangedBattle.prototype.constructor = WarGame.RangedBattle;
 
-WarGame.Battle.prototype.addAttacker = function (player) {
-    this.attacksRemaining = player.stats.attacks;
-    this._addPlayerTo(player, this.attackers);
+WarGame.RangedBattle.prototype.addAttacker = function (player) {
+    if (this.attackers.length === 0) {
+        this.attacksRemaining = player.stats.attacks;
+        this._addPlayerTo(player, this.attackers);
+    } else {
+        throw 'cannot add more than one attacker to a ranged battle.';
+    }
 };
 
 WarGame.RangedBattle.prototype.start = function () {

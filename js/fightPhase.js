@@ -5,22 +5,29 @@ WarGame.FightPhase = {
 
     start: function () {
         document.querySelector('#currentPhase').innerHTML = 'FIGHTING';
-        WarGame.FightPhase.battles = WarGame.FightPhase.getBattleGroups(WarGame.teams[WarGame.currentTeam]);
+
+        var players = WarGame.map.getPlayers();
+        for (var i=0; i<players.length; i++) {
+            players[i].history[WarGame.CURRENT_ROUND].fight.wounds = players[i].stats.wounds;
+        }
+
+        WarGame.FightPhase.battles = WarGame.FightPhase.getBattleGroups();
         WarGame.Plotter.renderer.domElement.addEventListener('mousemove', WarGame.FightPhase.handleFightMouseMove, false);
         WarGame.Plotter.renderer.domElement.addEventListener('click', WarGame.FightPhase.handleFightClick, false);
     },
 
     end: function () {
         WarGame.FightPhase.battles = null;
+        document.querySelector('#fightRow').innerHTML = '';
         WarGame.Plotter.renderer.domElement.removeEventListener('mousemove', WarGame.FightPhase.handleFightMouseMove, false);
         WarGame.Plotter.renderer.domElement.removeEventListener('click', WarGame.FightPhase.handleFightClick, false);
         // move to next phase
         WarGame.nextPhase();
     },
 
-    getBattleGroups: function (priorityTeam) {
+    getBattleGroups: function () {
         var battles = [];
-        var pTeamPlayers = priorityTeam.players;
+        var pTeamPlayers = WarGame.teams[WarGame.PRIORITY_TEAM].players;
         for (var i=0; i<pTeamPlayers.length; i++) {
             var player = pTeamPlayers[i];
             var opponents = WarGame.map.getOpponentsInMeleRange(player);

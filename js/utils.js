@@ -1,6 +1,11 @@
 var WarGame = WarGame || {};
 WarGame.Utils = {
+    _counter: 0,
+
     boardLocToCoordinates: function (boardLocation, grid) {
+        if (!grid) {
+            grid = WarGame.map.attributes.grid;
+        }
         var zLength = grid.length;
         var xLength = grid[0].length;
         var boardX = boardLocation.x;
@@ -14,6 +19,9 @@ WarGame.Utils = {
     },
 
     coordinatesToBoardLoc: function (coordinates, grid) {
+        if (!grid) {
+            grid = WarGame.map.attributes.grid;
+        }
         var zLength = grid.length;
         var xLength = grid[0].length;
         var actualX = coordinates.x;
@@ -50,5 +58,9 @@ WarGame.Utils = {
         WarGame.Plotter.raycaster.setFromCamera(WarGame.Plotter.mouse, WarGame.Plotter.camera);
         var intersects = WarGame.Plotter.raycaster.intersectObjects(objArray);
         return intersects;
+    },
+
+    newId: function () {
+        return WarGame.Utils._counter++;
     },
 };

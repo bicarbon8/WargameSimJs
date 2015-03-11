@@ -36,28 +36,27 @@ WarGame.Map.prototype.getPlayers = function () {
 };
 
 WarGame.Map.prototype.movePlayerTo = function (player, location, restrict) {
-    var limitDistance = true;
+    var overrideLimit = false;
     if (restrict === false) {
-        limitDistance = restrict;
+        overrideLimit = !restrict;
     }
     var height = this.attributes.grid[location.z][location.x];
     location.y = height;
-    var coordinates = WarGame.Utils.boardLocToCoordinates({ x: location.x, y: location.y, z: location.z }, this.attributes.grid);
-    var dist = this.getDistanceBetweenTwoPoints(player.obj.position, coordinates);
-    if (!limitDistance || player.attributes.move >= dist) {
-        if (!this.locationOccupied(location)) {
+    var coordinates = WarGame.Utils.boardLocToCoordinates({ x: location.x, y: location.y, z: location.z });
+    if (!this.locationOccupied(location)) {
+        try {
             if (player.boardLocation) {
                 this.playerMap[player.boardLocation.z][player.boardLocation.x] = null;
             }
+            player.moveTo(coordinates, overrideLimit);
             this.playerMap[location.z][location.x] = player;
-            player.boardLocation = location;
-            player.moveTo(coordinates);
-        } else {
-            alert("space is occupied, please choose another.");
+        } catch (e) {
+            // alert and rollback changes
+            this.playerMap[player.boardLocation.z][player.boardLocation.x] = player;
+            alert(e);
         }
     } else {
-        // TODO: alert and allow retry
-        alert("distance too far. player can only move: " + player.attributes.move);
+        alert("space is occupied, please choose another.");
     }
 };
 
@@ -117,7 +116,10 @@ WarGame.Map.prototype.getOpponentsInShootRange = function (player) {
         var oppLoc = opponents[i].obj.position;
         var dist = this.getDistanceBetweenTwoPoints(loc, oppLoc);
         if (dist <= player.attributes.shoot) {
-            filtered.push(opponents[i]);
+            // only allow shots at players not already engaged in battle
+            if (!opponents[i].isBattling()) {
+                filtered.push(opponents[i]);
+            }
         }
     }
 

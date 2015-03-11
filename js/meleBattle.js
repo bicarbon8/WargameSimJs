@@ -24,8 +24,8 @@ WarGame.MeleBattle.prototype.start = function () {
     // handle a tie
     if (atkTopScore === oppTopScore) {
         // compare highest fight values
-        var atkF = this._getHighestFightValue(this.attackers);
-        var oppF = this._getHighestFightValue(this.opponents);
+        var atkF = this._getHighestMeleValue(this.attackers);
+        var oppF = this._getHighestMeleValue(this.opponents);
         // handle matching fight values
         if (atkF === oppF) {
             // reroll to decide winner
