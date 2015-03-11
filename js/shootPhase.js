@@ -33,6 +33,7 @@ WarGame.ShootPhase = {
     },
 
     end: function () {
+        document.querySelector('#shootRow').innerHTML = '';
         WarGame.ShootPhase.battle = null;
         WarGame.Plotter.renderer.domElement.removeEventListener('mousemove', WarGame.ShootPhase.handleShootMouseMove, false);
         WarGame.Plotter.renderer.domElement.removeEventListener('click', WarGame.ShootPhase.handleShootClick, false);
