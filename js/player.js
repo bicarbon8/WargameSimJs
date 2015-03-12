@@ -5,17 +5,18 @@ WarGame.Player = function (team, attributes) {
     this.team = team;
     this.attributes = attributes;
     this.stats = new WarGame.Stats();
-    this.boardLocation = null;
+    this.boardLocation = new WarGame.BoardLocation(-1, -1, -1);
     this.history = []; // used to track actions in each round of play
+    this.history.push(new WarGame.History());
 
     this.initialize();
 };
 
 WarGame.Player.prototype.initialize = function () {
-    this.stats.parse(this.attributes.stats);
-    this.generateObj();
-    this.setColour(this.team.colour);
-    this.history.push(new WarGame.History());
+    if (this.attributes && this.attributes.stats) {
+        this.stats.parse(this.attributes.stats);
+        this.generateObj();
+    }
 };
 
 WarGame.Player.prototype.setColour = function (colour) {
@@ -32,8 +33,10 @@ WarGame.Player.prototype.moveTo = function (coordinates, overrideLimit) {
     }
 
     if (overrideLimit || dist <= this.attributes.move) {
-        this.boardLocation = WarGame.Utils.coordinatesToBoardLoc(coordinates);
-        this.obj.position.set(coordinates.x,coordinates.y,coordinates.z);
+        this.boardLocation.setFromVector(coordinates);
+        if (this.obj) {
+            this.obj.position.set(coordinates.x,coordinates.y,coordinates.z);
+        }
     } else {
         throw "distance too far. player can only move: " + this.attributes.move;
     }
@@ -51,8 +54,7 @@ WarGame.Player.prototype.wound = function () {
     this.stats.wounds--;
     if (this.stats.wounds < 1) {
         // you are dead
-        alert("Team: " + this.team.name + ": " + this.attributes.name + " player defeated!");
-        WarGame.removePlayer(this);
+        WarGame.onPlayerDefeated(this);
     }
 };
 
@@ -96,4 +98,11 @@ WarGame.Player.prototype.generateObj = function () {
     playerObj.castShadow = true;
 
     this.obj = playerObj;
+
+    // move to current location
+    this.moveTo(this.boardLocation.toVector(), true);
+
+    if (this.team && this.team.colour) {
+        this.setColour(this.team.colour);
+    }
 };

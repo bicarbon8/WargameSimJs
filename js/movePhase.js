@@ -7,8 +7,8 @@ WarGame.MovePhase = {
 
         var players = WarGame.map.getPlayers();
         for (var i=0; i<players.length; i++) {
-            players[i].history[WarGame.CURRENT_ROUND].move.loc = players[i].obj.position;
-            players[i].history[WarGame.CURRENT_ROUND].move.boardLoc = players[i].boardLocation;
+            players[i].history[WarGame.CURRENT_ROUND].move.loc = new THREE.Vector3().copy(players[i].obj.position);
+            players[i].history[WarGame.CURRENT_ROUND].move.boardLoc = players[i].boardLocation.clone();
         }
 
         WarGame.Plotter.renderer.domElement.addEventListener('mousemove', WarGame.MovePhase.handleMoveMouseMove, false);
@@ -49,7 +49,7 @@ WarGame.MovePhase = {
             var x = document.querySelector('#x').value;
             var z = document.querySelector('#z').value;
             // TODO: handle OOB errors
-            WarGame.map.movePlayerTo(players[0], new THREE.Vector3(parseInt(x), 0, parseInt(z)));
+            WarGame.map.movePlayerTo(players[0], new WarGame.BoardLocation(parseInt(x), 0, parseInt(z)));
         }
     },
 

@@ -3,35 +3,11 @@ WarGame.Utils = {
     _counter: 0,
 
     boardLocToCoordinates: function (boardLocation, grid) {
-        if (!grid) {
-            grid = WarGame.map.attributes.grid;
-        }
-        var zLength = grid.length;
-        var xLength = grid[0].length;
-        var boardX = boardLocation.x;
-        var boardZ = boardLocation.z;
-        var boardY = boardLocation.y;
-        var actualX = -(xLength / 2) + boardX;
-        var actualZ = -(zLength / 2) + boardZ;
-        var actualY = (boardY * WarGame.STEP_OFFSET);
-
-        return { x: actualX, y: actualY, z: actualZ };
+        return new WarGame.BoardLocation(boardLocation.x, boardLocation.y, boardLocation.z, grid).toVector();
     },
 
     coordinatesToBoardLoc: function (coordinates, grid) {
-        if (!grid) {
-            grid = WarGame.map.attributes.grid;
-        }
-        var zLength = grid.length;
-        var xLength = grid[0].length;
-        var actualX = coordinates.x;
-        var actualY = coordinates.y;
-        var actualZ = coordinates.z;
-        var boardX = (xLength / 2) + actualX;
-        var boardY = actualY / WarGame.STEP_OFFSET;
-        var boardZ = (zLength / 2) + actualZ;
-
-        return { x: boardX, y: boardY, z: boardZ };
+        return new WarGame.BoardLocation(0, 0, 0, grid).setFromVector(coordinates);
     },
 
     diceRoll: function (numDice, sides) {

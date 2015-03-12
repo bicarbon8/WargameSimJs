@@ -36,7 +36,7 @@ WarGame.setMap = function(type) {
         throw "unable to locate map of type: " + type;
     }
     var map = new WarGame.Map(m);
-    WarGame.Plotter.scene.add(map.obj);
+    WarGame.Plotter.scene.add(map.getObj());
     WarGame.map = map;
 };
 
@@ -70,7 +70,7 @@ WarGame.addPlayer = function (type, team, startingLocation) {
     WarGame.teams[team].remainingPoints -= p.cost;
     var player = new WarGame.Player(WarGame.teams[team], p);
     WarGame.teams[team].addPlayer(player);
-    WarGame.map.addPlayer(player, new THREE.Vector3(startingLocation.x, 0, startingLocation.z));
+    WarGame.map.addPlayer(player, new WarGame.BoardLocation(startingLocation.x, 0, startingLocation.z));
 };
 
 WarGame.removePlayer = function (player) {
@@ -81,7 +81,7 @@ WarGame.removePlayer = function (player) {
 
 WarGame.doCurrentPhase = function () {
     WarGame.CURRENT_TEAM = WarGame.PRIORITY_TEAM;
-    
+
     switch (WarGame.CURRENT_PHASE) {
         case WarGame.PRIORITY_PHASE:
             WarGame.PriorityPhase.start();
@@ -141,4 +141,9 @@ WarGame.reset = function () {
         WarGame.Plotter.reset();
     }
     // TODO: reset ALL THE THINGS!
+};
+
+WarGame.onPlayerDefeated = function (player) {
+    WarGame.UI.displayDefeatedAlert(player);
+    WarGame.removePlayer(player);
 };

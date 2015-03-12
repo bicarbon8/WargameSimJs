@@ -2,77 +2,69 @@ var WarGame = WarGame || {};
 WarGame.Map = function (attributes) {
     this.obj = null;
     this.attributes = attributes;
-    this.playerMap = new Array(this.attributes.grid.length);
-    for (var z=0; z<this.attributes.grid.length; z++) {
-        // TODO: handle irregular maps
-        this.playerMap[z] = new Array(this.attributes.grid[z].length);
+    this.players = {};
+};
+
+WarGame.Map.prototype.getObj = function () {
+    if (!this.obj) {
+        this.generateObj();
     }
-    this.generateObj();
+    return this.obj;
 };
 
 WarGame.Map.prototype.addPlayer = function (player, location) {
-    this.movePlayerTo(player, location, false);
-    WarGame.Plotter.scene.add(player.obj);
+    if (!this.hasPlayer(player)) {
+        this.players[player.boardLocation.toString()] = player;
+        this.movePlayerTo(player, location, true);
+        WarGame.Plotter.scene.add(player.obj);
+    }
 };
 
 WarGame.Map.prototype.removePlayer = function (player) {
     WarGame.Plotter.scene.remove(player.obj);
-    if (player.boardLocation) {
-        this.playerMap[player.boardLocation.z][player.boardLocation.x] = null;
+    var i, players = this.getPlayers();
+    for (i=0; i<players.length; i++) {
+        if (players[i] === player) {
+            break;
+        }
     }
+    this.players[player.boardLocation.toString()] = null;
 };
 
 WarGame.Map.prototype.getPlayers = function () {
     var players = [];
-    for (var z=0; z<this.playerMap.length; z++) {
-        for (var x=0; x<this.playerMap[z].length; x++) {
-            if (this.playerMap[z][x]) {
-                players.push(this.playerMap[z][x]);
-            }
-        }
+    for (var i in this.players) {
+        players.push(this.players[i]);
     }
-
     return players;
 };
 
-WarGame.Map.prototype.movePlayerTo = function (player, location, restrict) {
-    var overrideLimit = false;
-    if (restrict === false) {
-        overrideLimit = !restrict;
-    }
+WarGame.Map.prototype.movePlayerTo = function (player, location, overrideLimit) {
     var height = this.attributes.grid[location.z][location.x];
     location.y = height;
-    var coordinates = WarGame.Utils.boardLocToCoordinates({ x: location.x, y: location.y, z: location.z });
     if (!this.locationOccupied(location)) {
         try {
-            if (player.boardLocation) {
-                this.playerMap[player.boardLocation.z][player.boardLocation.x] = null;
-            }
+            var coordinates = location.toVector();
+            this.players[location.toString()] = player;
             player.moveTo(coordinates, overrideLimit);
-            this.playerMap[location.z][location.x] = player;
         } catch (e) {
             // alert and rollback changes
-            this.playerMap[player.boardLocation.z][player.boardLocation.x] = player;
-            alert(e);
+            this.players[location.toString()] = null;
+            this.players[player.history[WarGame.CURRENT_ROUND].move.boardLoc.toString()] = player;
+            WarGame.UI.displayAlert(e);
         }
     } else {
-        alert("space is occupied, please choose another.");
+        WarGame.UI.displayAlert("space is occupied, please choose another.");
     }
 };
 
 WarGame.Map.prototype.getDistanceBetweenTwoPoints = function (p1, p2) {
+    // TODO: calculate in terms of board spaces, not actual distance
     return new THREE.Line3(new THREE.Vector3().copy(p1), new THREE.Vector3().copy(p2)).distance();
 };
 
 WarGame.Map.prototype.locationOccupied = function (location) {
-    try {
-        if (this.playerMap[location.z][location.x]) {
-            return this.playerMap[location.z][location.x];
-        }
-    } catch (e) {
-        // TODO: invalid location so log it
-    }
-    return false;
+    return this.players[location.toString()];
 };
 
 /**
@@ -82,13 +74,14 @@ WarGame.Map.prototype.locationOccupied = function (location) {
  * @returns an array of opponent players in range of the attacker
  */
 WarGame.Map.prototype.getOpponentsInMeleRange = function (player) {
-    var centre = player.boardLocation;
+    var centre = player.boardLocation.clone();
     var opponents = [];
     for (var z=centre.z-1; z<=centre.z+1; z++) {
-        if (z > 0 && z <= this.playerMap.length) {
+        if (z >= 0 && z < this.attributes.grid.length) {
             for (var x=centre.x-1; x<=centre.x+1; x++) {
-                if (x > 0 && x <= this.playerMap[z].length) {
-                    var nearPlayer = this.locationOccupied(new THREE.Vector3(x, 0, z));
+                if (x >= 0 && x < this.attributes.grid[z].length) {
+                    var y = this.attributes.grid[z][x];
+                    var nearPlayer = this.locationOccupied(new WarGame.BoardLocation(x, y, z));
                     if (nearPlayer && nearPlayer.team.name !== player.team.name) {
                         opponents.push(nearPlayer);
                     }
@@ -124,6 +117,18 @@ WarGame.Map.prototype.getOpponentsInShootRange = function (player) {
     }
 
     return filtered;
+};
+
+WarGame.Map.prototype.hasPlayer = function (player) {
+    var found = false;
+    var players = this.getPlayers();
+    for (var i=0; i<players.length; i++) {
+        if (this.players[i] === player) {
+            found = true;
+            break;
+        }
+    }
+    return found;
 };
 
 WarGame.Map.prototype.generateObj = function () {

@@ -3,33 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <title>Wargame Simulator Tests</title>
-<link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.17.1.css">
+<link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.17.1.css">
 <!-- External Dependencies -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
-<script src="external/OrbitControls.js"></script>
+<script src="../external/OrbitControls.js"></script>
 </head>
 <body>
 <div id="qunit"></div>
 <div id="qunit-fixture"></div>
 <script src="http://code.jquery.com/qunit/qunit-1.17.1.js"></script>
 
-<script src="js/player.js"></script>
-<script src="js/map.js"></script>
-<script src="js/generators/mapObjGenerator.js"></script>
-<script src="js/generators/playerObjGenerator.js"></script>
-<script src="js/plotter.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/woundChart.js"></script>
-<script src="js/team.js"></script>
-<script src="js/battle.js"></script>
-<script src="js/wargame.js"></script>
+<script src="../js/stats.js"></script>
+<script src="../js/history.js"></script>
+<script src="../js/boardLocation.js"></script>
+<script src="../js/player.js"></script>
+<script src="../js/map.js"></script>
+<script src="../js/plotter.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/woundChart.js"></script>
+<script src="../js/team.js"></script>
+<script src="../js/battle.js"></script>
+<script src="../js/rangedBattle.js"></script>
+<script src="../js/meleBattle.js"></script>
+<script src="../js/priorityPhase.js"></script>
+<script src="../js/movePhase.js"></script>
+<script src="../js/shootPhase.js"></script>
+<script src="../js/fightPhase.js"></script>
+<script src="../js/wargame.js"></script>
+<script src="../js/ui.js"></script>
 
-<script src="resources/maps/100x100/map.js"></script>
-<script src="resources/players/light/player.js"></script>
-<script src="resources/players/basic/player.js"></script>
-<script src="resources/players/heavy/player.js"></script>
-<script src="resources/players/hero/player.js"></script>
+<script src="../resources/maps/100x100/map.js"></script>
+<script src="../resources/players/light/player.js"></script>
+<script src="../resources/players/basic/player.js"></script>
+<script src="../resources/players/heavy/player.js"></script>
+<script src="../resources/players/hero/player.js"></script>
 
+<script src="playerTests.js"></script>
+<script src="battleTests.js"></script>
 
 </body>
 </html>
