@@ -54,5 +54,5 @@ WarGame.BoardLocation.prototype.equals = function (boardLocation) {
 };
 
 WarGame.BoardLocation.prototype.toString = function () {
-    return this.x + '-' + this.y + '-' + this.z;
+    return this.x + ':' + this.y + ':' + this.z;
 };

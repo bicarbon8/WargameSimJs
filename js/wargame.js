@@ -137,6 +137,10 @@ WarGame.render = function () {
 WarGame.reset = function () {
     WarGame.map = null;
     WarGame.CURRENT_PHASE = WarGame.PRIORITY_PHASE;
+    WarGame.teams = [
+        new WarGame.Team("RED", 0xff0000),
+        new WarGame.Team("BLUE", 0x0044ff),
+    ];
     if (WarGame.Plotter) {
         WarGame.Plotter.reset();
     }

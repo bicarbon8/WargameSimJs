@@ -29,6 +29,3 @@ two players within a browser
 - handle irregularly shaped playing fields
 - add textures
 - add props to the playfield such as fences, trees, hedges, rocks, etc.
-
-## Long Term Goals
--

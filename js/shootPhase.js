@@ -110,7 +110,7 @@ WarGame.ShootPhase = {
                     if (WarGame.ShootPhase.battle.getPlayers().length === 0) {
                         var inRange = WarGame.map.getOpponentsInShootRange(players[j]);
                         if (inRange.length === 0) {
-                            alert('selected shooter has no opponents in range.');
+                            WarGame.UI.displayAlert('selected shooter has no opponents in range.', WarGame.UI.ALERT_INFO);
                         } else {
                             WarGame.ShootPhase.battle.addAttacker(players[j]);
                             WarGame.ShootPhase.inRangeOpponents = inRange;

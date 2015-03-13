@@ -1,17 +1,29 @@
 var WarGame = WarGame || {};
 WarGame.UI = {
     counter: 0,
+    ALERT_GOOD: 'alert-success',
+    ALERT_INFO: 'alert-info',
+    ALERT_BAD: 'alert-danger',
 
-    displayAlert: function (message) {
-        var alertsContainer = WarGame.UI.getAlertsContainer();
-        var alertId = WarGame.UI.counter++;
-        alertsContainer.innerHTML = '<div id="' + alertId + '" class="alert alert-danger" role="alert" style="display: none;">' +
-            message + '</div>' + alertsContainer.innerHTML;
-        $("#" + alertId).fadeIn(100).delay(5000).fadeOut(1000);
+    displayAlert: function (message, type) {
+        setTimeout(function () {
+            if (!type) {
+                type = WarGame.UI.ALERT_INFO;
+            }
+            var alertsContainer = WarGame.UI.getAlertsContainer();
+            var alertId = WarGame.UI.counter++;
+            alertsContainer.innerHTML = '<div id="alert-' + alertId + '" class="alert ' + type + '" role="alert" style="display: none;">' +
+                message + '</div>' + alertsContainer.innerHTML;
+            $("#alert-" + alertId).fadeIn(100, function () {
+                $("#alert-" + alertId).delay(5000).fadeOut(1000, function () {
+                    $("#alert-" + alertId).remove();
+                });
+            });
+        },0);
     },
 
     displayDefeatedAlert: function (player) {
-        WarGame.UI.displayAlert(player.team.name + ' - ' + player.name + ' defeated!');
+        WarGame.UI.displayAlert(player.team.name + ' - ' + player.name + ' defeated!', WarGame.UI.ALERT_BAD);
     },
 
     getAlertsContainer: function () {
@@ -31,10 +43,6 @@ WarGame.UI = {
     createAlertsContainer: function () {
         alertsContainer = document.createElement('div');
         alertsContainer.setAttribute("id", 'alertsContainer');
-        alertsContainer.style.position = 'fixed';
-        alertsContainer.style.top = 0;
-        alertsContainer.style.left = 0;
-        alertsContainer.style.width = '100%';
 
         var container = document.querySelector('#playfield');
         container.insertBefore(alertsContainer, container.firstChild);

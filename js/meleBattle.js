@@ -45,21 +45,27 @@ WarGame.MeleBattle.prototype.start = function () {
     var winner, loser, attacks;
     if (atkTopScore > oppTopScore) {
         // TODO: highlight winners
-        alert(this.attackers[0].team.name + ' scores a hit.');
+        WarGame.UI.displayAlert(this.attackers[0].team.name + ' scores a hit.', WarGame.UI.ALERT_BAD);
         winner = this.attackers;
         loser = this.opponents;
         attacks = attackScores;
     } else {
         // TODO: highlight winners
-        alert(this.opponents[0].team.name + ' scores a hit.');
+        WarGame.UI.displayAlert(this.opponents[0].team.name + ' scores a hit.', WarGame.UI.ALERT_BAD);
         winner = this.opponents;
         loser = this.attackers;
         attacks = opponentScores;
     }
+
+    /* jshint loopfunc: true */
     for (i=0; i<winner.length; i++) {
         var success = WarGame.WoundChart.tryWound(winner[i], loser[0]);
         if (success) {
-            alert(winner[i].team.name + ' damaged his opponent.');
+            (function (player) {
+                setTimeout(function () {
+                    WarGame.UI.displayAlert(player.team.name + ' damaged his opponent.', WarGame.UI.ALERT_BAD);
+                }, 500);
+            })(winner[i]);
             // TODO: let winner pick who to wound
             loser[0].wound();
             if (loser[0].stats.wounds < 1) {
@@ -69,7 +75,11 @@ WarGame.MeleBattle.prototype.start = function () {
                 }
             }
         } else {
-            alert(winner[0].team.name + ' caused no damage.');
+            (function (player) {
+                setTimeout(function () {
+                    WarGame.UI.displayAlert(winner[0].team.name + ' caused no damage.', WarGame.UI.ALERT_INFO);
+                }, 500);
+            })(winner[i]);
         }
     }
 };

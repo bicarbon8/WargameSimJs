@@ -8,7 +8,6 @@ WarGame.Plotter = {
     timeStep: 0.00001,
     raycaster: null,
     mouse: null,
-    INTERSECTED: null,
 
     initialize: function () {
         WarGame.Plotter.field = document.querySelector('#playfield');
@@ -124,4 +123,12 @@ WarGame.Plotter = {
         WarGame.Plotter.field = null;
         WarGame.Plotter.initialize();
     },
+
+    addMesh: function (mesh) {
+        WarGame.Plotter.scene.add(mesh);
+    },
+
+    removeMesh: function (mesh) {
+        WarGame.Plotter.scene.remove(mesh);
+    }
 };

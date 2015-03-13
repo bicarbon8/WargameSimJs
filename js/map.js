@@ -16,7 +16,7 @@ WarGame.Map.prototype.addPlayer = function (player, location) {
     if (!this.hasPlayer(player)) {
         this.players[player.boardLocation.toString()] = player;
         this.movePlayerTo(player, location, true);
-        WarGame.Plotter.scene.add(player.obj);
+        WarGame.Plotter.addMesh(player.obj);
     }
 };
 
@@ -34,7 +34,10 @@ WarGame.Map.prototype.removePlayer = function (player) {
 WarGame.Map.prototype.getPlayers = function () {
     var players = [];
     for (var i in this.players) {
-        players.push(this.players[i]);
+        var p = this.players[i];
+        if (p && p instanceof WarGame.Player) {
+            players.push(p);
+        }
     }
     return players;
 };
@@ -45,6 +48,7 @@ WarGame.Map.prototype.movePlayerTo = function (player, location, overrideLimit) 
     if (!this.locationOccupied(location)) {
         try {
             var coordinates = location.toVector();
+            this.players[player.boardLocation.toString()] = null;
             this.players[location.toString()] = player;
             player.moveTo(coordinates, overrideLimit);
         } catch (e) {
