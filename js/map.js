@@ -12,6 +12,10 @@ WarGame.Map.prototype.getObj = function () {
     return this.obj;
 };
 
+WarGame.Map.prototype.getGrid = function () {
+    return this.attributes.grid;
+};
+
 WarGame.Map.prototype.addPlayer = function (player, location) {
     if (!this.hasPlayer(player)) {
         this.players[player.boardLocation.toString()] = player;
@@ -21,14 +25,13 @@ WarGame.Map.prototype.addPlayer = function (player, location) {
 };
 
 WarGame.Map.prototype.removePlayer = function (player) {
-    WarGame.Plotter.scene.remove(player.obj);
-    var i, players = this.getPlayers();
-    for (i=0; i<players.length; i++) {
-        if (players[i] === player) {
-            break;
-        }
+    var pl = this.players[player.boardLocation.toString()];
+    if (pl === player) {
+        this.players[player.boardLocation.toString()] = null;
+        WarGame.Plotter.removeMesh(player.obj);
+    } else {
+        // TODO: log no such player
     }
-    this.players[player.boardLocation.toString()] = null;
 };
 
 WarGame.Map.prototype.getPlayers = function () {

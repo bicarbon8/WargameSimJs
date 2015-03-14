@@ -5,14 +5,13 @@ WarGame.BoardLocation = function(x, y, z, grid) {
     this.z = z;
     this.grid = grid;
     if (!grid) {
-        this.grid = WarGame.map.attributes.grid;
+        this.grid = WarGame.map.getGrid();
     }
 };
 
 WarGame.BoardLocation.prototype.setFromVector = function (vector) {
-    var grid = this.grid;
-    var zLength = grid.length;
-    var xLength = grid[0].length;
+    var zLength = this.grid.length;
+    var xLength = this.grid[0].length;
     var actualX = vector.x;
     var actualY = vector.y;
     var actualZ = vector.z;
@@ -26,9 +25,8 @@ WarGame.BoardLocation.prototype.setFromVector = function (vector) {
 };
 
 WarGame.BoardLocation.prototype.toVector = function () {
-    var grid = this.grid;
-    var zLength = grid.length;
-    var xLength = grid[0].length;
+    var zLength = this.grid.length;
+    var xLength = this.grid[0].length;
     var boardX = this.x;
     var boardZ = this.z;
     var boardY = this.y;
