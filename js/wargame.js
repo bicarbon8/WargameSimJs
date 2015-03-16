@@ -21,6 +21,7 @@ WarGame.teams = [
 
 WarGame.initialize = function () {
     WarGame.Plotter.initialize();
+    WarGame.UI.initialize();
 };
 
 WarGame.setMap = function(type) {
@@ -59,8 +60,8 @@ WarGame.addPlayer = function (type, team, startingLocation) {
             if (WarGame.teams[team].remainingPoints - pl.cost >= 0) {
                 p = pl;
             } else {
-                throw "not enough points to add player. have: " +
-                    WarGame.teams[team].remainingPoints + ", cost: " + pl.cost;
+                WarGame.UI.displayAlert("not enough points to add player. have: " +
+                    WarGame.teams[team].remainingPoints + ", cost: " + pl.cost);
             }
         }
     }
@@ -79,8 +80,23 @@ WarGame.removePlayer = function (player) {
     WarGame.map.removePlayer(player);
 };
 
+WarGame.getCurrentPhaseName = function () {
+    switch (WarGame.CURRENT_PHASE) {
+        case WarGame.PRIORITY_PHASE:
+            return 'PRIORITY';
+        case WarGame.MOVEMENT_PHASE:
+            return 'MOVEMENT';
+        case WarGame.SHOOTING_PHASE:
+            return 'SHOOTING';
+        case WarGame.FIGHTING_PHASE:
+            return 'FIGHTING';
+    }
+};
+
 WarGame.doCurrentPhase = function () {
     WarGame.CURRENT_TEAM = WarGame.PRIORITY_TEAM;
+
+    WarGame.UI.setCurrentTeamText(WarGame.teams[WarGame.CURRENT_TEAM].name);
 
     switch (WarGame.CURRENT_PHASE) {
         case WarGame.PRIORITY_PHASE:
@@ -126,12 +142,12 @@ WarGame.nextTeam = function () {
     } else {
         WarGame.CURRENT_TEAM = 0;
     }
-    var elem = document.querySelector('#priorityTeam');
-    elem.innerHTML = WarGame.teams[WarGame.CURRENT_TEAM].name;
+    WarGame.UI.setCurrentTeamText(WarGame.teams[WarGame.CURRENT_TEAM].name);
 };
 
 WarGame.render = function () {
     WarGame.Plotter.render();
+    WarGame.UI.update();
 };
 
 WarGame.reset = function () {

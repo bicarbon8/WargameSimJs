@@ -7,8 +7,6 @@ WarGame.ShootPhase = {
     opponentsInRange: null,
 
     start: function () {
-        document.querySelector('#currentPhase').innerHTML = 'SHOOTING';
-
         var players = WarGame.map.getPlayers();
         for (var i=0; i<players.length; i++) {
             players[i].history[WarGame.CURRENT_ROUND].shoot.wounds = players[i].stats.wounds;
@@ -25,6 +23,9 @@ WarGame.ShootPhase = {
         WarGame.ShootPhase.TEAMS_DONE_PHASE++;
 
         WarGame.nextTeam();
+
+        document.querySelector('#shootRow').innerHTML = '' +
+'<button type="submit" onclick="WarGame.ShootPhase.endTurn();" class="btn btn-default">End Turn</button>';
 
         if (WarGame.ShootPhase.TEAMS_DONE_PHASE >= WarGame.teams.length) {
             WarGame.ShootPhase.TEAMS_DONE_PHASE = 0;

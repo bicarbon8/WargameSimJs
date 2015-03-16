@@ -1,7 +1,6 @@
 var WarGame = WarGame || {};
 WarGame.PriorityPhase = {
     start: function () {
-        document.querySelector('#currentPhase').innerHTML = 'PRIORITY';
         // roll dice for each team
         // TODO: handle more than two teams
         var one = WarGame.Utils.diceRoll()[0];
@@ -17,8 +16,7 @@ WarGame.PriorityPhase = {
             WarGame.PRIORITY_TEAM = 1;
         }
 
-        var elem = document.querySelector('#priorityTeam');
-        elem.innerHTML = WarGame.teams[WarGame.PRIORITY_TEAM].name;
+        WarGame.UI.setCurrentTeamText(WarGame.teams[WarGame.PRIORITY_TEAM].name);
 
         var players = WarGame.map.getPlayers();
         for (var i=0; i<players.length; i++) {

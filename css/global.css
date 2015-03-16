@@ -1,0 +1,18 @@
+html, body { height: 100%; }
+html {
+    display: table;
+    width: 100%;
+}
+body, div, canvas {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+#menusContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+.alert {
+    margin: 0;
+}

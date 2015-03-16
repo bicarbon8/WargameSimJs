@@ -115,7 +115,7 @@ WarGame.Plotter = {
     },
 
     reset: function () {
-        WarGame.Plotter.field.innerHTML = '';
+        WarGame.Plotter.field.removeChild(WarGame.Plotter.renderer.domElement);
         WarGame.Plotter.scene = null;
         WarGame.Plotter.camera = null;
         WarGame.Plotter.lights = null;

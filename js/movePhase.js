@@ -3,8 +3,6 @@ WarGame.MovePhase = {
     TEAMS_DONE_PHASE: 0,
 
     start: function () {
-        document.querySelector('#currentPhase').innerHTML = 'MOVEMENT';
-
         var players = WarGame.map.getPlayers();
         for (var i=0; i<players.length; i++) {
             players[i].history[WarGame.CURRENT_ROUND].move.loc = new THREE.Vector3().copy(players[i].obj.position);
@@ -18,11 +16,12 @@ WarGame.MovePhase = {
     },
 
     endTurn: function () {
-        document.querySelector('#moveRow').innerHTML = '' +
-'<button type="submit" onclick="WarGame.MovePhase.endTurn();" class="btn btn-default">End Turn</button>';
         WarGame.MovePhase.TEAMS_DONE_PHASE++;
 
         WarGame.nextTeam();
+
+        document.querySelector('#moveRow').innerHTML = '' +
+'<button type="submit" onclick="WarGame.MovePhase.endTurn();" class="btn btn-default">End Turn</button>';
 
         if (WarGame.MovePhase.TEAMS_DONE_PHASE >= WarGame.teams.length) {
             WarGame.MovePhase.TEAMS_DONE_PHASE = 0;

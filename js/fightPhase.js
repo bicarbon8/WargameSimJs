@@ -4,7 +4,7 @@ WarGame.FightPhase = {
     battles: null,
 
     start: function () {
-        document.querySelector('#currentPhase').innerHTML = 'FIGHTING';
+        WarGame.UI.setCurrentPhaseText('FIGHTING');
 
         var players = WarGame.map.getPlayers();
         for (var i=0; i<players.length; i++) {
@@ -17,8 +17,8 @@ WarGame.FightPhase = {
     },
 
     end: function () {
+        WarGame.UI.setCurrentPhaseText('');
         WarGame.FightPhase.battles = null;
-        document.querySelector('#fightRow').innerHTML = '';
         WarGame.Plotter.renderer.domElement.removeEventListener('mousemove', WarGame.FightPhase.handleFightMouseMove, false);
         WarGame.Plotter.renderer.domElement.removeEventListener('click', WarGame.FightPhase.handleFightClick, false);
         // move to next phase
