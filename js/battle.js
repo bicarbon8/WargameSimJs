@@ -14,12 +14,12 @@ WarGame.Battle.prototype.addOpponent = function (player) {
 
 WarGame.Battle.prototype.addOpponents = function (playerArray) {
     for (var i=0; i<playerArray.length; i++) {
-        this._addPlayerTo(playerArray[i], this.opponents);
+        this.addOpponent(playerArray[i]);
     }
 };
 
 WarGame.Battle.prototype.addOpponent = function (player) {
-    this.opponents.push(player);
+    this._addPlayerTo(player, this.opponents);
 };
 
 WarGame.Battle.prototype.hasAttacker = function (player) {
@@ -53,26 +53,6 @@ WarGame.Battle.prototype.getPlayers = function () {
 
 WarGame.Battle.prototype.start = function () {
     throw 'abstract base method cannot be called. please use concrete class.';
-};
-
-WarGame.Battle.prototype._getTotalAttackPoints = function (playerArray) {
-    var points = 0;
-    for (var i=0; i<playerArray.length; i++) {
-        points += playerArray[i].stats.attacks;
-    }
-
-    return points;
-};
-
-WarGame.Battle.prototype._getHighestMeleValue = function (playerArray) {
-    var highest = 0;
-    for (var i=0; i<playerArray.length; i++) {
-        if (playerArray[i].stats.fight > highest) {
-            highest = playerArray[i].stats.mele;
-        }
-    }
-
-    return highest;
 };
 
 WarGame.Battle.prototype._addPlayerTo = function (player, array) {

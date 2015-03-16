@@ -7,8 +7,8 @@ WarGame.MeleBattle.prototype.constructor = WarGame.MeleBattle;
 
 WarGame.MeleBattle.prototype.start = function () {
     // roll to determine which side wins the attack
-    var attackScores = WarGame.Utils.diceRoll(this._getTotalAttackPoints(this.attackers));
-    var opponentScores = WarGame.Utils.diceRoll(this._getTotalAttackPoints(this.opponents));
+    var attackScores = WarGame.Utils.diceRoll(this.getTotalAttackPoints(this.attackers));
+    var opponentScores = WarGame.Utils.diceRoll(this.getTotalAttackPoints(this.opponents));
     var i, atkTopScore = 0;
     for (i=0; i<attackScores.length; i++) {
         if (attackScores[i] > atkTopScore) {
@@ -24,8 +24,8 @@ WarGame.MeleBattle.prototype.start = function () {
     // handle a tie
     if (atkTopScore === oppTopScore) {
         // compare highest fight values
-        var atkF = this._getHighestMeleValue(this.attackers);
-        var oppF = this._getHighestMeleValue(this.opponents);
+        var atkF = this.getHighestMeleValue(this.attackers);
+        var oppF = this.getHighestMeleValue(this.opponents);
         // handle matching fight values
         if (atkF === oppF) {
             // reroll to decide winner
@@ -82,4 +82,24 @@ WarGame.MeleBattle.prototype.start = function () {
             })(winner[i]);
         }
     }
+};
+
+WarGame.MeleBattle.prototype.getTotalAttackPoints = function (playerArray) {
+    var points = 0;
+    for (var i=0; i<playerArray.length; i++) {
+        points += playerArray[i].stats.attacks;
+    }
+
+    return points;
+};
+
+WarGame.MeleBattle.prototype.getHighestMeleValue = function (playerArray) {
+    var highest = 0;
+    for (var i=0; i<playerArray.length; i++) {
+        if (playerArray[i].stats.mele > highest) {
+            highest = playerArray[i].stats.mele;
+        }
+    }
+
+    return highest;
 };
