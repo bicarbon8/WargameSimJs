@@ -3,16 +3,23 @@ html {
     display: table;
     width: 100%;
 }
+body {
+    display: table-cell;
+    overflow: hidden;
+    background: #000000;
+    text-align: center;
+    vertical-align: middle;
+}
 body, div, canvas {
     width: 100%;
-    margin: 0;
-    padding: 0;
+    margin: 0px;
+    padding: 0px;
 }
 #menusContainer {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0px;
+    left: 0px;
 }
 .alert {
-    margin: 0;
+    margin: 0px;
 }

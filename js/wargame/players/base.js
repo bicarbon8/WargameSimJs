@@ -72,7 +72,7 @@ WarGame.Players.Base.prototype.getOpponentsInMeleRange = function () {
                 if (x >= 0 && x < WarGame.Maps.getCurrent().getGrid()[z].length) {
                     var y = WarGame.Maps.getCurrent().getGrid()[z][x];
                     var nearPlayer = WarGame.Maps.getCurrent().locationOccupied(new WarGame.Players.Location(x, y, z));
-                    if (nearPlayer && nearPlayer.team !== this.team) {
+                    if (nearPlayer && nearPlayer.team.name !== this.team.name) {
                         opponents.push(nearPlayer);
                     }
                 }
@@ -91,8 +91,9 @@ WarGame.Players.Base.prototype.getOpponentsInMeleRange = function () {
  */
 WarGame.Players.Base.prototype.getOpponentsInShootRange = function () {
     var loc = this.obj.position;
+    var name = this.team.name;
     var opponents = WarGame.getPlayers().filter(function (p) {
-        return p.team !== this.team;
+        return p.team.name !== name;
     });
     var filtered = [];
     for (var i=0; i<opponents.length; i++) {
