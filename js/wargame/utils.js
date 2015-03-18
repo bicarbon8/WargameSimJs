@@ -26,13 +26,13 @@ WarGame.Utils = {
     },
 
     getMouseIntersects: function (event, objArray) {
-        var dims = WarGame.Plotter.getWidthHeight();
-        var offset = WarGame.Plotter.renderer.domElement.getBoundingClientRect();
-        WarGame.Plotter.mouse.x = ((event.clientX - offset.left) / dims.width) * 2 - 1;
-        WarGame.Plotter.mouse.y = - ((event.clientY - offset.top) / dims.height) * 2 + 1;
+        var dims = WarGame.UI.Plotter.getWidthHeight();
+        var offset = WarGame.UI.Plotter.renderer.domElement.getBoundingClientRect();
+        WarGame.UI.Plotter.mouse.x = ((event.clientX - offset.left) / dims.width) * 2 - 1;
+        WarGame.UI.Plotter.mouse.y = - ((event.clientY - offset.top) / dims.height) * 2 + 1;
 
-        WarGame.Plotter.raycaster.setFromCamera(WarGame.Plotter.mouse, WarGame.Plotter.camera);
-        var intersects = WarGame.Plotter.raycaster.intersectObjects(objArray);
+        WarGame.UI.Plotter.raycaster.setFromCamera(WarGame.UI.Plotter.mouse, WarGame.UI.Plotter.camera);
+        var intersects = WarGame.UI.Plotter.raycaster.intersectObjects(objArray);
         return intersects;
     },
 

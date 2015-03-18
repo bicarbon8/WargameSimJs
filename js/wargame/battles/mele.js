@@ -1,11 +1,12 @@
 var WarGame = WarGame || {};
-WarGame.MeleBattle = function () {
-    WarGame.Battle.call(this);
+WarGame.Battles = WarGame.Battles || {};
+WarGame.Battles.Mele = function () {
+    WarGame.Battles.Base.call(this);
 };
-WarGame.MeleBattle.prototype = Object.create(WarGame.Battle.prototype);
-WarGame.MeleBattle.prototype.constructor = WarGame.MeleBattle;
+WarGame.Battles.Mele.prototype = Object.create(WarGame.Battles.Base.prototype);
+WarGame.Battles.Mele.prototype.constructor = WarGame.Battles.Mele;
 
-WarGame.MeleBattle.prototype.start = function () {
+WarGame.Battles.Mele.prototype.start = function () {
     // roll to determine which side wins the attack
     var attackScores = WarGame.Utils.diceRoll(this.getTotalAttackPoints(this.attackers));
     var opponentScores = WarGame.Utils.diceRoll(this.getTotalAttackPoints(this.opponents));
@@ -59,7 +60,7 @@ WarGame.MeleBattle.prototype.start = function () {
 
     /* jshint loopfunc: true */
     for (i=0; i<winner.length; i++) {
-        var success = WarGame.WoundChart.tryWound(winner[i], loser[0]);
+        var success = WarGame.Battles.tryWound(winner[i], loser[0]);
         if (success) {
             (function (player) {
                 setTimeout(function () {
@@ -84,7 +85,7 @@ WarGame.MeleBattle.prototype.start = function () {
     }
 };
 
-WarGame.MeleBattle.prototype.getTotalAttackPoints = function (playerArray) {
+WarGame.Battles.Mele.prototype.getTotalAttackPoints = function (playerArray) {
     var points = 0;
     for (var i=0; i<playerArray.length; i++) {
         points += playerArray[i].stats.attacks;
@@ -93,7 +94,7 @@ WarGame.MeleBattle.prototype.getTotalAttackPoints = function (playerArray) {
     return points;
 };
 
-WarGame.MeleBattle.prototype.getHighestMeleValue = function (playerArray) {
+WarGame.Battles.Mele.prototype.getHighestMeleValue = function (playerArray) {
     var highest = 0;
     for (var i=0; i<playerArray.length; i++) {
         if (playerArray[i].stats.mele > highest) {

@@ -1,5 +1,6 @@
 var WarGame = WarGame || {};
-WarGame.Stats = function () {
+WarGame.Players = WarGame.Players || {};
+WarGame.Players.Stats = function () {
     this.mele = 0;
     this.ranged = 0;
     this.strength = 0;
@@ -12,7 +13,7 @@ WarGame.Stats = function () {
     this.fate = 0;
 };
 
-WarGame.Stats.prototype.initialize = function (mele, ranged, strength, defense, attacks, wounds, courage, might, will, fate) {
+WarGame.Players.Stats.prototype.initialize = function (mele, ranged, strength, defense, attacks, wounds, courage, might, will, fate) {
     this.mele = mele;
     this.ranged = ranged;
     this.strength = strength;
@@ -25,7 +26,7 @@ WarGame.Stats.prototype.initialize = function (mele, ranged, strength, defense, 
     this.fate = fate;
 };
 
-WarGame.Stats.prototype.parse = function (json) {
+WarGame.Players.Stats.prototype.parse = function (json) {
     this.mele = json.mele;
     this.ranged = json.ranged;
     this.strength = json.strength;
@@ -38,7 +39,7 @@ WarGame.Stats.prototype.parse = function (json) {
     this.fate = json.fate;
 };
 
-WarGame.Stats.prototype.toString = function () {
+WarGame.Players.Stats.prototype.toString = function () {
     return 'F: ' + this.mele + '/' + this.ranged + '+, ' +
         'S: ' + this.strength + ', ' +
         'D: ' + this.defense + ', ' +

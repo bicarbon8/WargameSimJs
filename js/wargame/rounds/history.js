@@ -1,5 +1,6 @@
 var WarGame = WarGame || {};
-WarGame.History = function () {
+WarGame.Rounds = WarGame.Rounds || {};
+WarGame.Rounds.History = function () {
     this.priority = false;
     this.move = {
         loc: null,

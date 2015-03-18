@@ -1,5 +1,5 @@
 WarGame.Players = WarGame.Players || [];
-WarGame.Players.push({
+WarGame.Players.add({
     name: 'basic',
     cost: 15,
     width: 0.8, // x

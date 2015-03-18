@@ -1,10 +1,8 @@
-QUnit.module('WarGame.Map', {
-
-});
-QUnit.test('contstuctor can be called with no arguments', function (assert) {
+QUnit.module('WarGame.Maps.Base');
+QUnit.test('constuctor can be called with no arguments', function (assert) {
     expect(1);
     var done = assert.async();
-    var actual = new WarGame.Map();
+    var actual = new WarGame.Maps.Base();
     assert.ok(actual, 'map object created');
     done();
 });
@@ -12,24 +10,24 @@ QUnit.test('contstuctor can be called with no arguments', function (assert) {
 QUnit.test('can add a player at a location', function (assert) {
     expect(3);
     var done = assert.async();
-    var m = new WarGame.Map(WarGame.Maps[0]);
-    WarGame.map = m;
+    WarGame.Maps.setCurrent('100x100');
+    var m = WarGame.Maps.getCurrent();
     assert.equal(m.getPlayers().length, 0, 'expected no players');
-    var loc = new WarGame.BoardLocation(40, 0, 60);
-    m.addPlayer(new WarGame.Player(), loc);
+    var loc = new WarGame.Players.Location(40, 0, 60);
+    m.addPlayer(new WarGame.Players.Base(), loc);
     assert.equal(m.getPlayers().length, 1, 'expected 1 player');
-    assert.ok(loc.equals(m.getPlayers()[0].boardLocation), 'expected player at 40x60');
+    assert.ok(loc.equals(m.getPlayers()[0].location), 'expected player at 40x60');
     done();
 });
 
 QUnit.test('can remove a player', function (assert) {
     expect(3);
     var done = assert.async();
-    var m = new WarGame.Map(WarGame.Maps[0]);
-    WarGame.map = m;
+    WarGame.Maps.setCurrent('100x100');
+    var m = WarGame.Maps.getCurrent();
     assert.equal(m.getPlayers().length, 0, 'expected no players');
-    var pl = new WarGame.Player();
-    var loc = new WarGame.BoardLocation(40, 0, 60);
+    var pl = new WarGame.Players.Base();
+    var loc = new WarGame.Players.Location(40, 0, 60);
     m.addPlayer(pl, loc);
     assert.equal(m.getPlayers().length, 1, 'expected 1 player');
     m.removePlayer(pl);

@@ -1,16 +1,16 @@
-QUnit.module('WarGame.Player', {
+QUnit.module('WarGame.Players.Player', {
     setup: function () {
-        WarGame.map = new WarGame.Map(WarGame.Maps[0]);
+        WarGame.initialize();
+        WarGame.Maps.setCurrent('100x100');
     },
     teardown: function () {
-        WarGame.map = null;
         WarGame.reset();
     }
 });
-QUnit.test('contsructor can be called with no arguments', function (assert) {
+QUnit.test('constructor can be called with no arguments', function (assert) {
     var done = assert.async();
     expect(1);
-    var p = new WarGame.Player();
+    var p = new WarGame.Players.Base();
     assert.ok(true, 'constructor called with no arguments');
     done();
 });
@@ -18,19 +18,18 @@ QUnit.test('contsructor can be called with no arguments', function (assert) {
 QUnit.test('moveTo method moves BoardLocation', function (assert) {
     var done = assert.async();
     expect(2);
-    var p = new WarGame.Player();
-    assert.ok(p.boardLocation.equals(new WarGame.BoardLocation(-1, -1, -1)), 'expected to start at -1, -1, -1');
-    var expected = new WarGame.BoardLocation(50, 0, 50);
-    var coordinate = expected.toVector();
-    p.moveTo(coordinate, true);
-    assert.ok(p.boardLocation.equals(expected), 'expected to end at 50, 0, 50');
+    var p = new WarGame.Players.Base();
+    assert.ok(p.location.equals(new WarGame.Players.Location(-1, -1, -1)), 'expected to start at -1, -1, -1');
+    var expected = new WarGame.Players.Location(50, 0, 50);
+    p.moveTo(expected, true);
+    assert.ok(p.location.equals(expected), 'expected to end at 50, 0, 50');
     done();
 });
 
 QUnit.test('wound method subtracts from wounds stat', function (assert) {
     var done = assert.async();
     expect(2);
-    var p = new WarGame.Player();
+    var p = new WarGame.Players.Base();
     p.stats.wounds = 2;
     assert.equal(p.stats.wounds, 2, 'expected to have 2 wound points');
     p.wound();
@@ -43,7 +42,7 @@ QUnit.test('player removed when wounds reaches 0', function (assert) {
     expect(3);
     var tmp = WarGame.onPlayerDefeated;
     WarGame.onPlayerDefeated = function (input) { assert.ok(true, 'onPlayerDefeated called'); };
-    var p = new WarGame.Player();
+    var p = new WarGame.Players.Base();
     p.stats.wounds = 1;
     assert.equal(p.stats.wounds, 1, 'expected to have 1 wound points');
     p.wound();
@@ -68,7 +67,7 @@ QUnit.test('isBattling method is false when no opponents nearby', function (asse
         }
     }
 
-    var p = WarGame.teams[0].players[0];
+    var p = WarGame.Teams.get()[0].getPlayers()[0];
     assert.ok(!p.isBattling(), 'expected to not be battling');
     done();
 });
@@ -85,7 +84,7 @@ QUnit.test('isBattling method is false when team nearby: ' + JSON.stringify(loc)
     WarGame.addPlayer('basic', 0, { x: 50, z: 50 });
     WarGame.addPlayer('basic', 0, { x: loc.x, z: loc.z });
 
-    var p = WarGame.teams[0].players[0];
+    var p = WarGame.Teams.get()[0].getPlayers()[0];
     assert.ok(!p.isBattling(), 'expected to not be battling');
     done();
 });
@@ -96,7 +95,7 @@ QUnit.test('isBattling method is true when opponents nearby: ' + JSON.stringify(
     WarGame.addPlayer('basic', 0, { x: 50, z: 50 });
     WarGame.addPlayer('basic', 1, { x: loc.x, z: loc.z });
 
-    var p = WarGame.teams[0].players[0];
+    var p = WarGame.Teams.get()[0].getPlayers()[0];
     assert.ok(p.isBattling(), 'expected to be battling');
     done();
 });

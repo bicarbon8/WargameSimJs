@@ -1,13 +1,14 @@
 var WarGame = WarGame || {};
-WarGame.RangedBattle = function () {
-    WarGame.Battle.call(this);
+WarGame.Battles = WarGame.Battles || {};
+WarGame.Battles.Ranged = function () {
+    WarGame.Battles.Base.call(this);
 
     this.attacksRemaining = 0;
 };
-WarGame.RangedBattle.prototype = Object.create(WarGame.Battle.prototype);
-WarGame.RangedBattle.prototype.constructor = WarGame.RangedBattle;
+WarGame.Battles.Ranged.prototype = Object.create(WarGame.Battles.Base.prototype);
+WarGame.Battles.Ranged.prototype.constructor = WarGame.Battles.Ranged;
 
-WarGame.RangedBattle.prototype.addAttacker = function (player) {
+WarGame.Battles.Ranged.prototype.addAttacker = function (player) {
     if (this.attackers.length === 0) {
         this.attacksRemaining = player.stats.attacks;
         this._addPlayerTo(player, this.attackers);
@@ -16,11 +17,11 @@ WarGame.RangedBattle.prototype.addAttacker = function (player) {
     }
 };
 
-WarGame.RangedBattle.prototype.start = function () {
+WarGame.Battles.Ranged.prototype.start = function () {
     var roll = WarGame.Utils.diceRoll();
     if (roll >= this.attackers[0].stats.ranged) {
         WarGame.UI.displayAlert(this.attackers[0].team.name + ' scored a hit.', WarGame.UI.ALERT_BAD);
-        var success = WarGame.WoundChart.tryWound(this.attackers[0], this.opponents[0]);
+        var success = WarGame.Battles.tryWound(this.attackers[0], this.opponents[0]);
         if (success) {
             (function (player) {
                 setTimeout(function () {

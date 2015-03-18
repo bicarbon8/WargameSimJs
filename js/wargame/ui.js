@@ -4,9 +4,24 @@ WarGame.UI = {
     ALERT_GOOD: 'alert-success',
     ALERT_INFO: 'alert-info',
     ALERT_BAD: 'alert-danger',
+    PLAYFIELD: null,
 
     initialize: function () {
+        WarGame.UI.PLAYFIELD = document.querySelector('#playfield');
+        WarGame.UI.Plotter.initialize();
         WarGame.UI.createMenusContainer();
+    },
+
+    getPlayField: function () {
+        return WarGame.UI.PLAYFIELD;
+    },
+
+    addMesh: function (mesh) {
+        WarGame.UI.Plotter.addMesh(mesh);
+    },
+
+    removeMesh: function (mesh) {
+        WarGame.UI.Plotter.removeMesh(mesh);
     },
 
     displayAlert: function (message, type) {
@@ -79,8 +94,12 @@ WarGame.UI = {
 '<div id="right" class="col-xs-3"></div>' +
 '</div>';
 
-        var playfield = document.querySelector('#playfield');
-        playfield.insertBefore(menusContainer, playfield.firstChild);
+        WarGame.UI.getPlayField().insertBefore(menusContainer, playfield.firstChild);
+    },
+
+    removeMenusContainer: function () {
+        var menusContainer = document.querySelector('#menusContainer');
+        WarGame.UI.getPlayField().removeChild(menusContaner);
     },
 
     getPhaseContainers: function () {
@@ -88,7 +107,7 @@ WarGame.UI = {
         var p = document.querySelector('#priorityRow');
         if (!p) {
             var parentElement;
-            if (WarGame.CURRENT_TEAM === 0) {
+            if (WarGame.Teams.CURRENT === 0) {
                 parentElement = document.querySelector('#left');
             } else {
                 parentElement = document.querySelector('#right');
@@ -105,23 +124,23 @@ WarGame.UI = {
     },
 
     createPhaseContainers: function (parentElement) {
-        for (var i=0; i<=WarGame.FIGHTING_PHASE; i++) {
+        for (var i=0; i<=WarGame.Phases.FIGHTING; i++) {
             var pc = document.createElement('div');
             pc.className = 'row-fluid';
             switch (i) {
-                case WarGame.PRIORITY_PHASE:
+                case WarGame.Phases.PRIORITY:
                     pc.setAttribute('id', 'priorityRow');
                     pc.innerHTML = '' +
                     '<h3><span id="currentTeam" class="label label-default">loading...</span> ' +
                     '<span id="currentPhase" class="label label-default">loading...</span></h3>';
                     break;
-                case WarGame.MOVEMENT_PHASE:
+                case WarGame.Phases.MOVEMENT:
                     pc.setAttribute('id', 'moveRow');
                     break;
-                case WarGame.SHOOTING_PHASE:
+                case WarGame.Phases.SHOOTING:
                     pc.setAttribute('id', 'shootRow');
                     break;
-                case WarGame.FIGHTING_PHASE:
+                case WarGame.Phases.FIGHTING:
                     pc.setAttribute('id', 'fightRow');
                     break;
             }
@@ -142,10 +161,15 @@ WarGame.UI = {
         WarGame.UI.removePhaseContainers();
         var phases = WarGame.UI.getPhaseContainers();
         phases[0].querySelector('#currentTeam').innerHTML = teamName;
-        WarGame.UI.setCurrentPhaseText(WarGame.getCurrentPhaseName());
+        WarGame.UI.setCurrentPhaseText(WarGame.Phases.getCurrentPhaseName());
     },
 
     update: function () {
+        WarGame.UI.Plotter.render();
+    },
 
+    reset: function () {
+        WarGame.UI.removeMenusContainer();
+        WarGame.UI.Plotter.reset();
     },
 };

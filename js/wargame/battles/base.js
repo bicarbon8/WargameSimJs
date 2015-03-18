@@ -1,36 +1,37 @@
 var WarGame = WarGame || {};
-WarGame.Battle = function () {
+WarGame.Battles = WarGame.Battles || {};
+WarGame.Battles.Base = function () {
     this.attackers = [];
     this.opponents = [];
 };
 
-WarGame.Battle.prototype.addAttacker = function (player) {
+WarGame.Battles.Base.prototype.addAttacker = function (player) {
     this._addPlayerTo(player, this.attackers);
 };
 
-WarGame.Battle.prototype.addOpponent = function (player) {
+WarGame.Battles.Base.prototype.addOpponent = function (player) {
     this._addPlayerTo(player, this.opponents);
 };
 
-WarGame.Battle.prototype.addOpponents = function (playerArray) {
+WarGame.Battles.Base.prototype.addOpponents = function (playerArray) {
     for (var i=0; i<playerArray.length; i++) {
         this.addOpponent(playerArray[i]);
     }
 };
 
-WarGame.Battle.prototype.addOpponent = function (player) {
+WarGame.Battles.Base.prototype.addOpponent = function (player) {
     this._addPlayerTo(player, this.opponents);
 };
 
-WarGame.Battle.prototype.hasAttacker = function (player) {
+WarGame.Battles.Base.prototype.hasAttacker = function (player) {
     return this._hasPlayerIn(player, this.attackers);
 };
 
-WarGame.Battle.prototype.hasOpponent = function (player) {
+WarGame.Battles.Base.prototype.hasOpponent = function (player) {
     return this._hasPlayerIn(player, this.opponents);
 };
 
-WarGame.Battle.prototype.hasPlayer = function (player) {
+WarGame.Battles.Base.prototype.hasPlayer = function (player) {
     var hasAtk = this.hasAttacker(player);
     if (hasAtk) {
         return true;
@@ -39,7 +40,7 @@ WarGame.Battle.prototype.hasPlayer = function (player) {
     }
 };
 
-WarGame.Battle.prototype.getPlayers = function () {
+WarGame.Battles.Base.prototype.getPlayers = function () {
     var players = [], i;
     for (i=0; i<this.attackers.length; i++) {
         players.push(this.attackers[i]);
@@ -51,11 +52,11 @@ WarGame.Battle.prototype.getPlayers = function () {
     return players;
 };
 
-WarGame.Battle.prototype.start = function () {
+WarGame.Battles.Base.prototype.start = function () {
     throw 'abstract base method cannot be called. please use concrete class.';
 };
 
-WarGame.Battle.prototype._addPlayerTo = function (player, array) {
+WarGame.Battles.Base.prototype._addPlayerTo = function (player, array) {
     // ensure not already here
     var alreadyExists = false;
     for (var i=0; i<array.length; i++) {
@@ -69,7 +70,7 @@ WarGame.Battle.prototype._addPlayerTo = function (player, array) {
     }
 };
 
-WarGame.Battle.prototype._hasPlayerIn = function (player, array) {
+WarGame.Battles.Base.prototype._hasPlayerIn = function (player, array) {
     for (var i=0; i<array.length; i++) {
         if (player === array[i]) {
             return true;

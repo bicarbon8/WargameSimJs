@@ -1,39 +1,26 @@
-QUnit.module('WarGame.MeleBattle', {
+QUnit.module('WarGame.Battles.Mele', {
     setup: function () {
-        WarGame.map = new WarGame.Map(WarGame.Maps[0]);
+        WarGame.initialize();
+        WarGame.Maps.setCurrent('100x100');
     },
     teardown: function () {
-        WarGame.map = null;
+        WarGame.reset();
     }
 });
 QUnit.test('getTotalAttackPoints adds all attacks for passed in player array', function (assert) {
     expect(1);
-    var b = new WarGame.MeleBattle();
-    var basic = WarGame.Players.filter(function (p) {
-        return p.name.toLowerCase() === 'basic'; // basic has 1
-    })[0];
-    var hero = WarGame.Players.filter(function (p) {
-        return p.name.toLowerCase() === 'hero'; // hero has 2
-    })[0];
-    var ps = [];
-    ps.push(new WarGame.Player(WarGame.teams[0], basic));
-    ps.push(new WarGame.Player(WarGame.teams[0], hero));
-    ps.push(new WarGame.Player(WarGame.teams[0], basic));
-    assert.equal(b.getTotalAttackPoints(ps), 4, 'expected 4 points');
+    var b = new WarGame.Battles.Mele();
+    WarGame.addPlayer('basic', 0, new WarGame.Players.Location(50,0,50));
+    WarGame.addPlayer('hero', 0, new WarGame.Players.Location(51,0,51));
+    WarGame.addPlayer('basic', 0, new WarGame.Players.Location(52,0,52));
+    assert.equal(b.getTotalAttackPoints(WarGame.Teams.get()[0].getPlayers()), 4, 'expected 4 points');
 });
 
 QUnit.test('getHighestMeleValue returns highest value player stat', function (assert) {
     expect(1);
-    var b = new WarGame.MeleBattle();
-    var basic = WarGame.Players.filter(function (p) {
-        return p.name.toLowerCase() === 'basic'; // basic has 3
-    })[0];
-    var hero = WarGame.Players.filter(function (p) {
-        return p.name.toLowerCase() === 'hero'; // hero has 6
-    })[0];
-    var ps = [];
-    ps.push(new WarGame.Player(WarGame.teams[0], basic));
-    ps.push(new WarGame.Player(WarGame.teams[0], hero));
-    ps.push(new WarGame.Player(WarGame.teams[0], basic));
-    assert.equal(b.getHighestMeleValue(ps), 6, 'expected 6 points');
+    var b = new WarGame.Battles.Mele();
+    WarGame.addPlayer('basic', 0, new WarGame.Players.Location(50,0,50));
+    WarGame.addPlayer('hero', 0, new WarGame.Players.Location(51,0,51));
+    WarGame.addPlayer('basic', 0, new WarGame.Players.Location(52,0,52));
+    assert.equal(b.getHighestMeleValue(WarGame.Teams.get()[0].getPlayers()), 6, 'expected 6 points');
 });

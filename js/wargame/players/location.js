@@ -1,15 +1,16 @@
 var WarGame = WarGame || {};
-WarGame.BoardLocation = function(x, y, z, grid) {
+WarGame.Players = WarGame.Players || {};
+WarGame.Players.Location = function(x, y, z, grid) {
     this.x = x;
     this.y = y;
     this.z = z;
     this.grid = grid;
     if (!grid) {
-        this.grid = WarGame.map.getGrid();
+        this.grid = WarGame.Maps.getCurrent().getGrid();
     }
 };
 
-WarGame.BoardLocation.prototype.setFromVector = function (vector) {
+WarGame.Players.Location.prototype.setFromVector = function (vector) {
     var zLength = this.grid.length;
     var xLength = this.grid[0].length;
     var actualX = vector.x;
@@ -24,7 +25,7 @@ WarGame.BoardLocation.prototype.setFromVector = function (vector) {
     this.z = boardZ;
 };
 
-WarGame.BoardLocation.prototype.toVector = function () {
+WarGame.Players.Location.prototype.toVector = function () {
     var zLength = this.grid.length;
     var xLength = this.grid[0].length;
     var boardX = this.x;
@@ -37,20 +38,20 @@ WarGame.BoardLocation.prototype.toVector = function () {
     return new THREE.Vector3(actualX, actualY, actualZ);
 };
 
-WarGame.BoardLocation.prototype.clone = function () {
-    return new WarGame.BoardLocation(this.x, this.y, this.z);
+WarGame.Players.Location.prototype.clone = function () {
+    return new WarGame.Players.Location(this.x, this.y, this.z);
 };
 
-WarGame.BoardLocation.prototype.equals = function (boardLocation) {
-    if (this.x === boardLocation.x &&
-        this.y === boardLocation.y &&
-        this.z === boardLocation.z) {
+WarGame.Players.Location.prototype.equals = function (location) {
+    if (this.x === location.x &&
+        this.y === location.y &&
+        this.z === location.z) {
         return true;
     } else {
         return false;
     }
 };
 
-WarGame.BoardLocation.prototype.toString = function () {
+WarGame.Players.Location.prototype.toString = function () {
     return this.x + ':' + this.y + ':' + this.z;
 };
