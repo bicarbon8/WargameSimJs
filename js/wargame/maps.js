@@ -1,6 +1,8 @@
 var WarGame = WarGame || {};
 WarGame.Maps = {};
 
+WarGame.Maps.MAX_BLOCK_HEIGHT = 5;
+WarGame.Maps.STEP_OFFSET = 0.5;
 WarGame.Maps.CURRENT = null;
 WarGame.Maps._array = [];
 

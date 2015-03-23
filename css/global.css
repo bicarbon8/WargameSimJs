@@ -7,7 +7,7 @@ body {
     display: table-cell;
     overflow: hidden;
     background: #000000;
-    text-align: center;
+    /*text-align: center;*/
     vertical-align: middle;
 }
 body, div, canvas {

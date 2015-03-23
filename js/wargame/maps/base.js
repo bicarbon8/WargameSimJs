@@ -92,8 +92,8 @@ WarGame.Maps.Base.prototype.generateObj = function () {
 
     for (var z=0; z<this.attributes.grid.length; z++) {
         for (var x=0; x<this.attributes.grid[z].length; x++) {
-            var boxGeometry = new THREE.BoxGeometry(1, WarGame.MAX_BLOCK_HEIGHT, 1);
-            var y = -(WarGame.MAX_BLOCK_HEIGHT) + this.attributes.grid[z][x];
+            var boxGeometry = new THREE.BoxGeometry(1, WarGame.Maps.MAX_BLOCK_HEIGHT, 1);
+            var y = -(WarGame.Maps.MAX_BLOCK_HEIGHT) + this.attributes.grid[z][x];
             var coordinates = new WarGame.Players.Location(x, y, z, this.attributes.grid).toVector();
             matrix.makeTranslation(
                 coordinates.x,

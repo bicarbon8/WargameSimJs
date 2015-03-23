@@ -17,7 +17,7 @@ WarGame.Players.Location.prototype.setFromVector = function (vector) {
     var actualY = vector.y;
     var actualZ = vector.z;
     var boardX = (xLength / 2) + actualX;
-    var boardY = actualY / WarGame.STEP_OFFSET;
+    var boardY = actualY / WarGame.Maps.STEP_OFFSET;
     var boardZ = (zLength / 2) + actualZ;
 
     this.x = boardX;
@@ -33,7 +33,7 @@ WarGame.Players.Location.prototype.toVector = function () {
     var boardY = this.y;
     var actualX = -(xLength / 2) + boardX;
     var actualZ = -(zLength / 2) + boardZ;
-    var actualY = (boardY * WarGame.STEP_OFFSET);
+    var actualY = (boardY * WarGame.Maps.STEP_OFFSET);
 
     return new THREE.Vector3(actualX, actualY, actualZ);
 };

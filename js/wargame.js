@@ -1,9 +1,4 @@
 var WarGame = WarGame || {};
-WarGame.CURRENT_TEAM = 0;
-WarGame.PRIORITY_TEAM = 0;
-WarGame.MAX_BLOCK_HEIGHT = 5;
-WarGame.STEP_OFFSET = 0.5;
-
 WarGame.initialize = function () {
     WarGame.Teams.add(new WarGame.Teams.Team("RED", 0xff0000, 100));
     WarGame.Teams.add(new WarGame.Teams.Team("BLUE", 0x0044ff, 100));

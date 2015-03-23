@@ -8,6 +8,7 @@ WarGame.Phases.Priority = {
         var two = WarGame.Utils.diceRoll()[0];
         if (one === two) {
             WarGame.Phases.Priority.start();
+            return;
         }
         if (one > two) {
             WarGame.Teams.setAsPriorityTeamByIndex(0);

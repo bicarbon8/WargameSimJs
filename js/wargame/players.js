@@ -19,7 +19,7 @@ WarGame.Players.getPlayerAttributesByName = function (name) {
             return pl;
         }
     }
-    throw "unable to locate player of type: " + type;
+    throw "unable to locate player: " + name;
 };
 
 WarGame.Players.createPlayer = function (name, team) {

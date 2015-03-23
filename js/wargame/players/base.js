@@ -110,6 +110,11 @@ WarGame.Players.Base.prototype.getOpponentsInShootRange = function () {
     return filtered;
 };
 
+WarGame.Players.Base.prototype.hasUnobstructedView = function (player) {
+    // TODO: cast a ray from this player's head to the base of the passed in player
+    return true;
+};
+
 WarGame.Players.Base.prototype.wound = function () {
     this.stats.wounds--;
     if (this.stats.wounds < 1) {

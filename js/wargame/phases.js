@@ -24,8 +24,6 @@ WarGame.Phases.getCurrentPhaseName = function () {
 };
 
 WarGame.Phases.doCurrent = function () {
-    WarGame.CURRENT_TEAM = WarGame.PRIORITY_TEAM;
-
     WarGame.UI.setCurrentTeamText(WarGame.Teams.getCurrent().name);
 
     switch (WarGame.Phases.CURRENT) {
