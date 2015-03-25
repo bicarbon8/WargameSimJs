@@ -32,6 +32,7 @@ QUnit.test('calling start will determine a random team has priority', function (
 });
 
 QUnit.test('calling start will call end when done', function (assert) {
+    expect(1);
     tmp.push(WarGame.Phases.next);
     WarGame.Phases.next = function () { assert.ok(true, 'expected WarGame.Phases.next to be called'); };
 

@@ -123,6 +123,10 @@ WarGame.Players.Base.prototype.wound = function () {
     }
 };
 
+WarGame.Players.Base.prototype.getName = function () {
+    return this.attributes.name;
+};
+
 WarGame.Players.Base.prototype.getCost = function () {
     return this.attributes.cost;
 };

@@ -129,5 +129,13 @@ WarGame.UI.Plotter = {
 
     removeMesh: function (mesh) {
         WarGame.UI.Plotter.scene.remove(mesh);
-    }
+    },
+
+    addListener: function (type, fn) {
+        WarGame.UI.Plotter.renderer.domElement.addEventListener(type, fn, false);
+    },
+
+    removeListener: function (type, fn) {
+        WarGame.UI.Plotter.renderer.domElement.removeEventListener(type, fn, false);
+    },
 };

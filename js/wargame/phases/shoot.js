@@ -14,10 +14,9 @@ WarGame.Phases.Shoot = {
         }
 
         WarGame.Phases.Shoot.battle = new WarGame.Battles.Ranged();
-        WarGame.UI.Plotter.renderer.domElement.addEventListener('mousemove', WarGame.Phases.Shoot.handleShootMouseMove, false);
-        WarGame.UI.Plotter.renderer.domElement.addEventListener('click', WarGame.Phases.Shoot.handleShootClick, false);
-        document.querySelector('#shootRow').innerHTML = '' +
-'<button type="submit" onclick="WarGame.Phases.Shoot.endTurn();" class="btn btn-default">End Turn</button>';
+        WarGame.UI.Plotter.addListener('mousemove', WarGame.Phases.Shoot.handleShootMouseMove);
+        WarGame.UI.Plotter.addListener('click', WarGame.Phases.Shoot.handleShootClick);
+        WarGame.UI.setContents('shootRow', '<button type="submit" onclick="WarGame.Phases.Shoot.endTurn();" class="btn btn-default">End Turn</button>');
     },
 
     endTurn: function () {
@@ -25,8 +24,7 @@ WarGame.Phases.Shoot = {
 
         WarGame.Teams.next();
 
-        document.querySelector('#shootRow').innerHTML = '' +
-'<button type="submit" onclick="WarGame.Phases.Shoot.endTurn();" class="btn btn-default">End Turn</button>';
+        WarGame.UI.setContents('shootRow', '<button type="submit" onclick="WarGame.Phases.Shoot.endTurn();" class="btn btn-default">End Turn</button>');
 
         if (WarGame.Phases.Shoot.TEAMS_DONE_PHASE >= WarGame.Teams.get().length) {
             WarGame.Phases.Shoot.TEAMS_DONE_PHASE = 0;
@@ -35,10 +33,10 @@ WarGame.Phases.Shoot = {
     },
 
     end: function () {
-        document.querySelector('#shootRow').innerHTML = '';
+        WarGame.UI.setContents('shootRow', '');
         WarGame.Phases.Shoot.battle = null;
-        WarGame.UI.Plotter.renderer.domElement.removeEventListener('mousemove', WarGame.Phases.Shoot.handleShootMouseMove, false);
-        WarGame.UI.Plotter.renderer.domElement.removeEventListener('click', WarGame.Phases.Shoot.handleShootClick, false);
+        WarGame.UI.Plotter.removeListener('mousemove', WarGame.Phases.Shoot.handleShootMouseMove);
+        WarGame.UI.Plotter.removeListener('click', WarGame.Phases.Shoot.handleShootClick);
         // move to next phase
         WarGame.Phases.next();
     },

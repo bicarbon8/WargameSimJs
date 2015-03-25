@@ -10,43 +10,40 @@ WarGame.Phases.Move = {
             players[i].history[WarGame.Rounds.getCurrent()].move.boardLoc = players[i].location.clone();
         }
 
-        WarGame.UI.Plotter.renderer.domElement.addEventListener('mousemove', WarGame.Phases.Move.handleMoveMouseMove, false);
-        WarGame.UI.Plotter.renderer.domElement.addEventListener('click', WarGame.Phases.Move.handleMoveClick, false);
-        document.querySelector('#moveRow').innerHTML = '' +
-'<button type="submit" onclick="WarGame.Phases.Move.endTurn();" class="btn btn-default">End Turn</button>';
+        WarGame.UI.Plotter.addListener('mousemove', WarGame.Phases.Move.handleMoveMouseMove);
+        WarGame.UI.Plotter.addListener('click', WarGame.Phases.Move.handleMoveClick);
+        WarGame.UI.setContents('moveRow', '<button type="submit" onclick="WarGame.Phases.Move.endTurn();" class="btn btn-default">End Turn</button>');
     },
 
     endTurn: function () {
         WarGame.Phases.Move.TEAMS_DONE_PHASE++;
-        WarGame.Teams.next();
-
-        document.querySelector('#moveRow').innerHTML = '' +
-'<button type="submit" onclick="WarGame.Phases.Move.endTurn();" class="btn btn-default">End Turn</button>';
 
         if (WarGame.Phases.Move.TEAMS_DONE_PHASE >= WarGame.Teams.get().length) {
             WarGame.Phases.Move.TEAMS_DONE_PHASE = 0;
             WarGame.Phases.Move.end();
+        } else {
+            WarGame.Teams.next();
+            WarGame.UI.setContents('moveRow', '<button type="submit" onclick="WarGame.Phases.Move.endTurn();" class="btn btn-default">End Turn</button>');
         }
     },
 
     end: function () {
-        document.querySelector('#moveRow').innerHTML = '';
-        WarGame.UI.Plotter.renderer.domElement.removeEventListener('mousemove', WarGame.Phases.Move.handleMoveMouseMove, false);
-        WarGame.UI.Plotter.renderer.domElement.removeEventListener('click', WarGame.Phases.Move.handleMoveClick, false);
+        WarGame.UI.setContents('moveRow', '');
+        WarGame.UI.Plotter.removeListener('mousemove', WarGame.Phases.Move.handleMoveMouseMove);
+        WarGame.UI.Plotter.removeListener('click', WarGame.Phases.Move.handleMoveClick);
         // move to next phase
         WarGame.Phases.next();
     },
 
     movePlayer: function (teamName, playerId) {
         var team = WarGame.Teams.getTeamByName(teamName);
-        var container = document.querySelector('#moveRow');
         // get all players for team
         if (team) {
             var players = team.players.filter(function (p) {
                 return p.id === playerId;
             });
-            var x = document.querySelector('#x').value;
-            var z = document.querySelector('#z').value;
+            var x = WarGame.UI.getValue('x');
+            var z = WarGame.UI.getValue('z');
             // TODO: handle OOB errors
             WarGame.Maps.getCurrent().movePlayerTo(players[0], new WarGame.Players.Location(parseInt(x), 0, parseInt(z)));
         }
@@ -85,8 +82,6 @@ WarGame.Phases.Move = {
             if (intersects.length > 0) {
                 for (var i=0; i<players.length; i++) {
                     if (intersects[0].object === players[i].obj) {
-                        var container = document.querySelector('#moveRow');
-                        container.innerHTML = '';
                         var html = '' +
 '<div class="panel panel-default">' +
 '<div class="panel-heading">' +
@@ -104,7 +99,7 @@ WarGame.Phases.Move = {
 '</div>' +
 '</div>' +
 '<button type="submit" onclick="WarGame.Phases.Move.endTurn();" class="btn btn-default">End Turn</button>';
-                        container.innerHTML = html;
+                        WarGame.UI.setContents('moveRow', html);
                         break;
                     }
                 }

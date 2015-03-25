@@ -1,5 +1,5 @@
 var WarGame = WarGame || {};
-WarGame.MockPlotter = {
+WarGame.UI.MockPlotter = {
     raycaster: null,
     mouse: null,
     INTERSECTED: null,
@@ -30,7 +30,15 @@ WarGame.MockPlotter = {
 
     removeMesh: function (mesh) {
 
-    }
+    },
+
+    addListener: function (type, fn) {
+
+    },
+
+    removeListener: function (type, fn) {
+
+    },
 };
 
-WarGame.Plotter = WarGame.MockPlotter;
+WarGame.UI.Plotter = WarGame.UI.MockPlotter;

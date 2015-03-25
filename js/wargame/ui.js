@@ -149,19 +149,35 @@ WarGame.UI = {
     },
 
     removePhaseContainers: function () {
-        document.querySelector('#left').innerHTML = '';
-        document.querySelector('#right').innerHTML = '';
+        WarGame.UI.setContents('left', '');
+        WarGame.UI.setContents('right', '');
     },
 
     setCurrentPhaseText: function (phaseName) {
-        document.querySelector('#currentPhase').innerHTML = phaseName;
+        WarGame.UI.setContents('currentPhase', phaseName);
     },
 
     setCurrentTeamText: function (teamName) {
         WarGame.UI.removePhaseContainers();
         var phases = WarGame.UI.getPhaseContainers();
-        phases[0].querySelector('#currentTeam').innerHTML = teamName;
+        WarGame.UI.setContents('currentTeam', teamName);
         WarGame.UI.setCurrentPhaseText(WarGame.Phases.getCurrentPhaseName());
+    },
+
+    setContents: function (containerId, contentsStr) {
+        document.querySelector('#' + containerId).innerHTML = contentsStr;
+    },
+
+    getContents: function (containerId) {
+        return document.querySelector('#' + containerId).innerHTML;
+    },
+
+    setValue: function (fieldId, valueStr) {
+        document.querySelector('#' + fieldId).value = valueStr;
+    },
+
+    getValue: function (fieldId) {
+        return document.querySelector('#' + fieldId).value;
     },
 
     update: function () {

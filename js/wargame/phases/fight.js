@@ -13,15 +13,15 @@ WarGame.Phases.Fight = {
         }
 
         WarGame.Phases.Fight.battles = WarGame.Phases.Fight.getBattleGroups();
-        WarGame.UI.Plotter.renderer.domElement.addEventListener('mousemove', WarGame.Phases.Fight.handleFightMouseMove, false);
-        WarGame.UI.Plotter.renderer.domElement.addEventListener('click', WarGame.Phases.Fight.handleFightClick, false);
+        WarGame.UI.Plotter.addListener('mousemove', WarGame.Phases.Fight.handleFightMouseMove);
+        WarGame.UI.Plotter.addListener('click', WarGame.Phases.Fight.handleFightClick);
     },
 
     end: function () {
         WarGame.UI.setCurrentPhaseText('');
         WarGame.Phases.Fight.battles = null;
-        WarGame.UI.Plotter.renderer.domElement.removeEventListener('mousemove', WarGame.Phases.Fight.handleFightMouseMove, false);
-        WarGame.UI.Plotter.renderer.domElement.removeEventListener('click', WarGame.Phases.Fight.handleFightClick, false);
+        WarGame.UI.Plotter.removeListener('mousemove', WarGame.Phases.Fight.handleFightMouseMove);
+        WarGame.UI.Plotter.removeListener('click', WarGame.Phases.Fight.handleFightClick);
         // move to next phase
         WarGame.Phases.next();
     },

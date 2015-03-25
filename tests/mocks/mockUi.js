@@ -57,6 +57,14 @@ WarGame.MockUI = {
 
     },
 
+    setContents: function (containerId, contentsStr) {
+
+    },
+
+    getContents: function (containerId) {
+
+    },
+
     removeMesh: function (mesh) {
 
     },

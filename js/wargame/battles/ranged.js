@@ -22,13 +22,13 @@ WarGame.Battles.Ranged.prototype.start = function () {
     for (var i=0; i<this.opponents.length; i++) {
         var roll = WarGame.Utils.diceRoll();
         if (roll >= this.attackers[0].stats.ranged) {
-            WarGame.UI.displayAlert(this.attackers[0].team.name + ' - ' +
-                this.attackers[0].name + ' scored a hit.', WarGame.UI.ALERT_BAD);
+            WarGame.UI.displayAlert(this.attackers[0].team.getName() + ' - ' +
+                this.attackers[0].getName() + ' scored a hit.', WarGame.UI.ALERT_BAD);
             var success = WarGame.Battles.tryWound(this.attackers[0], this.opponents[0]);
             if (success) {
                 (function (player) {
                     setTimeout(function () {
-                        WarGame.UI.displayAlert(player.team.name + ' damaged his opponent.', WarGame.UI.ALERT_BAD);
+                        WarGame.UI.displayAlert(player.team.getName() + ' damaged his opponent.', WarGame.UI.ALERT_BAD);
                     }, 500);
                 })(this.attackers[0]);
                 // TODO: let winner pick who to wound
@@ -36,14 +36,14 @@ WarGame.Battles.Ranged.prototype.start = function () {
             } else {
                 (function (player) {
                     setTimeout(function () {
-                        WarGame.UI.displayAlert(player.team.name + ' caused no damage.', WarGame.UI.ALERT_INFO);
+                        WarGame.UI.displayAlert(player.team.getName() + ' caused no damage.', WarGame.UI.ALERT_INFO);
                     }, 500);
                 })(this.attackers[0]);
             }
         } else {
             (function (player) {
                 setTimeout(function () {
-                    WarGame.UI.displayAlert(player.team.name + ' missed.', WarGame.UI.ALERT_INFO);
+                    WarGame.UI.displayAlert(player.team.getName() + ' missed.', WarGame.UI.ALERT_INFO);
                 }, 500);
             })(this.attackers[0]);
         }

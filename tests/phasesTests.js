@@ -1,23 +1,23 @@
-var tmp = [];
+WarGame.Phases.TestTemp = [];
 QUnit.module('WarGame.Phases', {
     setup: function () {
         WarGame.initialize();
         WarGame.Maps.setCurrent('100x100');
 
-        tmp.push(WarGame.Phases.Priority.start);
-        tmp.push(WarGame.Phases.Move.start);
-        tmp.push(WarGame.Phases.Shoot.start);
-        tmp.push(WarGame.Phases.Fight.start);
+        WarGame.Phases.TestTemp.push(WarGame.Phases.Priority.start);
+        WarGame.Phases.TestTemp.push(WarGame.Phases.Move.start);
+        WarGame.Phases.TestTemp.push(WarGame.Phases.Shoot.start);
+        WarGame.Phases.TestTemp.push(WarGame.Phases.Fight.start);
     },
     teardown: function () {
         WarGame.reset();
 
-        WarGame.Phases.Priority.start = tmp[0];
-        WarGame.Phases.Move.start = tmp[1];
-        WarGame.Phases.Shoot.start = tmp[2];
-        WarGame.Phases.Fight.start = tmp[3];
+        WarGame.Phases.Priority.start = WarGame.Phases.TestTemp[0];
+        WarGame.Phases.Move.start = WarGame.Phases.TestTemp[1];
+        WarGame.Phases.Shoot.start = WarGame.Phases.TestTemp[2];
+        WarGame.Phases.Fight.start = WarGame.Phases.TestTemp[3];
 
-        tmp = [];
+        WarGame.Phases.TestTemp = [];
     }
 });
 
