@@ -1,5 +1,5 @@
 import { Team } from "../teams/team";
-import { Dice } from "../utils/dice";
+import { diceMgr } from "../utils/dice-manager";
 import { BasePhase } from "./base-phase";
 import { PhaseType } from "./phase-type";
 
@@ -19,7 +19,7 @@ export class PriorityPhase extends BasePhase {
 
     private _orderTeamsByPriority(teams: Team[]): Team[] {
         let orderedTeams: Team[] = [];
-        let diceRolls: number[] = Dice.roll(teams.length);
+        let diceRolls: number[] = diceMgr.rollMultiple(teams.length);
         let orders: {} = {};
         for (var i=0; i<diceRolls.length; i++) {
             let roll: number = diceRolls[i];

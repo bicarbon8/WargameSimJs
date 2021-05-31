@@ -1,9 +1,18 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { PhaseManager } from '../phases/phase-manager';
 import { PhaseType } from '../phases/phase-type';
 import { ViewSize } from './view-size';
-
+namespace THREE {
+    export class Scene {fog: FogExp2; position: any;}
+    export class PerspectiveCamera {constructor(a: any, b: any, c: any, d: any) {} position: any; lookAt(a: any) {}}
+    export class Object3D {add(a: any) {}}
+    export class WebGLRenderer {render(a: any, b: any) {}}
+    export class Raycaster {}
+    export class Vector2 {}
+    export class FogExp2 {constructor(hex: any, float: any) {}}
+    export class PointLight {constructor(a: any, b: any, c: any, d: any) {} position: any;}
+    export class SpotLight {constructor(a: any, b: any, c: any, d: any, e: any) {}}
+}
+class OrbitControls {}
 export class ViewManager {
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
@@ -27,74 +36,23 @@ export class ViewManager {
         this.scene.fog = new THREE.FogExp2(0xffffff, 0.015);
 
         this.camera = new THREE.PerspectiveCamera(45, dims.width / dims.height, 0.1, 100000);
-        this.camera.position.set(0, 50, 50);
-        this.camera.lookAt(this.scene.position);
+        // this.camera.position.set(0, 50, 50);
+        // this.camera.lookAt(this.scene.position);
 
         this.lights = new THREE.Object3D();
         for (var i=-20; i<30; i+=40) {
             for (var j=-20; j<30; j+=40) {
                 var sunLight = new THREE.PointLight(0xFFFF44, 0.2, Math.PI / 2, 1); // orange light
-                sunLight.position.set(i, 600, j);
+                // sunLight.position.set(i, 600, j);
 
-                var moonLight = new THREE.PointLight(0x3333FF, 0.25, Math.PI / 2, 1); // blue light
-                moonLight.position.set(i, -600, j);
+                // var moonLight = new THREE.PointLight(0x3333FF, 0.25, Math.PI / 2, 1); // blue light
+                // moonLight.position.set(i, -600, j);
 
-                this.lights.add(sunLight);
-                this.lights.add(moonLight);
+                // this.lights.add(sunLight);
+                // this.lights.add(moonLight);
             }
         }
         var sunShadowLight = new THREE.SpotLight(0xFFFF44, 0.2, 0, Math.PI / 2, 1);
-        sunShadowLight.castShadow = true;
-        sunShadowLight.shadow.camera.near = 100;
-        sunShadowLight.shadow.camera.far = 1100;
-        // sunShadowLight.shadowCameraVisible = true;
-        sunShadowLight.shadow.bias = 0.0001;
-        // sunShadowLight.shadowDarkness = 0.75;
-        sunShadowLight.shadow.mapSize.width = 2048;
-        sunShadowLight.shadow.mapSize.height = 2048;
-        sunShadowLight.position.set(0, 600, 0);
-        this.lights.add(sunShadowLight);
-
-        var ambientLight = new THREE.AmbientLight(0x606060); // soft white light
-
-        var waterGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 1, 1);
-        var waterMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff });
-        var water = new THREE.Mesh(waterGeometry, waterMaterial);
-        water.position.y -= 0.5;
-        water.rotation.x -= Math.PI / 2;
-
-        var skyboxGeometry = new THREE.BoxGeometry(10000, 10000, 10000);
-        var skyboxMaterial = new THREE.MeshBasicMaterial({ color: 0x9999ff, side: THREE.DoubleSide });
-        var skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
-
-        this.renderer = new THREE.WebGLRenderer({canvas: playfield});
-        this.renderer.setSize(dims.width, dims.height);
-        this.renderer.shadowMap.enabled = true;
-
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.addEventListener('change', () => this.render());
-        // controls.minDistance = 20;
-        // controls.maxDistance = 1000;
-        // controls.minPolarAngle = Math.PI / 2;
-        // controls.maxPolarAngle = Math.PI - (Math.PI * 0.1);
-        // controls.minAzimuthAngle = -Math.PI / 2 + (Math.PI * 0.1);
-        // controls.maxAzimuthAngle = Math.PI / 2 - (Math.PI * 0.1);
-
-        this.scene.add(this.lights);
-        this.scene.add(this.camera);
-        this.scene.add(ambientLight);
-        this.scene.add(skybox);
-        this.scene.add(water);
-
-        // var axisHelper = new THREE.AxisHelper(50);
-        // scene.add(axisHelper);
-
-        this.render();
-
-        this.raycaster = new THREE.Raycaster();
-        this.mousePos = new THREE.Vector2();
-
-        window.addEventListener('resize', this.resize, false);
         this.createMenusContainer();
     }
 
@@ -107,11 +65,6 @@ export class ViewManager {
             var alertId = this.COUNTER++;
             alertsContainer.innerHTML = '<div id="alert-' + alertId + '" class="alert ' + type + '" role="alert" style="display: none;">' +
                 message + '</div>' + alertsContainer.innerHTML;
-            $("#alert-" + alertId).fadeIn(100, function () {
-                $("#alert-" + alertId).delay(5000).fadeOut(1000, function () {
-                    $("#alert-" + alertId).remove();
-                });
-            });
         }, 0);
     }
   
@@ -258,10 +211,7 @@ export class ViewManager {
     resize(): void {
         var dims = this.getWidthHeight();
         try {
-            this.camera.aspect = dims.width / dims.height;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(dims.width, dims.height);
-            this.controls.update();
+            
         } catch (e) {
             // TODO: log
         }
@@ -269,11 +219,7 @@ export class ViewManager {
 
     render(): void {
         // lights.rotateOnAxis(new THREE.Vector3(1,0,0), timeStep);
-        this.lights.rotation.z += this.timeStep;
-        if (this.lights.rotation.z > 6.27) {
-            this.lights.rotation.z = 0;
-        }
-        this.renderer.render(this.scene, this.camera);
+        // this.renderer.render(this.scene, this.camera);
     }
 
     reset(playfield: HTMLCanvasElement): void {
@@ -286,19 +232,19 @@ export class ViewManager {
     }
 
     addMesh(mesh): void {
-        this.scene.add(mesh);
+        // this.scene.add(mesh);
     }
 
     removeMesh(mesh): void {
-        this.scene.remove(mesh);
+        // this.scene.remove(mesh);
     }
 
     addListener(type, fn): void {
-        this.renderer.domElement.addEventListener(type, fn, false);
+        // this.renderer.domElement.addEventListener(type, fn, false);
     }
 
     removeListener(type, fn): void {
-        this.renderer.domElement.removeEventListener(type, fn, false);
+        // this.renderer.domElement.removeEventListener(type, fn, false);
     }
 }
 

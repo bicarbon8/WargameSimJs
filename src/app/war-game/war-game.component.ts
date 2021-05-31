@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, NgZone, OnInit } from '@angular/core';
 import { ViewManager } from './ui/view-manager';
 import { TeamManager } from './teams/team-manager';
 import { PhaseManager } from './phases/phase-manager';
@@ -21,9 +21,10 @@ export class WarGameComponent implements OnInit, AfterViewChecked {
   private _playerMgr: PlayerManager;
   private _phaseMgr: PhaseManager;
   private _battleMgr: BattleManager;
+  private _zone: NgZone;
 
-  constructor() {
-      
+  constructor(zone: NgZone) {
+      this._zone = zone;
   }
 
   ngOnInit(): void {
@@ -41,7 +42,7 @@ export class WarGameComponent implements OnInit, AfterViewChecked {
   }
 
   refreshLayout(): void {
-    this.zone.runOutsideAngular(() => {
+    this._zone.runOutsideAngular(() => {
       setTimeout(() => {
         this._viewMgr.render();
       }, 200);

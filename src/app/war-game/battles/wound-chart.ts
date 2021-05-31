@@ -1,151 +1,79 @@
-import { Dice } from "../utils/dice";
-import { AttackWounds } from "./attack-wounds";
-import { DefenceWounds } from "./defence-wounds";
-import { DiceRollWounds } from "./dice-roll-wounds";
+import { DiceManager, diceMgr } from "../utils/dice-manager";
 
-export module WoundChart {
-    var attackWounds: AttackWounds = {
-        str_1: { 
-            def_1: {minRollsToWound: [4]},
-            def_2: {minRollsToWound: [5]},
-            def_3: {minRollsToWound: [5]},
-            def_4: {minRollsToWound: [6]},
-            def_5: {minRollsToWound: [6]},
-            def_6: {minRollsToWound: [6, 4]},
-            def_7: {minRollsToWound: [6, 5]},
-            def_8: {minRollsToWound: [6, 6]}
-        },
-        str_2: { 
-            def_1: {minRollsToWound: [4]},
-            def_2: {minRollsToWound: [4]},
-            def_3: {minRollsToWound: [5]},
-            def_4: {minRollsToWound: [5]},
-            def_5: {minRollsToWound: [6]},
-            def_6: {minRollsToWound: [6]},
-            def_7: {minRollsToWound: [6, 4]},
-            def_8: {minRollsToWound: [6, 5]},
-            def_9: {minRollsToWound: [6, 6]}
-        },
-        str_3: { 
-            def_1: {minRollsToWound: [3]},
-            def_2: {minRollsToWound: [4]},
-            def_3: {minRollsToWound: [4]},
-            def_4: {minRollsToWound: [5]},
-            def_5: {minRollsToWound: [5]},
-            def_6: {minRollsToWound: [6]},
-            def_7: {minRollsToWound: [6]},
-            def_8: {minRollsToWound: [6, 4]},
-            def_9: {minRollsToWound: [6, 5]},
-            def_10: {minRollsToWound: [6, 6]}
-        },
-        str_4: { 
-            def_1: {minRollsToWound: [3]},
-            def_2: {minRollsToWound: [3]},
-            def_3: {minRollsToWound: [4]},
-            def_4: {minRollsToWound: [4]},
-            def_5: {minRollsToWound: [5]},
-            def_6: {minRollsToWound: [5]},
-            def_7: {minRollsToWound: [6]},
-            def_8: {minRollsToWound: [6]},
-            def_9: {minRollsToWound: [6, 4]},
-            def_10: {minRollsToWound: [6, 5]}
-        },
-        str_5: { 
-            def_1: {minRollsToWound: [3]},
-            def_2: {minRollsToWound: [3]},
-            def_3: {minRollsToWound: [3]},
-            def_4: {minRollsToWound: [4]},
-            def_5: {minRollsToWound: [4]},
-            def_6: {minRollsToWound: [5]},
-            def_7: {minRollsToWound: [5]},
-            def_8: {minRollsToWound: [6]},
-            def_9: {minRollsToWound: [6]},
-            def_10: {minRollsToWound: [6, 4]}
-        },
-        str_6: { 
-            def_1: {minRollsToWound: [3]},
-            def_2: {minRollsToWound: [3]},
-            def_3: {minRollsToWound: [3]},
-            def_4: {minRollsToWound: [3]},
-            def_5: {minRollsToWound: [4]},
-            def_6: {minRollsToWound: [4]},
-            def_7: {minRollsToWound: [5]},
-            def_8: {minRollsToWound: [5]},
-            def_9: {minRollsToWound: [6]},
-            def_10: {minRollsToWound: [6]}
-        },
-        str_7: { 
-            def_1: {minRollsToWound: [3]},
-            def_2: {minRollsToWound: [3]},
-            def_3: {minRollsToWound: [3]},
-            def_4: {minRollsToWound: [3]},
-            def_5: {minRollsToWound: [3]},
-            def_6: {minRollsToWound: [4]},
-            def_7: {minRollsToWound: [4]},
-            def_8: {minRollsToWound: [5]},
-            def_9: {minRollsToWound: [5]},
-            def_10: {minRollsToWound: [6]}
-        },
-        str_8: { 
-            def_1: {minRollsToWound: [3]},
-            def_2: {minRollsToWound: [3]},
-            def_3: {minRollsToWound: [3]},
-            def_4: {minRollsToWound: [3]},
-            def_5: {minRollsToWound: [3]},
-            def_6: {minRollsToWound: [3]},
-            def_7: {minRollsToWound: [4]},
-            def_8: {minRollsToWound: [4]},
-            def_9: {minRollsToWound: [5]},
-            def_10: {minRollsToWound: [5]}
-        },
-        str_9: { 
-            def_1: {minRollsToWound: [3]},
-            def_2: {minRollsToWound: [3]},
-            def_3: {minRollsToWound: [3]},
-            def_4: {minRollsToWound: [3]},
-            def_5: {minRollsToWound: [3]},
-            def_6: {minRollsToWound: [3]},
-            def_7: {minRollsToWound: [3]},
-            def_8: {minRollsToWound: [4]},
-            def_9: {minRollsToWound: [4]},
-            def_10: {minRollsToWound: [5]}
-        },
-        str_10: { 
-            def_1: {minRollsToWound: [3]},
-            def_2: {minRollsToWound: [3]},
-            def_3: {minRollsToWound: [3]},
-            def_4: {minRollsToWound: [3]},
-            def_5: {minRollsToWound: [3]},
-            def_6: {minRollsToWound: [3]},
-            def_7: {minRollsToWound: [3]},
-            def_8: {minRollsToWound: [3]},
-            def_9: {minRollsToWound: [4]},
-            def_10: {minRollsToWound: [4]}
+export class WoundChart {
+    private _dice: DiceManager;
+
+    constructor(dice?: DiceManager) {
+        this._dice = dice || diceMgr;
+    }
+
+    /**
+     * replicates the behaviour of rolling dice to determine if the attacker
+     * is able to hit the defender based on the following chart:
+     * ```
+     * |   |[1]|[2]|[3]|[4]|[5]|[6]|[7]|[8]|[9]|[10]| defense
+     * |[1]| 4 | 5 | 5 | 6 | 6 |6,4|6,5|6,6| - | - |
+     * |[2]| 4 | 4 | 5 | 5 | 6 | 6 |6,4|6,5|6,6| - |
+     * |[3]| 3 | 4 | 4 | 5 | 5 | 6 | 6 |6,4|6,5|6,6|
+     * |[4]| 3 | 3 | 4 | 4 | 5 | 5 | 6 | 6 |6,4|6,5|
+     * |[5]| 3 | 3 | 3 | 4 | 4 | 5 | 5 | 6 | 6 |6,4|
+     * |[6]| 3 | 3 | 3 | 3 | 4 | 4 | 5 | 5 | 6 | 6 |
+     * |[7]| 3 | 3 | 3 | 3 | 3 | 4 | 4 | 5 | 5 | 6 |
+     * |[8]| 3 | 3 | 3 | 3 | 3 | 3 | 4 | 4 | 5 | 5 |
+     * |[9]| 3 | 3 | 3 | 3 | 3 | 3 | 3 | 4 | 4 | 5 |
+     * |[10]|3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 4 | 4 |
+     * attack
+     * ```
+     * @param str the strength value of the attacker
+     * @param def the defence value of the defender
+     * @returns true if the attacker succeeds in hitting the defender
+     */
+    doesWound(str: number, def: number): boolean {
+        let minimumNeeded: number[];
+        if (str < 1 || str+8 <= def) {
+            return false;
         }
-    };
+        if (def < 1) {
+            return true;
+        }
+        if (str >= def+2) {
+            minimumNeeded = [3];
+        }
+        if (str == def || str == def+1) {
+            minimumNeeded = [4];
+        }
+        if (str+1 == def || str+2 == def) {
+            minimumNeeded = [5];
+        }
+        if (str+3 == def || str+4 == def) {
+            minimumNeeded = [6];
+        }
+        if (str+5 == def) {
+            minimumNeeded = [6, 4];
+        }
+        if (str+6 == def) {
+            minimumNeeded = [6, 5];
+        }
+        if (str+7 == def) {
+            minimumNeeded = [6, 6];
+        }
+        
+        return this._calculateSuccess(minimumNeeded);
+    }
 
-    export function doesWound(atk: number, def: number): boolean {
-        let defenceWounds: DefenceWounds = attackWounds[`atk_${atk}`];
-        if (defenceWounds) {
-            let diceRollWounds: DiceRollWounds = defenceWounds[`def_${def}`];
-            if (diceRollWounds) {
-                let diceRolls: number[] = Dice.roll(diceRollWounds.minRollsToWound.length);
-                for (var i=0; i<diceRolls.length; i++) {
-                    let roll: number = diceRolls[i];
-                    let success: boolean = true;
-                    for (var j=0; j<diceRollWounds.minRollsToWound.length; j++) {
-                        let min: number = diceRollWounds.minRollsToWound[j];
-                        if (roll < min) {
-                            success = false;
-                        }
-                    }
-                    if (!success) {
-                        return false;
-                    }
+    private _calculateSuccess(minimumWoundsNeeded: number[]): boolean {
+        if (minimumWoundsNeeded?.length) {
+            for (var i=0; i<minimumWoundsNeeded.length; i++) {
+                let min: number = minimumWoundsNeeded[i];
+                let roll: number = this._dice.roll();
+                if (roll < min) {
+                    return false;
                 }
-                return true;
             }
+            return true;
         }
-        return false;
+        throw 'passed in array was undefined or null';
     }
 }
+
+export const woundChart = new WoundChart();

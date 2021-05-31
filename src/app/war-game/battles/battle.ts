@@ -1,5 +1,5 @@
 import { IPlayer } from "../players/i-player";
-import { WoundChart } from "./wound-chart";
+import { woundChart } from "./wound-chart";
 
 export abstract class Battle {
     protected _attackers: Map<number, IPlayer>;
@@ -33,18 +33,9 @@ export abstract class Battle {
     }
 
     tryToWound(attacker: IPlayer, defender: IPlayer): boolean {
-        let atk: number;
-        let def: number;
-        if (attacker.getStats().strength > 10) {
-            atk = 10;
-        } else {
-            atk = attacker.getStats().strength;
-        }
-        if (defender.getStats().defense > 10) {
-            def = 10;
-        } else {
-            def = defender.getStats().defense;
-        }
-        return WoundChart.doesWound(atk, def);
+        let atk: number = attacker.getStats().strength;
+        let def: number = defender.getStats().defense;
+        
+        return woundChart.doesWound(atk, def);
     }
 }

@@ -1,6 +1,7 @@
 import { IPlayer } from "../players/i-player";
-import { Dice } from "../utils/dice";
+import { diceMgr } from "../utils/dice-manager";
 import { Helpers } from "../utils/helpers";
+import { Rand } from "../utils/rand";
 import { Battle } from "./battle";
 
 export class MeleBattle extends Battle {
@@ -14,8 +15,8 @@ export class MeleBattle extends Battle {
 
     runBattle(): void {
         // roll to determine which side wins the attack
-        let attackerScores: number[] = Dice.roll(this.getTotalAttackPoints(this.getAttackers()));
-        let defenderScores: number[] = Dice.roll(this.getTotalAttackPoints(this.getDefenders()));
+        let attackerScores: number[] = diceMgr.rollMultiple(this.getTotalAttackPoints(this.getAttackers()));
+        let defenderScores: number[] = diceMgr.rollMultiple(this.getTotalAttackPoints(this.getDefenders()));
         let topAttackerScore: number = Helpers.getHighest(attackerScores);
         var topDefenderScore = Helpers.getHighest(defenderScores);
         // handle a tie
@@ -26,7 +27,7 @@ export class MeleBattle extends Battle {
             // handle matching fight values
             if (topAttackerFightScore === topDefenderFightScore) {
                 // reroll to decide winner
-                var roll = Dice.roll()[0];
+                var roll = diceMgr.rollMultiple()[0];
                 if (roll > 3) {
                     topAttackerScore++;
                 } else {
@@ -38,7 +39,6 @@ export class MeleBattle extends Battle {
                 topDefenderScore++;
             }
         }
-        // TODO: move loser back 1 space or handle trapped condition
         let winner: IPlayer[];
         let loser: IPlayer[];
         let attacks: number[];
@@ -53,12 +53,13 @@ export class MeleBattle extends Battle {
             attacks = defenderScores;
             console.info('attackers missed');
         }
+        this.pushBackPlayers(loser);
 
         for (var i=0; i<winner.length; i++) {
             var success = this.tryToWound(winner[i], loser[0]);
             if (success) {
                 // TODO: let winner pick who to wound
-                loser[0].wound();
+                loser[Rand.getInt(0, loser.length)].wound();
                 console.info(`defender: ${loser[0].getName()} wounded`);
             } else {
                 
