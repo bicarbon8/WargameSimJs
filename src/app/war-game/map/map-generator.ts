@@ -1,8 +1,8 @@
 import { MapGridItem } from "./map-grid-item";
 import { MapTerrain } from "./map-terrain";
 
-export class MapGenerator {
-    generate(sizeX: number, sizeY: number, seed: number): void {
+export module MapGenerator {
+    export function generate(sizeX: number, sizeY: number, seed: number): void {
         let grid: MapGridItem[][] = [];
         for (var x=0; x<sizeX; x++) {
             grid[x] = [];

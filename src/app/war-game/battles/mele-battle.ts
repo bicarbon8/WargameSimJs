@@ -46,12 +46,12 @@ export class MeleBattle extends Battle {
             winner = this.getAttackers();
             loser = this.getDefenders();
             attacks = attackerScores;
-            console.info('attackers scored a hit');
+            console.info('attackers succeeded in their attack!');
         } else {
             winner = this.getDefenders();
             loser = this.getAttackers();
             attacks = defenderScores;
-            console.info('attackers missed');
+            console.info('attackers failed to attack defenders!');
         }
         this.pushBackPlayers(loser);
 
@@ -59,10 +59,11 @@ export class MeleBattle extends Battle {
             var success = this.tryToWound(winner[i], loser[0]);
             if (success) {
                 // TODO: let winner pick who to wound
-                loser[Rand.getInt(0, loser.length)].wound();
-                console.info(`defender: ${loser[0].getName()} wounded`);
+                let index: number = Rand.getInt(0, loser.length);
+                loser[index].wound();
+                console.info(`defender: ${loser[index].getName()} wounded!`);
             } else {
-                
+                console.info('attackers caused no damage with attack!');
             }
         }
     }

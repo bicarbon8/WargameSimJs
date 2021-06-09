@@ -1,16 +1,14 @@
 import { IPlayer } from "../players/i-player";
 import { Location } from "./location";
-import { PlayerManager } from "../players/player-manager";
+import { playerManager } from "../players/player-manager";
 import { Helpers } from "../utils/helpers";
 import { MapGridItem } from "./map-grid-item";
 
 export class WarGameMap {
     private _grid: MapGridItem[][];
-    private _playerMgr: PlayerManager;
     
-    constructor(grid: MapGridItem[][], playerMgr?: PlayerManager) {
+    constructor(grid: MapGridItem[][]) {
         this._grid = grid;
-        this._playerMgr = playerMgr || PlayerManager.inst;
     }
 
     addPlayers(...players: IPlayer[]): void {
@@ -19,7 +17,7 @@ export class WarGameMap {
                 let p: IPlayer = players[i];
                 let pLoc: Location = p.getLocation();
                 if (!this.isLocationOccupied(pLoc)) {
-                    this._playerMgr.addPlayers(p);
+                    playerManager.addPlayers(p);
                     this._grid[pLoc.x][pLoc.y].player = p;
                 }
             }
@@ -78,10 +76,12 @@ export class WarGameMap {
         let pY: number = pLoc.y;
         for (var x=pX-1; x<=pX+1; x++) {
             for (var y=pY-1; y<=pY+1; y++) {
-                if (this.isLocationOccupied({x: x, y: y})) {
-                    if (this._playerMgr.areAllies(player, this.getPlayerAt({x: x, y: y}))) {
-                        let opponent: IPlayer = this.getPlayerAt({x: x, y: y});
-                        inRange.push(opponent);
+                if (x != pX && y != pY) {
+                    if (this.isLocationOccupied({x: x, y: y})) {
+                        let otherPlayer: IPlayer = this.getPlayerAt({x: x, y: y});
+                        if (!playerManager.areAllies(player, otherPlayer)) {
+                            inRange.push(otherPlayer);
+                        }
                     }
                 }
             }
@@ -102,11 +102,13 @@ export class WarGameMap {
         let shoot: number = player.getStats().shoot;
         for (var x=pX-shoot; x<=pX+shoot; x++) {
             for (var y=pY-shoot; y<=pY+shoot; y++) {
-                if (this.getDistanceBetween({x: x, y: y}, pLoc) <= shoot && this.isLocationOccupied({x: x, y: y})) {
-                    if (this._playerMgr.areAllies(player, this.getPlayerAt({x: x, y: y}))) {
-                        let opponent: IPlayer = this.getPlayerAt({x: x, y: y});
-                        if (!this.isBattling(opponent)) {
-                            inRange.push(opponent);
+                if (x != pX && y != pY) {
+                    if (this.getDistanceBetween({x: x, y: y}, pLoc) <= shoot && this.isLocationOccupied({x: x, y: y})) {
+                        let otherPlayer: IPlayer = this.getPlayerAt({x: x, y: y});
+                        if (playerManager.areAllies(player, otherPlayer)) {
+                            if (!this.isBattling(otherPlayer)) {
+                                inRange.push(otherPlayer);
+                            }
                         }
                     }
                 }

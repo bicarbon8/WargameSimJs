@@ -1,15 +1,16 @@
 import { Team } from "../teams/team";
 import { diceMgr } from "../utils/dice-manager";
-import { BasePhase } from "./base-phase";
 import { PhaseType } from "./phase-type";
+import { IPhase } from "./i-phase";
+import { teamManager } from "../teams/team-manager";
 
-export class PriorityPhase extends BasePhase {
+export class PriorityPhase implements IPhase {
     async runPhase(): Promise<void> {
-        let teams: Team[] = this.getTeamManager().getTeams();
+        let teams: Team[] = teamManager.getTeams();
         let orderedTeams: Team[] = this._orderTeamsByPriority(teams);
         for (var i=0; i<orderedTeams.length; i++) {
             let team: Team = orderedTeams[i];
-            team.setPriority(i);
+            team.priority = i;
         }
     }
 

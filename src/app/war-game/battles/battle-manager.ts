@@ -1,13 +1,5 @@
-import { PlayerManager } from "../players/player-manager";
-
-export class BattleManager {
-    private _playerMgr: PlayerManager;
-
-    constructor(playerMgr?: PlayerManager) {
-        this._playerMgr = playerMgr || PlayerManager.inst;
-    }
+class BattleManager {
+    
 }
 
-export module BattleManager {
-    export var inst = new BattleManager();
-}
+export const battleManager = new BattleManager();

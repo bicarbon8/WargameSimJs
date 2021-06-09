@@ -1,7 +1,7 @@
-import { BasePhase } from "./base-phase";
+import { IPhase } from "./i-phase";
 import { PhaseType } from "./phase-type";
 
-export class FightingPhase extends BasePhase {
+export class FightingPhase implements IPhase {
     async runPhase(): Promise<void> {
         throw new Error("Method not implemented.");
     }

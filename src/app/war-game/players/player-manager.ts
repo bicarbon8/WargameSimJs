@@ -1,7 +1,7 @@
 import { IPlayer } from "./i-player";
 import { PlayerStatusEffect } from "./player-status-effect";
 
-export class PlayerManager {
+class PlayerManager {
     private _players: Map<number, IPlayer>;
     private _active: Map<number, IPlayer>;
     private _dead: Map<number, IPlayer>;
@@ -54,6 +54,4 @@ export class PlayerManager {
     }
 }
 
-export module PlayerManager {
-    export var inst: PlayerManager = new PlayerManager();
-}
+export const playerManager = new PlayerManager();

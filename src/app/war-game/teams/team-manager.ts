@@ -1,6 +1,6 @@
 import { Team } from "./team";
 
-export class TeamManager {
+class TeamManager {
     private _teams: Map<number, Team>;
 
     constructor() {
@@ -32,7 +32,7 @@ export class TeamManager {
             if (ordered.length > 0) {
                 for (var j=0; j<ordered.length; j++) {
                     let ot: Team = ordered[j];
-                    if (t.getPriority() > ot.getPriority()) {
+                    if (t.priority > ot.priority) {
                         if (j >= ordered.length-1) {
                             ordered.push(t);
                             break;
@@ -57,7 +57,7 @@ export class TeamManager {
             if (ordered.length > 0) {
                 for (var j=0; j<ordered.length; j++) {
                     let ot: Team = ordered[j];
-                    if (t.getScore() < ot.getScore()) {
+                    if (t.score < ot.score) {
                         if (j == ordered.length-1) {
                             ordered.push(t);
                             break;
@@ -75,6 +75,4 @@ export class TeamManager {
     }
 }
 
-export module TeamManager {
-    export var inst = new TeamManager();
-}
+export const teamManager = new TeamManager();
