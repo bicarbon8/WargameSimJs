@@ -26,7 +26,7 @@ export class WoundChart {
      * ```
      * @param str the strength value of the attacker
      * @param def the defence value of the defender
-     * @returns true if the attacker succeeds in hitting the defender
+     * @returns true if the attacker succeeds in hitting the defender (NOTE: this does not mean they wound)
      */
     doesWound(str: number, def: number): boolean {
         let minimumNeeded: number[];

@@ -8,7 +8,7 @@ class WarGame {
         let conf: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             width: window.innerWidth,
-            height: window.innerHeight * 0.8,
+            height: window.innerHeight,
             scale: {
                 mode: Phaser.Scale.NONE,
                 autoCenter: Phaser.Scale.CENTER_BOTH

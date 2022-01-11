@@ -15,13 +15,13 @@ export class GameplayScene extends Phaser.Scene {
     }
 
     preload(): void {
-        // this.load.image('ship-pod', './assets/sprites/ship-pod.png');
-        // this.load.spritesheet('flares', './assets/particles/flares.png', {
-        //     frameWidth: 130,
-        //     frameHeight: 132,
-        //     startFrame: 0,
-        //     endFrame: 4
-        // });
+        this.load.image('grass-texture', './assets/sprites/map-tiles/grass-texture-2.jpg');
+        this.load.spritesheet('players', './assets/sprites/player/sprite.png', {
+            frameWidth: 130,
+            frameHeight: 132,
+            startFrame: 0,
+            endFrame: 4
+        }); // 12w by 8h
     }
 
     create(): void {

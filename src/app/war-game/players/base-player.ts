@@ -1,10 +1,8 @@
-import { Team } from "../teams/team";
 import { Rand } from "../utils/rand";
 import { IPlayer } from "./i-player";
 import { Location } from "../map/location";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
-import { TeamManager } from "../teams/team-manager";
 
 export class BasePlayer implements IPlayer {
     readonly id: number;
@@ -14,15 +12,13 @@ export class BasePlayer implements IPlayer {
     private readonly _stats: PlayerStats;
     private _remainingWounds: number;
     private _effects: Set<PlayerStatusEffect>;
-    private _teamMgr: TeamManager;
 
-    constructor(name: string, stats: PlayerStats, teamMgr?: TeamManager) {
+    constructor(name: string, stats: PlayerStats) {
         this.id = Rand.getId();
         this._name = name;
         this._stats = stats;
         this._remainingWounds = this._stats.startingWounds;
         this._effects = new Set<PlayerStatusEffect>();
-        this._teamMgr = teamMgr || TeamManager.inst;
     }
 
     getName(): string {
