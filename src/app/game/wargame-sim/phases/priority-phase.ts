@@ -1,12 +1,12 @@
 import { Team } from "../teams/team";
-import { diceMgr } from "../utils/dice-manager";
+import { DiceManager } from "../utils/dice-manager";
 import { PhaseType } from "./phase-type";
 import { IPhase } from "./i-phase";
-import { teamManager } from "../teams/team-manager";
+import { TeamManager } from "../teams/team-manager";
 
 export class PriorityPhase implements IPhase {
     async runPhase(): Promise<void> {
-        let teams: Team[] = teamManager.getTeams();
+        let teams: Team[] = TeamManager.getTeams();
         let orderedTeams: Team[] = this._orderTeamsByPriority(teams);
         for (var i=0; i<orderedTeams.length; i++) {
             let team: Team = orderedTeams[i];
@@ -20,7 +20,7 @@ export class PriorityPhase implements IPhase {
 
     private _orderTeamsByPriority(teams: Team[]): Team[] {
         let orderedTeams: Team[] = [];
-        let diceRolls: number[] = diceMgr.rollMultiple(teams.length);
+        let diceRolls: number[] = DiceManager.rollMultiple(teams.length);
         let orders: {} = {};
         for (var i=0; i<diceRolls.length; i++) {
             let roll: number = diceRolls[i];

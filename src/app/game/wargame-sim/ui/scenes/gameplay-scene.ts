@@ -1,17 +1,12 @@
-import { WarGameMap } from "../map/war-game-map";
-
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
-    active: true,
-    visible: true,
+    active: false,
+    visible: false,
     key: 'GameplayScene'
 };
 
 export class GameplayScene extends Phaser.Scene {
-    private _map: WarGameMap;
-
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
-        let conf: Phaser.Types.Scenes.SettingsConfig = settingsConfig || sceneConfig;
-        super(conf);
+        super(settingsConfig || sceneConfig);
     }
 
     preload(): void {
@@ -25,22 +20,11 @@ export class GameplayScene extends Phaser.Scene {
     }
 
     create(): void {
-        this._createPlayers();
-        this._createMap();
-
         this._setupCamera();
     }
 
     update(time: number, delta: number): void {
         
-    }
-
-    private _createPlayers(): void {
-        
-    }
-
-    private _createMap(): void {
-        this._map = new WarGameMap([]);
     }
 
     private _setupCamera(): void {

@@ -1,14 +1,15 @@
 import { IPlayer } from "../players/i-player";
 import { Location } from "./location";
-import { playerManager } from "../players/player-manager";
+import { PlayerManager } from "../players/player-manager";
 import { Helpers } from "../utils/helpers";
 import { MapGridItem } from "./map-grid-item";
+import { WarGameMapOptions } from "./war-game-map-options";
 
 export class WarGameMap {
     private _grid: MapGridItem[][];
     
-    constructor(grid: MapGridItem[][]) {
-        this._grid = grid;
+    constructor(options: WarGameMapOptions) {
+        this._grid = options.grid;
     }
 
     addPlayers(...players: IPlayer[]): void {
@@ -17,7 +18,7 @@ export class WarGameMap {
                 let p: IPlayer = players[i];
                 let pLoc: Location = p.getLocation();
                 if (!this.isLocationOccupied(pLoc)) {
-                    playerManager.addPlayers(p);
+                    PlayerManager.addPlayers(p);
                     this._grid[pLoc.x][pLoc.y].player = p;
                 }
             }
@@ -79,7 +80,7 @@ export class WarGameMap {
                 if (x != pX && y != pY) {
                     if (this.isLocationOccupied({x: x, y: y})) {
                         let otherPlayer: IPlayer = this.getPlayerAt({x: x, y: y});
-                        if (!playerManager.areAllies(player, otherPlayer)) {
+                        if (!PlayerManager.areAllies(player, otherPlayer)) {
                             inRange.push(otherPlayer);
                         }
                     }
@@ -105,7 +106,7 @@ export class WarGameMap {
                 if (x != pX && y != pY) {
                     if (this.getDistanceBetween({x: x, y: y}, pLoc) <= shoot && this.isLocationOccupied({x: x, y: y})) {
                         let otherPlayer: IPlayer = this.getPlayerAt({x: x, y: y});
-                        if (playerManager.areAllies(player, otherPlayer)) {
+                        if (PlayerManager.areAllies(player, otherPlayer)) {
                             if (!this.isBattling(otherPlayer)) {
                                 inRange.push(otherPlayer);
                             }

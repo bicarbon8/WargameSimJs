@@ -1,7 +1,8 @@
 import { IPlayer } from "../players/i-player";
-import { playerManager } from "../players/player-manager";
+import { PlayerManager } from "../players/player-manager";
 import { PlayerStatusEffect } from "../players/player-status-effect";
 import { Rand } from "../utils/rand";
+import { TeamOptions } from "./team-options";
 
 export class Team {
     readonly id: number;
@@ -12,11 +13,11 @@ export class Team {
     private _score: number;
     private _priority: number;
 
-    constructor(name: string, colour: string, points: number) {
+    constructor(options: TeamOptions) {
         this.id = Rand.getId();
-        this._name = name;
-        this._colour = colour;
-        this._originalPoints = points;
+        this._name = options.name;
+        this._colour = options.colour;
+        this._originalPoints = options.points;
         this._remainingPoints = this._originalPoints;
         this._score = 0;
         this._priority = 0;
@@ -32,7 +33,7 @@ export class Team {
 
     getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
         let teamPlayers: IPlayer[] = [];
-        let allPlayers: IPlayer[] = playerManager.getPlayers(...effects);
+        let allPlayers: IPlayer[] = PlayerManager.getPlayers(...effects);
         for (var i=0; i<allPlayers.length; i++) {
             let p: IPlayer = allPlayers[i];
             if (p && !p.isDead() && p.getTeamId() == this.id) {
@@ -49,7 +50,7 @@ export class Team {
                 if (p && this._remainingPoints >= p.getStats().cost) {
                     this._remainingPoints -= p.getStats().cost;
                     p.setTeamId(this.id);
-                    playerManager.addPlayers(p);
+                    PlayerManager.addPlayers(p);
                 }
             }
         }

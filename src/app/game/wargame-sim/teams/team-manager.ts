@@ -1,32 +1,28 @@
 import { Team } from "./team";
 
-class TeamManager {
-    private _teams: Map<number, Team>;
+export module TeamManager {
+    var _teams: Map<number, Team> = new Map<number, Team>();
 
-    constructor() {
-        this._teams = new Map<number, Team>();
-    }
-
-    addTeams(...teams: Team[]): void {
+    export function addTeams(...teams: Team[]): void {
         if (teams) {
             for (var i=0; i<teams.length; i++) {
                 let t: Team = teams[i];
-                this._teams.set(t.id, t);
+                _teams.set(t.id, t);
             }
         }
     }
 
-    getTeams(): Team[] {
-        return Array.from(this._teams.values());
+    export function getTeams(): Team[] {
+        return Array.from(_teams.values());
     }
 
-    getTeamById(id: number): Team {
-        return this._teams.get(id);
+    export function getTeamById(id: number): Team {
+        return _teams.get(id);
     }
 
-    getTeamsByPriority(): Team[] {
+    export function getTeamsByPriority(): Team[] {
         let ordered: Team[] = [];
-        let teams: Team[] = this.getTeams();
+        let teams: Team[] = getTeams();
         for (var i=0; i<teams.length; i++) {
             let t: Team = teams[i];
             if (ordered.length > 0) {
@@ -49,9 +45,9 @@ class TeamManager {
         return ordered;
     }
 
-    getTeamsByScore(): Team[] {
+    export function getTeamsByScore(): Team[] {
         let ordered: Team[] = [];
-        let teams: Team[] = this.getTeams();
+        let teams: Team[] = getTeams();
         for (var i=0; i<teams.length; i++) {
             let t: Team = teams[i];
             if (ordered.length > 0) {
@@ -74,5 +70,3 @@ class TeamManager {
         return ordered;
     }
 }
-
-export const teamManager = new TeamManager();
