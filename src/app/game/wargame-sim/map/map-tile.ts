@@ -1,8 +1,10 @@
 import { IPlayer } from "../players/i-player";
 import { MapTerrain } from "./map-terrain";
 
-export interface MapGridItem {
-    height: number;
-    terrain: MapTerrain;
+export interface MapTile {
+    x?: number;
+    y?: number;
+    z?: number;
+    terrain?: MapTerrain;
     player?: IPlayer;
 }

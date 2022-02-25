@@ -1,13 +1,16 @@
+import { MapManager } from "../map/map-manager";
+import { MapTile } from "../map/map-tile";
 import { Rand } from "../utils/rand";
 import { IPlayer } from "./i-player";
-import { Location } from "../map/location";
+import { PlayerManager } from "./player-manager";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
 
 export class BasePlayer implements IPlayer {
     readonly id: number;
     private _name: string;
-    private _loc: Location;
+    private _x: number;
+    private _y: number;
     private _teamId: number;
     private readonly _stats: PlayerStats;
     private _remainingWounds: number;
@@ -17,7 +20,7 @@ export class BasePlayer implements IPlayer {
         this.id = Rand.getId();
         this._name = name;
         this._stats = stats;
-        this._remainingWounds = this._stats.startingWounds;
+        this._remainingWounds = this._stats.wounds;
         this._effects = new Set<PlayerStatusEffect>();
     }
 
@@ -25,12 +28,17 @@ export class BasePlayer implements IPlayer {
         return this._name;
     }
     
-    getLocation(): Location {
-        return this._loc;
+    get x(): number {
+        return this._x;
     }
 
-    setLocation(loc: Location): void {
-        this._loc = loc;
+    get y(): number {
+        return this._y;
+    }
+
+    setLocation(x: number, y: number): void {
+        this._x = x;
+        this._y = y;
     }
 
     getTeamId(): number {
@@ -66,8 +74,6 @@ export class BasePlayer implements IPlayer {
             for (var i=0; i<effects.length; i++) {
                 if (this._effects.has(effects[i])) {
                     this._effects.delete(effects[i]);
-                } else {
-                    console.warn(`unable to remove effect ${PlayerStatusEffect[effects[i]]} from player: ${this.id} because they are not affected by it`);
                 }
             }
         }
@@ -75,5 +81,11 @@ export class BasePlayer implements IPlayer {
 
     isDead(): boolean {
         return this._remainingWounds <= 0;
+    }
+
+    isBattling(): boolean {
+        return MapManager.getPlayersInRange(this._x, this._y, 1).filter((player: IPlayer) => {
+            if (player.id !== this.id && PlayerManager.areAllies(this, player)) { return true; }
+        }).length > 0;
     }
 }

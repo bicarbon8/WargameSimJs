@@ -4,7 +4,7 @@ export interface PlayerStats {
     readonly strength: number;
     readonly defense: number;
     readonly attacks: number;
-    readonly startingWounds: number;
+    readonly wounds: number;
     readonly courage: number;
     readonly might: number;
     readonly will: number;

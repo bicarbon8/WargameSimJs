@@ -8,7 +8,7 @@ export module PlayerManager {
 
     export function addPlayers(...players: IPlayer[]) {
         if (players) {
-            for (var i=0; i<players.length; i++) {
+            for (var i = 0; i < players.length; i++) {
                 let p: IPlayer = players[i];
                 _players.set(p.id, p);
                 if (players[i].isDead()) {
@@ -21,11 +21,19 @@ export module PlayerManager {
     }
 
     export function getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
-        let players: IPlayer[] = [];
+        let players: IPlayer[] = Array.from(_players.values());
         if (effects) {
-
-        } else {
-            players = Array.from(_players.values());
+            for (var i = 0; i < effects.length; i++) {
+                let effect: PlayerStatusEffect = effects[i];
+                players = players.filter((player: IPlayer) => {
+                    let pEffects: PlayerStatusEffect[] = player.getEffects();
+                    for (var j = 0; j < pEffects.length; j++) {
+                        if (pEffects[j] === effect) {
+                            return true;
+                        }
+                    }
+                });
+            }
         }
         return players;
     }
@@ -33,12 +41,12 @@ export module PlayerManager {
     export function getPlayerById(id: number): IPlayer {
         return _players.get(id);
     }
-    
+
     export function areAllies(...players: IPlayer[]): boolean {
         if (players) {
-            for (var i=0; i<players.length-1; i++) {
+            for (var i = 0; i < players.length - 1; i++) {
                 let teamAId: number = players[i].getTeamId();
-                let teamBId: number = players[i+1].getTeamId();
+                let teamBId: number = players[i + 1].getTeamId();
                 if (teamAId != teamBId) {
                     return false;
                 }

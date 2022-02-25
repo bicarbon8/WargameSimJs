@@ -1,5 +1,5 @@
 export interface TeamOptions {
     name: string;
-    colour: string;
+    colour?: string;
     points: number;
 }

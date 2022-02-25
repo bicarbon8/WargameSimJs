@@ -10,8 +10,6 @@ export interface TextButtonOptions {
     cornerRadius?: number;
     colour?: number;
     alpha?: number;
-    hoverColour?: number;
-    hoverAlpha?: number;
-    activeColour?: number;
-    activeAlpha?: number;
+    minWidth?: number;
+    minHeight?: number;
 }

@@ -1,3 +1,5 @@
+import { Team } from "../../teams/team";
+import { TeamManager } from "../../teams/team-manager";
 import { Constants } from "../../utils/constants";
 import { TextButton } from "../text-button";
 
@@ -38,6 +40,7 @@ export class PickTeamsScene extends Phaser.Scene {
 
         this._createTitleText();
         this._createTeamPickerButtons();
+        this._createStartButton();
     }
 
     update(time: number, delta: number): void {
@@ -139,6 +142,47 @@ export class PickTeamsScene extends Phaser.Scene {
             this._subtractTeams = false;
             down.setTextStyle(textStyle);
             down.setButtonColor(0x606060, 0.5);
+        });
+    }
+
+    private _createStartButton(): void {
+        const startButton = new TextButton({
+            scene: this,
+            x: this._width / 2,
+            y: 0,
+            text: 'Start Game',
+            textStyle: {
+                font: '20px Courier', 
+                color: '#808080',
+                align: 'center'
+            },
+            colour: 0x8888ff,
+            alpha: 0.5,
+            padding: {left: 5, top: 20},
+            cornerRadius: 20
+        });
+        startButton.setY(this._height - startButton.height - 5);
+        startButton.setInteractive().on(Phaser.Input.Events.POINTER_DOWN, () => {
+            const teams: Team[] = [];
+            for (var i=0; i<this._numTeams; i++) {
+                let team: Team = new Team({
+                    name: `Team ${i}`,
+                    points: 100
+                });
+                teams.push(team);
+            }
+            TeamManager.addTeams(...teams);
+            this.game.scene.start('gameplay-scene');
+            this.game.scene.stop(this);
+        }).on(Phaser.Input.Events.POINTER_OVER, () => {
+            startButton.setButtonColor(0x8888ff, 1);
+            startButton.setTextStyle({color: '#ffffff'});
+        }).on(Phaser.Input.Events.POINTER_UP, () => {
+            startButton.setButtonColor(0x8888ff, 0.5);
+            startButton.setTextStyle({color: '#808080'});
+        }).on(Phaser.Input.Events.POINTER_OUT, () => {
+            startButton.setButtonColor(0x8888ff, 0.5);
+            startButton.setTextStyle({color: '#808080'});
         });
     }
 

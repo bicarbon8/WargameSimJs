@@ -24,6 +24,9 @@ export module UIManager {
                     gravity: { x: 0, y: 0 },
                 }
             },
+            dom: {
+                createContainer: true
+            },
             roundPixels: true,
             scene: [PickTeamsScene, GameplayScene]
         };

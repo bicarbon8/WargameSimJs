@@ -1,12 +1,6 @@
-import { DiceManager, diceMgr } from "../utils/dice-manager";
+import { DiceManager } from "../utils/dice-manager";
 
-export class WoundChart {
-    private _dice: DiceManager;
-
-    constructor(dice?: DiceManager) {
-        this._dice = dice || diceMgr;
-    }
-
+export module WoundChart {
     /**
      * replicates the behaviour of rolling dice to determine if the attacker
      * is able to hit the defender based on the following chart:
@@ -28,7 +22,7 @@ export class WoundChart {
      * @param def the defence value of the defender
      * @returns true if the attacker succeeds in hitting the defender (NOTE: this does not mean they wound)
      */
-    doesWound(str: number, def: number): boolean {
+    export function doesWound(str: number, def: number): boolean {
         let minimumNeeded: number[];
         if (str < 1 || str+8 <= def) {
             return false;
@@ -58,14 +52,14 @@ export class WoundChart {
             minimumNeeded = [6, 6];
         }
         
-        return this._calculateSuccess(minimumNeeded);
+        return _calculateSuccess(minimumNeeded);
     }
 
-    private _calculateSuccess(minimumWoundsNeeded: number[]): boolean {
+    function _calculateSuccess(minimumWoundsNeeded: number[]): boolean {
         if (minimumWoundsNeeded?.length) {
             for (var i=0; i<minimumWoundsNeeded.length; i++) {
                 let min: number = minimumWoundsNeeded[i];
-                let roll: number = this._dice.roll();
+                let roll: number = DiceManager.roll();
                 if (roll < min) {
                     return false;
                 }
@@ -75,5 +69,3 @@ export class WoundChart {
         throw 'passed in array was undefined or null';
     }
 }
-
-export const woundChart = new WoundChart();

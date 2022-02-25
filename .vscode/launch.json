@@ -5,14 +5,14 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "http://localhost:9876",
+            "url": "http://localhost:4200",
             "webRoot": "${workspaceFolder}"
         },
         {
             "type": "chrome",
             "request": "attach",
             "name": "Attach to Chrome",
-            "port": 9222,
+            "port": 4200,
             "webRoot": "${workspaceFolder}"
         }
     ]

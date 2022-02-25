@@ -1,5 +1,5 @@
 import { DiceManager } from '../utils/dice-manager';
-import { WoundChart, woundChart } from './wound-chart';
+import { WoundChart } from './wound-chart';
 
 describe('WoundChart', () => {
   let data = [
@@ -11,7 +11,7 @@ describe('WoundChart', () => {
   ];
   data.forEach((d) => {
     it(`certain values always return a specific result: ${JSON.stringify(d)}`, () => {
-      expect(woundChart.doesWound(d.str, d.def)).toEqual(d.expected);
+      expect(WoundChart.doesWound(d.str, d.def)).toEqual(d.expected);
     });
   });
 
@@ -48,11 +48,9 @@ describe('WoundChart', () => {
   ];
   fullData.forEach((d) => {
     it(`can determine wounds based on strength and defence: ${JSON.stringify(d)}`, () => {
-      let dice: DiceManager = new DiceManager();
-      spyOn(dice, 'roll').and.returnValues(...d.diceRolls);
-      let wounds: WoundChart = new WoundChart(dice);
-      expect(wounds.doesWound(d.str, d.def)).toEqual(d.expected);
-      expect(dice.roll).toHaveBeenCalled();
+      spyOn(DiceManager, 'roll').and.returnValues(...d.diceRolls);
+      expect(WoundChart.doesWound(d.str, d.def)).toEqual(d.expected);
+      expect(DiceManager.roll).toHaveBeenCalled();
     });
   });
 });
