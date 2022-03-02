@@ -1,5 +1,5 @@
 import { IPlayer } from "../players/i-player";
-import { diceMgr } from "../utils/dice-manager";
+import { WarGame } from "../war-game";
 import { Battle } from "./battle";
 
 export class RangedBattle extends Battle {
@@ -23,7 +23,7 @@ export class RangedBattle extends Battle {
         let defenders: IPlayer[] = this.getDefenders();
         for (var i=0; i<defenders.length; i++) {
             let defender: IPlayer = defenders[i];
-            let roll: number = diceMgr.roll();
+            let roll: number = WarGame.dice.roll();
             if (roll >= attacker.getStats().ranged) {
                 console.info(`player: ${attacker.getName()} fired at: ${defender.getName()}...`);
                 let success: boolean = this.tryToWound(attacker, defender);

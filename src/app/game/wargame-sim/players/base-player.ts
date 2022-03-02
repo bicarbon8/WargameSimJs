@@ -1,25 +1,29 @@
-import { MapManager } from "../map/map-manager";
-import { MapTile } from "../map/map-tile";
+import { HasGameObject } from "../interfaces/has-game-object";
+import { Constants } from "../utils/constants";
 import { Rand } from "../utils/rand";
+import { WarGame } from "../war-game";
 import { IPlayer } from "./i-player";
-import { PlayerManager } from "./player-manager";
+import { PlayerOptions } from "./player-options";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
 
-export class BasePlayer implements IPlayer {
+export class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite> {
     readonly id: number;
-    private _name: string;
-    private _x: number;
-    private _y: number;
-    private _teamId: number;
+    private readonly _scene: Phaser.Scene;
+    private readonly _name: string;
     private readonly _stats: PlayerStats;
+    private _tileX: number;
+    private _tileY: number;
+    private _teamId: number;
     private _remainingWounds: number;
     private _effects: Set<PlayerStatusEffect>;
+    private _obj: Phaser.GameObjects.Sprite;
 
-    constructor(name: string, stats: PlayerStats) {
+    constructor(options: PlayerOptions) {
         this.id = Rand.getId();
-        this._name = name;
-        this._stats = stats;
+        this._scene = options.scene;
+        this._name = options.name;
+        this._stats = options.stats;
         this._remainingWounds = this._stats.wounds;
         this._effects = new Set<PlayerStatusEffect>();
     }
@@ -27,18 +31,30 @@ export class BasePlayer implements IPlayer {
     getName(): string {
         return this._name;
     }
-    
-    get x(): number {
-        return this._x;
+
+    get tileX(): number {
+        return this._tileX;
     }
 
-    get y(): number {
-        return this._y;
+    get tileY(): number {
+        return this._tileY;
     }
 
-    setLocation(x: number, y: number): void {
-        this._x = x;
-        this._y = y;
+    get obj(): Phaser.GameObjects.Sprite {
+        if (!this._obj) {
+            this._createGameObject();
+        }
+        return this._obj;
+    }
+
+    setTile(x: number, y: number): void {
+        this._tileX = x;
+        this._tileY = y;
+        let worldPos: Phaser.Math.Vector2 = WarGame.map.getTileWorldCentre(x, y);
+        if (worldPos) {
+            this.obj.setPosition(worldPos.x, worldPos.y);
+            this.obj.setVisible(true);
+        }
     }
 
     getTeamId(): number {
@@ -84,8 +100,14 @@ export class BasePlayer implements IPlayer {
     }
 
     isBattling(): boolean {
-        return MapManager.getPlayersInRange(this._x, this._y, 1).filter((player: IPlayer) => {
-            if (player.id !== this.id && PlayerManager.areAllies(this, player)) { return true; }
+        return WarGame.map.getPlayersInRange(this._tileX, this._tileY, 1).filter((player: IPlayer) => {
+            if (player.id !== this.id && WarGame.players.areEnemies(this, player)) { return true; }
         }).length > 0;
+    }
+
+    private _createGameObject(): void {
+        this._obj = this._scene.add.sprite(0, 0, 'players', 1);
+        this._obj.setDepth(Constants.DEPTH_PLAYER);
+        this._obj.setVisible(false);
     }
 }

@@ -4,26 +4,35 @@ import { MovementPhase } from "./movement-phase";
 import { PriorityPhase } from "./priority-phase";
 import { ShootingPhase } from "./shooting-phase";
 
-export module PhaseManager {
-    var _phases: IPhase[] = [new PriorityPhase(), new MovementPhase(), new ShootingPhase(), new FightingPhase()];
-    var _phaseIndex: number = 0;
+export class PhaseManager {
+    private readonly _phases: IPhase[];
+    private _phaseIndex: number = 0;
 
-    export function numberOfPhases(): number {
-        return _phases.length;
+    constructor() {
+        this._phases = [
+            new PriorityPhase(), 
+            new MovementPhase(), 
+            new ShootingPhase(), 
+            new FightingPhase()
+        ];
     }
 
-    export function currentPhase(): IPhase {
-        return _phases[_phaseIndex];
+    numberOfPhases(): number {
+        return this._phases.length;
     }
 
-    export async function runCurrentPhase(): Promise<void> {
-        await currentPhase().runPhase();
+    currentPhase(): IPhase {
+        return this._phases[this._phaseIndex];
     }
 
-    export function moveToNextPhase(): void {
-        _phaseIndex++;
-        if (_phaseIndex >= _phases.length) {
-            _phaseIndex = 0;
+    async runCurrentPhase(): Promise<void> {
+        await this.currentPhase().runPhase();
+    }
+
+    moveToNextPhase(): void {
+        this._phaseIndex++;
+        if (this._phaseIndex >= this._phases.length) {
+            this._phaseIndex = 0;
         }
     }
 }

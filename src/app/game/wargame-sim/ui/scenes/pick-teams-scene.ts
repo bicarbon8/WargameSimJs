@@ -1,6 +1,7 @@
 import { Team } from "../../teams/team";
 import { TeamManager } from "../../teams/team-manager";
 import { Constants } from "../../utils/constants";
+import { WarGame } from "../../war-game";
 import { TextButton } from "../text-button";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
@@ -171,7 +172,7 @@ export class PickTeamsScene extends Phaser.Scene {
                 });
                 teams.push(team);
             }
-            TeamManager.addTeams(...teams);
+            WarGame.teams.addTeams(...teams);
             this.game.scene.start('gameplay-scene');
             this.game.scene.stop(this);
         }).on(Phaser.Input.Events.POINTER_OVER, () => {

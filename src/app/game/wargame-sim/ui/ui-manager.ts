@@ -3,10 +3,10 @@ import { GameplayScene } from './scenes/gameplay-scene';
 import { PickTeamsScene } from "./scenes/pick-teams-scene";
 import { UIManagerOptions } from './ui-manager-options';
 
-export module UIManager {
-   var _game: Phaser.Game;
+export class UIManager {
+    private readonly _game: Phaser.Game;
 
-    export function start(options?: UIManagerOptions): void {
+    constructor(options?: UIManagerOptions) {
         let conf: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             width: options?.width || window.innerWidth,
@@ -30,31 +30,30 @@ export module UIManager {
             roundPixels: true,
             scene: [PickTeamsScene, GameplayScene]
         };
-        _game = new Phaser.Game(conf);
+        this._game = new Phaser.Game(conf);
           
         window.addEventListener('resize', () => {
-            _game.canvas.width = options?.width || window.innerWidth;
-            _game.canvas.height = options?.height || window.innerHeight * 0.8;
-            _game.scale.refresh();
+            this._game.canvas.width = options?.width || window.innerWidth;
+            this._game.canvas.height = options?.height || window.innerHeight * 0.8;
+            this._game.scale.refresh();
         });
 
         document.addEventListener("visibilitychange", () => {
-            _game.scene.getScenes(false).forEach((scene: Phaser.Scene) => {
+            this._game.scene.getScenes(false).forEach((scene: Phaser.Scene) => {
                 if (document.hidden) {
-                    _game.scene.pause(scene);
+                    this._game.scene.pause(scene);
                 } else {
-                    _game.scene.resume(scene);
+                    this._game.scene.resume(scene);
                 }
             });
         }, false);
     }
 
-    export function stop(): void {
-        _game.destroy(true, true);
-        _game = null;
+    destroy(): void {
+        this.game.destroy(true, true);
     }
 
-    export function game(): Phaser.Game {
-        return _game;
+    get game(): Phaser.Game {
+        return this._game;
     }
 }

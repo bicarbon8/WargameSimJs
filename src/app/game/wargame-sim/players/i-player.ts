@@ -1,13 +1,12 @@
-import { MapTile } from "../map/map-tile";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
 
 export interface IPlayer {
     readonly id: number;
-    readonly x: number;
-    readonly y: number;
+    readonly tileX: number;
+    readonly tileY: number;
     getName(): string;
-    setLocation(x: number, y: number): void;
+    setTile(x: number, y: number): void;
     getTeamId(): number;
     setTeamId(id: number): void;
     getStats(): PlayerStats;

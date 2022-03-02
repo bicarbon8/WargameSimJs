@@ -1,7 +1,7 @@
 import { IPlayer } from "../players/i-player";
-import { diceMgr } from "../utils/dice-manager";
 import { Helpers } from "../utils/helpers";
 import { Rand } from "../utils/rand";
+import { WarGame } from "../war-game";
 import { Battle } from "./battle";
 
 export class MeleBattle extends Battle {
@@ -15,8 +15,8 @@ export class MeleBattle extends Battle {
 
     runBattle(): void {
         // roll to determine which side wins the attack
-        let attackerScores: number[] = diceMgr.rollMultiple(this.getTotalAttackPoints(this.getAttackers()));
-        let defenderScores: number[] = diceMgr.rollMultiple(this.getTotalAttackPoints(this.getDefenders()));
+        let attackerScores: number[] = WarGame.dice.rollMultiple(this.getTotalAttackPoints(this.getAttackers()));
+        let defenderScores: number[] = WarGame.dice.rollMultiple(this.getTotalAttackPoints(this.getDefenders()));
         let topAttackerScore: number = Helpers.getHighest(attackerScores);
         var topDefenderScore = Helpers.getHighest(defenderScores);
         // handle a tie
@@ -27,7 +27,7 @@ export class MeleBattle extends Battle {
             // handle matching fight values
             if (topAttackerFightScore === topDefenderFightScore) {
                 // reroll to decide winner
-                var roll = diceMgr.rollMultiple()[0];
+                var roll = WarGame.dice.rollMultiple()[0];
                 if (roll > 3) {
                     topAttackerScore++;
                 } else {

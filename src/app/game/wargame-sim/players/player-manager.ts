@@ -1,36 +1,37 @@
 import { IPlayer } from "./i-player";
 import { PlayerStatusEffect } from "./player-status-effect";
 
-export module PlayerManager {
-    var _players = new Map<number, IPlayer>();
-    var _active = new Map<number, IPlayer>();
-    var _dead = new Map<number, IPlayer>();
+export class PlayerManager {
+    private readonly _players: IPlayer[]
 
-    export function addPlayers(...players: IPlayer[]) {
+    constructor() {
+        this._players = [];
+    }
+
+    get players(): IPlayer[] {
+        return this._players;
+    }
+
+    addPlayers(...players: IPlayer[]) {
         if (players) {
             for (var i = 0; i < players.length; i++) {
                 let p: IPlayer = players[i];
-                _players.set(p.id, p);
-                if (players[i].isDead()) {
-                    _dead.set(p.id, p);
-                } else {
-                    _active.set(p.id, p);
+                if (!this.getPlayerById(p.id)) {
+                    this._players.push(p);
                 }
             }
         }
     }
 
-    export function getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
-        let players: IPlayer[] = Array.from(_players.values());
+    getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
+        let players: IPlayer[] = this.players;
         if (effects) {
-            for (var i = 0; i < effects.length; i++) {
+            for (var i=0; i<effects.length; i++) {
                 let effect: PlayerStatusEffect = effects[i];
                 players = players.filter((player: IPlayer) => {
                     let pEffects: PlayerStatusEffect[] = player.getEffects();
-                    for (var j = 0; j < pEffects.length; j++) {
-                        if (pEffects[j] === effect) {
-                            return true;
-                        }
+                    if (pEffects.includes(effect)) {
+                        return true;
                     }
                 });
             }
@@ -38,11 +39,21 @@ export module PlayerManager {
         return players;
     }
 
-    export function getPlayerById(id: number): IPlayer {
-        return _players.get(id);
+    getPlayerById(id: number): IPlayer {
+        let players: IPlayer[] = this.players.filter((player: IPlayer) => {
+            if (player.id === id) { return true; }
+        });
+        return (players?.length) ? players[0] : null;
     }
 
-    export function areAllies(...players: IPlayer[]): boolean {
+    getPlayerAt(tileX: number, tileY: number): IPlayer {
+        let players: IPlayer[] = this.players.filter((player: IPlayer) => {
+            if (player.tileX === tileX && player.tileY === tileY) return true;
+        });
+        return (players?.length) ? players[0] : null;
+    }
+
+    areAllies(...players: IPlayer[]): boolean {
         if (players) {
             for (var i = 0; i < players.length - 1; i++) {
                 let teamAId: number = players[i].getTeamId();
@@ -53,5 +64,9 @@ export module PlayerManager {
             }
         }
         return true;
+    }
+
+    areEnemies(...players: IPlayer[]): boolean {
+        return !this.areAllies(...players);
     }
 }
