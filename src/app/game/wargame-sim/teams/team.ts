@@ -31,28 +31,34 @@ export class Team {
         return this._colour;
     }
 
+    getPlayersByName(name: string): IPlayer[] {
+        return this.getPlayers().filter((p: IPlayer) => p.name === name);
+    }
+
     getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
         let teamPlayers: IPlayer[] = [];
         let allPlayers: IPlayer[] = WarGame.players.getPlayers(...effects);
         for (var i=0; i<allPlayers.length; i++) {
             let p: IPlayer = allPlayers[i];
-            if (p && !p.isDead() && p.getTeamId() == this.id) {
+            if (p && !p.isDead() && p.teamId == this.id) {
                 teamPlayers.push(p);
             }
         }
         return teamPlayers;
     }
 
-    addPlayers(...players: IPlayer[]): void {
-        if (players) {
-            for (var i=0; i<players.length; i++) {
-                let p: IPlayer = players[i];
-                if (p && this._remainingPoints >= p.getStats().cost) {
-                    this._remainingPoints -= p.getStats().cost;
-                    p.setTeamId(this.id);
-                    WarGame.players.addPlayers(p);
-                }
-            }
+    addPlayer(player: IPlayer): void {
+        if (player && this.remainingPoints >= player.stats.cost) {
+            this._remainingPoints -= player.stats.cost;
+            player.setTeamId(this.id);
+            WarGame.players.addPlayer(player);
+        }
+    }
+
+    removePlayer(player: IPlayer): void {
+        if (player) {
+            WarGame.players.removePlayer(player);
+            this._remainingPoints += player.stats.cost;
         }
     }
 

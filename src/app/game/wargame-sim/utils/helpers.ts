@@ -58,6 +58,17 @@ export module Helpers {
         }
         return lowest
     }
+
+    export function hitAreaCallback(hitArea: Phaser.Geom.Rectangle, x: number, y: number, go: Phaser.GameObjects.GameObject): boolean {
+        const halfWidth: number = hitArea.width / 2;
+        const halfHeight: number = hitArea.height / 2;
+        if (isBetween(x, halfWidth, halfWidth + hitArea.width)
+            && isBetween(y, halfHeight, halfHeight + hitArea.height)) {
+            // console.info(`x: ${x.toFixed(0)}, y: ${y.toFixed(0)}`);
+            return true;
+        }
+        return false;
+    }
 }
 
 export enum BetweenComparisonType {

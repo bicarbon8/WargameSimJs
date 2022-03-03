@@ -1,8 +1,15 @@
+import { environment } from "src/environments/environment";
+import { PlayerSpritesheetMappings } from "../../players/player-types/player-spritesheet-mappings";
 import { Team } from "../../teams/team";
-import { TeamManager } from "../../teams/team-manager";
-import { Constants } from "../../utils/constants";
 import { WarGame } from "../../war-game";
-import { TextButton } from "../text-button";
+import { Card } from "../card/card";
+import { TextButton } from "../buttons/text-button";
+import { BasicPlayer } from "../../players/player-types/basic-player";
+import { HeroPlayer } from "../../players/player-types/hero-player";
+import { LightPlayer } from "../../players/player-types/light-player";
+import { HeavyPlayer } from "../../players/player-types/heavy-player";
+import { IPlayer } from "../../players/i-player";
+import { Helpers } from "../../utils/helpers";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: true,
@@ -15,24 +22,25 @@ export class PickTeamsScene extends Phaser.Scene {
     private _height: number;
 
     private _title: Phaser.GameObjects.Text;
-    private _addTeams: boolean;
-    private _addTeamsPressedTime: number;
-    private _subtractTeams: boolean;
-    private _subtractTeamsPressedTime: number;
-    private _numTeams: number;
-    private _numTeamsText: TextButton;
+    private _currentTeamIndex: number;
     
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
         super(settingsConfig || sceneConfig);
-        this._numTeams = Constants.MIN_TEAMS;
-        this._addTeams = false;
-        this._addTeamsPressedTime = 0;
-        this._subtractTeams = false;
-        this._subtractTeamsPressedTime = 0;
+        this._currentTeamIndex = 0;
+        // create starting team
+        WarGame.teamMgr.addTeam(new Team({
+            name: `Team ${WarGame.teamMgr.teams.length}`,
+            points: 100
+        }));
     }
 
     preload(): void {
-        
+        this.load.spritesheet('players', `${environment.baseUrl}/assets/sprites/player/sprite.png`, {
+            frameWidth: 32,
+            frameHeight: 32,
+            startFrame: 0,
+            endFrame: 96
+        }); // 12w by 8h
     }
 
     create(): void {
@@ -42,25 +50,15 @@ export class PickTeamsScene extends Phaser.Scene {
         this._createTitleText();
         this._createTeamPickerButtons();
         this._createStartButton();
+
+        this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+            let world: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+            console.info(`pointer at: ${pointer.x.toFixed(0)},${pointer.y.toFixed(0)} - ${world.x.toFixed(0)},${world.y.toFixed(0)}`);
+        });
     }
 
     update(time: number, delta: number): void {
-        if (this._addTeams && time >= this._addTeamsPressedTime + Constants.INPUT_HELD_DELAY) {
-            this._numTeams++;
-            if (this._numTeams > Constants.MAX_TEAMS) {
-                this._numTeams--;
-            }
-            this._addTeamsPressedTime = time;
-            this._updateNumTeamsText();
-        }
-        if (this._subtractTeams && time >= this._subtractTeamsPressedTime + Constants.INPUT_HELD_DELAY) {
-            this._numTeams--;
-            if (this._numTeams < Constants.MIN_TEAMS) {
-                this._numTeams++;
-            }
-            this._subtractTeamsPressedTime = time;
-            this._updateNumTeamsText();
-        }
+        
     }
 
     private _createTitleText(): void {
@@ -69,125 +67,256 @@ export class PickTeamsScene extends Phaser.Scene {
     }
 
     private _createTeamPickerButtons(): void {
-        const textStyle: Phaser.Types.GameObjects.Text.TextStyle = { 
-            font: '20px Courier', 
-            color: '#000000',
-            align: 'center'
-        };
-        this._numTeamsText = new TextButton({
-            scene: this, 
-            x: this._width / 2, 
-            y: 0,
-            text: `${this._numTeams} teams`,
-            textStyle: textStyle,
-            colour: 0x606060,
-            alpha: 0.5,
-            cornerRadius: 20,
-            padding: {left: 20, top: 20}
-        });
-        this._numTeamsText.setY(this._title.height + this._numTeamsText.height);
-
-        const up = new TextButton({
+        const chooseTeamText = new TextButton({
             scene: this,
-            x: 0,
-            y: this._numTeamsText.y,
-            text: '+',
-            textStyle: textStyle,
-            colour: 0x606060,
-            alpha: 0.5,
-            cornerRadius: 10,
-            padding: {left: 10, top: 5}
+            text: '~~~~~ Choose your Team ~~~~~',
+            colour: 0x8d8d8d,
+            cornerRadius: 5
         });
-        up.setX(this._numTeamsText.x + (this._numTeamsText.width / 2) + up.width);
-        up.setInteractive().on(Phaser.Input.Events.POINTER_OVER, () => {
-            if (this._numTeams < Constants.MAX_TEAMS) {
-                up.setTextStyle({color: '#ffffff'});
-            }
-        }).on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (this._numTeams < Constants.MAX_TEAMS) {
-                this._addTeams = true;
-                this._addTeamsPressedTime = 0;
-            }
-        }).on(Phaser.Input.Events.POINTER_UP, () => {
-            this._addTeams = false;
-        }).on(Phaser.Input.Events.POINTER_OUT, () => {
-            this._addTeams = false;
-            up.setTextStyle(textStyle);
-        });
+        chooseTeamText.setPosition((this._width / 2) - (chooseTeamText.width / 2), this._title.height + chooseTeamText.height);
+        this.add.existing(chooseTeamText);
 
-        const down = new TextButton({
+        let currentTeam: Team = WarGame.teamMgr.teams[this._currentTeamIndex];
+        const teamRemainingPointsText: Phaser.GameObjects.Text = this.add.text(0, chooseTeamText.y + chooseTeamText.height, `'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+        teamRemainingPointsText.setX((this._width / 2) - (teamRemainingPointsText.width / 2));
+        teamRemainingPointsText.setColor('#000000');
+
+        const width: number = this.game.canvas.width / 6;
+        const height: number = this.game.canvas.height / 3;
+        const basicPlayer = new BasicPlayer(this);
+        const basicPlayerCard = new Card({
             scene: this,
-            x: 0,
-            y: this._numTeamsText.y,
-            text: '-',
-            textStyle: textStyle,
-            colour: 0x606060,
-            alpha: 0.5,
-            cornerRadius: 10,
-            padding: {left: 10, top: 5}
-        });
-        down.setX(this._numTeamsText.x - (this._numTeamsText.width / 2) - down.width);
-        down.setInteractive().on(Phaser.Input.Events.POINTER_OVER, () => {
-            if (this._numTeams > Constants.MIN_TEAMS) {
-                down.setTextStyle({color: '#ffffff'});
-                down.setButtonColor(0x000000);
+            x: width,
+            y: height,
+            width: width - 5,
+            height: height,
+            header: {
+                text: 'Basic',
+                backgroundColor: 0x808080,
+                cornerRadius: 5
+            },
+            image: {
+                spriteKey: 'players',
+                spriteIndex: PlayerSpritesheetMappings.basic.front,
+                backgroundColor: 0xc0c0c0
+            },
+            body: {
+                title: `Cost: ${basicPlayer.stats.cost}`,
+                backgroundColor: 0x808080,
+                cornerRadius: 5,
+                buttons: [
+                    {
+                        text: ' - ',
+                        colour: 0x606060,
+                        cornerRadius: 10
+                    },
+                    {
+                        text: ' 0 ',
+                        colour: 0x606060,
+                        cornerRadius: 5
+                    },
+                    {
+                        text: ' + ',
+                        colour: 0x606060,
+                        cornerRadius: 10
+                    },
+                ]
             }
-        }).on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (this._numTeams > Constants.MIN_TEAMS) {
-                this._subtractTeams = true;
-                this._subtractTeamsPressedTime = 0;
-            }
-        }).on(Phaser.Input.Events.POINTER_UP, () => {
-            this._subtractTeams = false;
-        }).on(Phaser.Input.Events.POINTER_OUT, () => {
-            this._subtractTeams = false;
-            down.setTextStyle(textStyle);
-            down.setButtonColor(0x606060, 0.5);
         });
+        this.add.existing(basicPlayerCard);
+        basicPlayerCard.cardBody.buttons[0];
+        basicPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
+            const basicPlayers: IPlayer[] = currentTeam.getPlayersByName(basicPlayer.name);
+            if (basicPlayers.length > 0) {
+                currentTeam.removePlayer(basicPlayers[0]);
+                basicPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(basicPlayer.name).length} `);
+                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+            }
+        }, this);
+        basicPlayerCard.cardBody.buttons[2];
+        basicPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
+            if (currentTeam.remainingPoints >= basicPlayer.stats.cost) {
+                currentTeam.addPlayer(new BasicPlayer(this));
+                basicPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(basicPlayer.name).length} `);
+                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+            }
+        }, this);
+
+        const heroPlayer: HeroPlayer = new HeroPlayer(this);
+        const heroPlayerCard = new Card({
+            scene: this,
+            x: width * 2,
+            y: height,
+            width: width - 5,
+            height: height,
+            header: {
+                scene: this,
+                text: 'Hero',
+                backgroundColor: 0x808080,
+                cornerRadius: 5
+            },
+            image: {
+                spriteKey: 'players',
+                spriteIndex: PlayerSpritesheetMappings.hero.front,
+                backgroundColor: 0xc0c0c0,
+            },
+            body: {
+                title: `Cost: ${heroPlayer.stats.cost}`,
+                backgroundColor: 0x808080,
+                cornerRadius: 5,
+                buttons: [
+                    {
+                        text: ' - ',
+                        colour: 0x606060,
+                        cornerRadius: 10
+                    },
+                    {
+                        text: ' 0 ',
+                        colour: 0x606060,
+                        cornerRadius: 5
+                    },
+                    {
+                        text: ' + ',
+                        colour: 0x606060,
+                        cornerRadius: 10
+                    },
+                ]
+            }
+        });
+        this.add.existing(heroPlayerCard);
+        heroPlayerCard.cardBody.buttons[0];
+        heroPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
+            const heroPlayers: IPlayer[] = currentTeam.getPlayersByName(heroPlayer.name);
+            if (heroPlayers.length > 0) {
+                currentTeam.removePlayer(heroPlayers[0]);
+                heroPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(heroPlayer.name).length} `);
+                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+            }
+        }, this);
+        heroPlayerCard.cardBody.buttons[2];
+        heroPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
+            if (currentTeam.remainingPoints >= heroPlayer.stats.cost) {
+                currentTeam.addPlayer(new HeroPlayer(this));
+                heroPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(heroPlayer.name).length} `);
+                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+            }
+        }, this);
+
+        const lightPlayerCard = new Card({
+            scene: this,
+            x: width * 3,
+            y: height,
+            width: width - 5,
+            height: height,
+            header: {
+                scene: this,
+                text: 'Light',
+                backgroundColor: 0x808080,
+                cornerRadius: 5
+            },
+            image: {
+                spriteKey: 'players',
+                spriteIndex: PlayerSpritesheetMappings.light.front,
+                backgroundColor: 0xc0c0c0,
+            },
+            body: {
+                title: `Cost: ${new LightPlayer(this).stats.cost}`,
+                backgroundColor: 0x808080,
+                cornerRadius: 5,
+                buttons: [
+                    {
+                        text: ' - ',
+                        colour: 0x606060,
+                        cornerRadius: 10
+                    },
+                    {
+                        text: ' 0 ',
+                        colour: 0x606060,
+                        cornerRadius: 5
+                    },
+                    {
+                        text: ' + ',
+                        colour: 0x606060,
+                        cornerRadius: 10
+                    },
+                ]
+            }
+        });
+        this.add.existing(lightPlayerCard);
+
+        const heavyPlayerCard = new Card({
+            scene: this,
+            x: width * 4,
+            y: height,
+            width: width - 5,
+            height: height,
+            header: {
+                scene: this,
+                text: 'Heavy',
+                backgroundColor: 0x808080,
+                cornerRadius: 5
+            },
+            image: {
+                spriteKey: 'players',
+                spriteIndex: PlayerSpritesheetMappings.heavy.front,
+                backgroundColor: 0xc0c0c0,
+            },
+            body: {
+                title: `Cost: ${new HeavyPlayer(this).stats.cost}`,
+                backgroundColor: 0x808080,
+                cornerRadius: 5,
+                buttons: [
+                    {
+                        text: ' - ',
+                        colour: 0x606060,
+                        cornerRadius: 10
+                    },
+                    {
+                        text: ' 0 ',
+                        colour: 0x606060,
+                        cornerRadius: 5
+                    },
+                    {
+                        text: ' + ',
+                        colour: 0x606060,
+                        cornerRadius: 10
+                    },
+                ]
+            }
+        });
+        this.add.existing(heavyPlayerCard);
     }
 
     private _createStartButton(): void {
         const startButton = new TextButton({
             scene: this,
-            x: this._width / 2,
-            y: 0,
             text: 'Start Game',
             textStyle: {
                 font: '20px Courier', 
-                color: '#808080',
-                align: 'center'
+                color: '#808080'
             },
             colour: 0x8888ff,
-            alpha: 0.5,
-            padding: {left: 5, top: 20},
-            cornerRadius: 20
+            cornerRadius: 5
         });
-        startButton.setY(this._height - startButton.height - 5);
-        startButton.setInteractive().on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const teams: Team[] = [];
-            for (var i=0; i<this._numTeams; i++) {
-                let team: Team = new Team({
-                    name: `Team ${i}`,
-                    points: 100
-                });
-                teams.push(team);
+        startButton.setAlpha(0.5);
+        startButton.setPosition((this._width / 2) - (startButton.width / 2), this._height - startButton.height - 5);
+        startButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            if (WarGame.teamMgr.teams.length > 0) {
+                this.game.scene.start('gameplay-scene');
+                this.game.scene.stop(this);
             }
-            WarGame.teams.addTeams(...teams);
-            this.game.scene.start('gameplay-scene');
-            this.game.scene.stop(this);
         }).on(Phaser.Input.Events.POINTER_OVER, () => {
-            startButton.setButtonColor(0x8888ff, 1);
-            startButton.setTextStyle({color: '#ffffff'});
+            if (WarGame.teamMgr.teams.length > 0 && WarGame.teamMgr.teams.every((t: Team) => t.getPlayers().length > 0)) {
+                startButton.setAlpha(1);
+                startButton.text.setColor('#ffffff');
+            }
         }).on(Phaser.Input.Events.POINTER_UP, () => {
-            startButton.setButtonColor(0x8888ff, 0.5);
-            startButton.setTextStyle({color: '#808080'});
+            startButton.setAlpha(0.5);
+            startButton.text.setColor('#808080');
         }).on(Phaser.Input.Events.POINTER_OUT, () => {
-            startButton.setButtonColor(0x8888ff, 0.5);
-            startButton.setTextStyle({color: '#808080'});
+            startButton.setAlpha(0.5);
+            startButton.text.setColor('#808080');
         });
-    }
-
-    private _updateNumTeamsText(): void {
-        this._numTeamsText.setText(`${this._numTeams} teams`);
+        this.add.existing(startButton);
     }
 }

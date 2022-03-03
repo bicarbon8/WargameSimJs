@@ -1,30 +1,48 @@
 import { Team } from "./team";
 
 export class TeamManager {
-    private _teams: Map<number, Team> = new Map<number, Team>();
+    private readonly _teams: Team[];
 
-    addTeams(...teams: Team[]): void {
-        if (teams) {
-            for (var i=0; i<teams.length; i++) {
-                let t: Team = teams[i];
-                this._teams.set(t.id, t);
-            }
+    constructor() {
+        this._teams = [];
+    }
+
+    addTeam(team: Team): void {
+        if (team && !this.getTeamById(team.id)) {
+            this._teams.push(team);
         }
     }
 
-    getTeams(): Team[] {
-        return Array.from(this._teams.values());
+    getTeam(index: number): Team {
+        if (index >= 0 && index < this._teams.length) {
+            return this._teams[index];
+        }
+    }
+
+    get teams(): Team[] {
+        return this._teams;
     }
 
     getTeamById(id: number): Team {
-        return this._teams.get(id);
+        const teams: Team[] = this.teams.filter((t: Team) => t.id === id);
+        if (teams) {
+            return teams[0];
+        }
+        return null;
+    }
+
+    getTeamByName(name: string): Team {
+        const teams: Team[] = this.teams.filter((t: Team) => t.name === name);
+        if (teams) {
+            return teams[0];
+        }
+        return null;
     }
 
     getTeamsByPriority(): Team[] {
         let ordered: Team[] = [];
-        let teams: Team[] = this.getTeams();
-        for (var i=0; i<teams.length; i++) {
-            let t: Team = teams[i];
+        for (var i=0; i<this.teams.length; i++) {
+            let t: Team = this.teams[i];
             if (ordered.length > 0) {
                 for (var j=0; j<ordered.length; j++) {
                     let ot: Team = ordered[j];
@@ -47,9 +65,8 @@ export class TeamManager {
 
     getTeamsByScore(): Team[] {
         let ordered: Team[] = [];
-        let teams: Team[] = this.getTeams();
-        for (var i=0; i<teams.length; i++) {
-            let t: Team = teams[i];
+        for (var i=0; i<this.teams.length; i++) {
+            let t: Team = this.teams[i];
             if (ordered.length > 0) {
                 for (var j=0; j<ordered.length; j++) {
                     let ot: Team = ordered[j];

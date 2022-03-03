@@ -52,7 +52,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     addPlayer(player: IPlayer, tileX: number, tileY: number): void {
         if (player && this.isValidLocation(tileX, tileY)) {
             if (!this.isTileOccupied(tileX, tileY)) {
-                WarGame.players.addPlayers(player);
+                WarGame.players.addPlayer(player);
                 player.setTile(tileX, tileY);
             }
         }

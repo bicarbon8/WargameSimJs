@@ -32,7 +32,7 @@ export class GameplayScene extends Phaser.Scene {
             frameWidth: 32,
             frameHeight: 32,
             startFrame: 0,
-            endFrame: 3
+            endFrame: 96
         }); // 12w by 8h
     }
 
@@ -48,7 +48,7 @@ export class GameplayScene extends Phaser.Scene {
     }
 
     private _createMap(): void {
-        const mult: number = WarGame.teams.getTeams().length;
+        const mult: number = WarGame.teamMgr.teams.length;
         WarGame.map = new GameMap({
             scene: this,
             width: mult * 50,
@@ -67,12 +67,12 @@ export class GameplayScene extends Phaser.Scene {
 
     private _handlePickTeams(): void {
         // TODO: display player selection scene / menu
-        let teams: Team[] = WarGame.teams.getTeams();
+        let teams: Team[] = WarGame.teamMgr.teams;
         for (var i=0; i<teams.length; i++) {
             let team: Team = teams[i];
             do {
                 let player: IPlayer = new BasicPlayer(this);
-                team.addPlayers(player);
+                team.addPlayer(player);
             } while (team.remainingPoints > 10);
         }
         this._handleTileHighlighting();
@@ -85,7 +85,7 @@ export class GameplayScene extends Phaser.Scene {
             let worldLoc: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
             let pointerTile: Phaser.Tilemaps.Tile = WarGame.map.obj.getTileAtWorldXY(worldLoc.x, worldLoc.y);
             if (pointerTile) {
-                let teamPlayers: IPlayer[] = WarGame.teams.getTeams()[this._playerPlacements]?.getPlayers();
+                let teamPlayers: IPlayer[] = WarGame.teamMgr.teams[this._playerPlacements]?.getPlayers();
                 let tiles: Phaser.Tilemaps.Tile[] = WarGame.map.getTilesInRange(pointerTile.x, pointerTile.y, (teamPlayers.length / 3) * 32)
                     .filter((tile: Phaser.Tilemaps.Tile) => !WarGame.map.isTileOccupied(tile.x, tile.y));
                 this._highlightedTiles = this._highlightedTiles.concat(tiles);
@@ -109,12 +109,12 @@ export class GameplayScene extends Phaser.Scene {
         WarGame.map.obj.once(Phaser.Input.Events.POINTER_DOWN, () => {
             if (this.time.now > this._downTime + Constants.CLICK_HANDLING_DELAY) {
                 this._downTime = this.time.now;
-                let players: IPlayer[] = WarGame.teams.getTeams()[this._playerPlacements++]?.getPlayers();
+                let players: IPlayer[] = WarGame.teamMgr.teams[this._playerPlacements++]?.getPlayers();
                 if (players?.length) {
                     this._placePlayers(...players);
                 }
             }
-            if (this._playerPlacements < WarGame.teams.getTeams().length) {
+            if (this._playerPlacements < WarGame.teamMgr.teams.length) {
                 this._startPlacePlayers();
             } else {
                 WarGame.map.obj.off(Phaser.Input.Events.POINTER_MOVE);

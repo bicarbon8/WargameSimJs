@@ -9,7 +9,7 @@ import { WarGameOptions } from "./war-game-options";
 export module WarGame {
     export var map: GameMap;
     export var players: PlayerManager;
-    export var teams: TeamManager;
+    export var teamMgr: TeamManager;
     export var phases: PhaseManager;
     export var ui: UIManager;
     export var dice: DiceManager;
@@ -17,7 +17,7 @@ export module WarGame {
     export function start(options?: WarGameOptions): void {
         dice = new DiceManager();
         players = new PlayerManager();
-        teams = new TeamManager();
+        teamMgr = new TeamManager();
         phases = new PhaseManager();
         ui = new UIManager(options?.uiMgrOpts);
     }
@@ -27,7 +27,7 @@ export module WarGame {
         ui = null;
         phases = null;
         players = null;
-        teams = null;
+        teamMgr = null;
         dice = null;
     }
 }

@@ -12,15 +12,25 @@ export class PlayerManager {
         return this._players;
     }
 
-    addPlayers(...players: IPlayer[]) {
-        if (players) {
-            for (var i = 0; i < players.length; i++) {
-                let p: IPlayer = players[i];
-                if (!this.getPlayerById(p.id)) {
-                    this._players.push(p);
-                }
+    addPlayer(player: IPlayer): boolean {
+        if (player) {
+            if (!this.getPlayerById(player.id)) {
+                this._players.push(player);
+                return true;
             }
         }
+        return false;
+    }
+
+    removePlayer(player: IPlayer): boolean {
+        if (player) {
+            const index: number = this._players.findIndex((p: IPlayer) => p.id === player.id);
+            if (index !== -1) {
+                this._players.splice(index, 1);
+                return true;
+            }
+        }
+        return false;
     }
 
     getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
@@ -29,7 +39,7 @@ export class PlayerManager {
             for (var i=0; i<effects.length; i++) {
                 let effect: PlayerStatusEffect = effects[i];
                 players = players.filter((player: IPlayer) => {
-                    let pEffects: PlayerStatusEffect[] = player.getEffects();
+                    let pEffects: PlayerStatusEffect[] = player.statusEffects;
                     if (pEffects.includes(effect)) {
                         return true;
                     }
@@ -56,8 +66,8 @@ export class PlayerManager {
     areAllies(...players: IPlayer[]): boolean {
         if (players) {
             for (var i = 0; i < players.length - 1; i++) {
-                let teamAId: number = players[i].getTeamId();
-                let teamBId: number = players[i + 1].getTeamId();
+                let teamAId: number = players[i].teamId;
+                let teamBId: number = players[i + 1].teamId;
                 if (teamAId != teamBId) {
                     return false;
                 }

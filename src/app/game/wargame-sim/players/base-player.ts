@@ -6,12 +6,14 @@ import { IPlayer } from "./i-player";
 import { PlayerOptions } from "./player-options";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
+import { PlayerSpritesheetMapping } from "./player-types/player-spritesheet-mappings";
 
-export class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite> {
+export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite> {
     readonly id: number;
     private readonly _scene: Phaser.Scene;
     private readonly _name: string;
     private readonly _stats: PlayerStats;
+    private readonly _spriteMapping: PlayerSpritesheetMapping;
     private _tileX: number;
     private _tileY: number;
     private _teamId: number;
@@ -24,11 +26,12 @@ export class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Spr
         this._scene = options.scene;
         this._name = options.name;
         this._stats = options.stats;
+        this._spriteMapping = options.spriteMapping;
         this._remainingWounds = this._stats.wounds;
         this._effects = new Set<PlayerStatusEffect>();
     }
 
-    getName(): string {
+    get name(): string {
         return this._name;
     }
 
@@ -57,7 +60,7 @@ export class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Spr
         }
     }
 
-    getTeamId(): number {
+    get teamId(): number {
         return this._teamId;
     }
 
@@ -65,7 +68,7 @@ export class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Spr
         this._teamId = id;
     }
 
-    getStats(): PlayerStats {
+    get stats(): PlayerStats {
         return this._stats;
     }
 
@@ -73,7 +76,7 @@ export class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Spr
         this._remainingWounds--;
     }
 
-    getEffects(): PlayerStatusEffect[] {
+    get statusEffects(): PlayerStatusEffect[] {
         return Array.from(this._effects.values());
     }
 
@@ -106,7 +109,7 @@ export class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Spr
     }
 
     private _createGameObject(): void {
-        this._obj = this._scene.add.sprite(0, 0, 'players', 1);
+        this._obj = this._scene.add.sprite(0, 0, 'players', this._spriteMapping.front);
         this._obj.setDepth(Constants.DEPTH_PLAYER);
         this._obj.setVisible(false);
     }

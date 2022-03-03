@@ -1,9 +1,13 @@
 import { BasePlayer } from "../base-player";
+import { PlayerSpritesheetMappings } from "./player-spritesheet-mappings";
 
 export class BasicPlayer extends BasePlayer {
+    protected readonly _index: number = 1;
+
     constructor(scene: Phaser.Scene) {
         super({
-            name: 'basic', 
+            name: 'basic',
+            spriteMapping: PlayerSpritesheetMappings.basic,
             scene: scene,
             stats: {
                 mele: 3,
