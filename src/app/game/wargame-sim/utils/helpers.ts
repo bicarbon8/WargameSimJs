@@ -29,8 +29,8 @@ export module Helpers {
      * @param values an array of numbers
      * @returns the highest value from the array or 0 if no values passed in
      */
-    export function getHighest(values: number[]): number {
-        let highest: number = 0;
+    export function getHighest(...values: number[]): number {
+        let highest: number = -Infinity;
         if (values) {
             for (var i=0; i<values.length; i++) {
                 if (values[i] > highest) {
@@ -38,7 +38,7 @@ export module Helpers {
                 }
             }
         }
-        return highest
+        return highest;
     }
 
     /**
@@ -47,7 +47,7 @@ export module Helpers {
      * @param values an array of numbers
      * @returns the lowest value from the array or Infinity if no values passed in
      */
-    export function getLowest(values: number[]): number {
+    export function getLowest(...values: number[]): number {
         let lowest: number = Infinity;
         if (values) {
             for (var i=0; i<values.length; i++) {
@@ -56,18 +56,7 @@ export module Helpers {
                 }
             }
         }
-        return lowest
-    }
-
-    export function hitAreaCallback(hitArea: Phaser.Geom.Rectangle, x: number, y: number, go: Phaser.GameObjects.GameObject): boolean {
-        const halfWidth: number = hitArea.width / 2;
-        const halfHeight: number = hitArea.height / 2;
-        if (isBetween(x, halfWidth, halfWidth + hitArea.width)
-            && isBetween(y, halfHeight, halfHeight + hitArea.height)) {
-            // console.info(`x: ${x.toFixed(0)}, y: ${y.toFixed(0)}`);
-            return true;
-        }
-        return false;
+        return lowest;
     }
 }
 

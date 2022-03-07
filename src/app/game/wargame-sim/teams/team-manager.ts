@@ -19,6 +19,15 @@ export class TeamManager {
         }
     }
 
+    removeTeam(team: Team): void {
+        if (team) {
+            const index: number = this.teams.findIndex((t: Team) => t.id == team.id);
+            if (index >= 0) {
+                this._teams.splice(index, 1);
+            }
+        }
+    }
+
     get teams(): Team[] {
         return this._teams;
     }

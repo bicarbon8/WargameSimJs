@@ -7,11 +7,12 @@ export interface CardBodyOptions {
     width?: number;
     height?: number;
     title?: string;
-    titleStyle?: Phaser.GameObjects.TextStyle;
+    titleStyle?: Phaser.Types.GameObjects.Text.TextStyle;
     description?: string;
-    descriptionStyle?: Phaser.GameObjects.TextStyle;
+    descriptionStyle?: Phaser.Types.GameObjects.Text.TextStyle;
     buttons?: TextButtonOptions[];
     buttonSpacing?: number;
     backgroundColor?: number;
     cornerRadius?: number;
+    debug?: boolean;
 }

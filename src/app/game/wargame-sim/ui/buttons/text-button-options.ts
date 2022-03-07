@@ -8,4 +8,7 @@ export interface TextButtonOptions {
     textStyle?: Phaser.Types.GameObjects.Text.TextStyle;
     cornerRadius?: number;
     colour?: number;
+    interactive?: boolean;
+    padding?: number;
+    debug?: boolean;
 }

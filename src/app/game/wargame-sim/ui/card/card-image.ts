@@ -28,7 +28,7 @@ export class CardImage extends Phaser.GameObjects.Container {
             const scaleY: number = height / sprite.height;
             const scale: number = (scaleX < scaleY) ? scaleX : scaleY;
             sprite.setScale(scale);
-            sprite.setPosition(((sprite.width * scale) / 2), ((sprite.height * scale) / 2));
+            sprite.setOrigin(0.5);
             this.add(sprite);
             this._sprite = sprite;
         }
@@ -36,7 +36,7 @@ export class CardImage extends Phaser.GameObjects.Container {
         const height: number = (this._sprite?.height * this._sprite.scaleY) || options.width;
         if (bgColour) {
             const background: Phaser.GameObjects.Graphics = this.scene.add.graphics({fillStyle: {color: bgColour}});
-            background.fillRect(0, 0, options.width, height);
+            background.fillRect(-(options.width / 2), -(height / 2), options.width, height);
             this.add(background);
             this.sendToBack(background);
             this._background = background;
