@@ -16,6 +16,6 @@ export interface GridCellOptions {
     border?: number;
     borderColor?: number;
     borderAlpha?: number;
-    contents?: LayoutContent;
+    content?: LayoutContent;
     debug?: boolean;
 }

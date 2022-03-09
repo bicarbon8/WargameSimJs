@@ -1,3 +1,4 @@
+import { Helpers } from "../../utils/helpers";
 import { TextButton } from "../buttons/text-button";
 import { TextButtonOptions } from "../buttons/text-button-options";
 import { LayoutManager } from "../layout/layout-manager";
@@ -8,7 +9,10 @@ export class CardBody extends LayoutManager {
     private _title: Phaser.GameObjects.Text;
     private _description: Phaser.GameObjects.Text;
     private _buttons: TextButton[];
+    private _buttonsLayout: LayoutManager;
     private _backgroundContainer: Phaser.GameObjects.Container;
+
+    private readonly _options: CardBodyOptions;
 
     constructor(options: CardBodyOptions) {
         const opts: LayoutManagerOptions = {
@@ -19,8 +23,9 @@ export class CardBody extends LayoutManager {
             padding: 5
         };
         super(opts);
+        this._options = options;
         this._buttons = [];
-        this._createGameObject(options);
+        this._createGameObject();
     }
 
     get title(): Phaser.GameObjects.Text {
@@ -39,26 +44,30 @@ export class CardBody extends LayoutManager {
         return this._backgroundContainer;
     }
 
-    private _createGameObject(options: CardBodyOptions): void {
-        this._createTitle(options);
-        this._createDescription(options);
-        this._createButtons(options);
-        this._createBackground(options);
-        this._createDebug(options);
+    private _createGameObject(): void {
+        this.setTitle(this._options.title, this._options.titleStyle);
+        this.setDescription(this._options.description, this._options.descriptionStyle);
+        this.addButtons(...this._options.buttons);
+        this.setBackground(this._options.background);
+        this._createDebug(this._options.debug);
     }
 
-    private _createTitle(options: CardBodyOptions): void {
-        const title: string = options.title;
+    setTitle(title: string, style?: Phaser.Types.GameObjects.Text.TextStyle): void {
         if (title) {
-            const titleStyle: Phaser.Types.GameObjects.Text.TextStyle = options.titleStyle || { 
+            if (this._title) {
+                this._title.destroy();
+                this._title = null;
+            }
+            const titleStyle: Phaser.Types.GameObjects.Text.TextStyle = style || { 
                 font: '30px Courier', 
                 color: '#000000',
             };
             const titleText: Phaser.GameObjects.Text = this.scene.add.text(0, 0, title, titleStyle);
-            const availableWidth: number = options.width - (this.padding * 2);
+            this._options.width = this._options.width || titleText.width + (this.padding * 2);
+            const availableWidth: number = this._options.width;
             let scaleX: number = 1;
-            if (availableWidth < titleText.width) {
-                scaleX = availableWidth / titleText.width;
+            if (availableWidth < (titleText.width + (this.padding * 2))) {
+                scaleX = availableWidth / (titleText.width + this.padding * 2);
                 titleText.setScale(scaleX);
             }
             this._title = titleText;
@@ -66,18 +75,22 @@ export class CardBody extends LayoutManager {
         }
     }
 
-    private _createDescription(options: CardBodyOptions): void {
-        const description: string = options.description;
+    setDescription(description: string, style?: Phaser.Types.GameObjects.Text.TextStyle): void {
         if (description) {
-            const descStyle: Phaser.Types.GameObjects.Text.TextStyle = options.titleStyle || { 
+            if (this._description) {
+                this._description.destroy();
+                this._description = null;
+            }
+            const descStyle: Phaser.Types.GameObjects.Text.TextStyle = style || { 
                 font: '20px Courier', 
                 color: '#000000',
             };
             const descText: Phaser.GameObjects.Text = this.scene.add.text(0, 0, description, descStyle);
-            const availableWidth: number = options.width - (this.padding * 2);
+            this._options.width = this._options.width || descText.width + (this.padding * 2);
+            const availableWidth: number = this._options.width;
             let scaleX: number = 1;
-            if (availableWidth < descText.width) {
-                scaleX = availableWidth / descText.width;
+            if (availableWidth < (descText.width + (this.padding * 2))) {
+                scaleX = availableWidth / (descText.width + (this.padding * 2));
                 descText.setScale(scaleX);
             }
             this._description = descText;
@@ -85,62 +98,74 @@ export class CardBody extends LayoutManager {
         }
     }
 
-    private _createButtons(options: CardBodyOptions): void {
-        const buttonOpts: TextButtonOptions[] = options.buttons;
+    addButtons(...buttonOpts: TextButtonOptions[]): void {
         if (buttonOpts) {
-            const buttonsManager: LayoutManager = new LayoutManager({scene: this.scene, orientation: 'horizontal', padding: options.buttonSpacing});
+            if (!this._buttonsLayout) {
+                this._buttonsLayout = new LayoutManager({scene: this.scene, orientation: 'horizontal', padding: this._options.buttonSpacing});
+                this.addContents(this._buttonsLayout);
+            }
             for (var i=0; i<buttonOpts.length; i++) {
                 let opts: TextButtonOptions = buttonOpts[i];
                 opts.scene = this.scene;
                 let button: TextButton = new TextButton(opts);
-                buttonsManager.addContents(button);
+                this._buttonsLayout.addContents(button);
                 this._buttons.push(button);
             }
-            const availableWidth: number = options.width - (this.padding * 2);
+            this._options.width = this._options.width || this._buttonsLayout.width + (this.padding * 2);
+            const availableWidth: number = this._options.width;
             let scaleX: number = 1;
-            if (availableWidth < buttonsManager.width) {
-                scaleX = availableWidth / buttonsManager.width;
-                buttonsManager.setScale(scaleX);
+            if (availableWidth < (this._buttonsLayout.width + (this.padding * 2))) {
+                scaleX = availableWidth / (this._buttonsLayout.width + (this.padding * 2));
+                this._buttonsLayout.setScale(scaleX);
             }
-            this.addContents(buttonsManager);
+            this.layout();
         }
     }
 
-    private _createBackground(options: CardBodyOptions): void {
-        const bgColour: number = options.backgroundColor;
-        if (bgColour) {
-            const cornerRadius: number = options.cornerRadius || 0;
-            this._backgroundContainer = this.scene.add.container(0, 0);
-            const headerBackgroundTop: Phaser.GameObjects.Graphics = this.scene.add.graphics({fillStyle: {color: bgColour}});
-            headerBackgroundTop.fillRect(-(options.width / 2), -(this.height / 2), options.width, cornerRadius);
-            this._backgroundContainer.add(headerBackgroundTop);
-            const headerBackgroundBottom: Phaser.GameObjects.Graphics = this.scene.add.graphics({fillStyle: {color: bgColour}});
-            headerBackgroundBottom.fillRoundedRect(-(options.width / 2), -(this.height / 2), options.width, this.height, cornerRadius);
-            this._backgroundContainer.add(headerBackgroundBottom);
-            this.add(this._backgroundContainer);
-            this.sendToBack(this._backgroundContainer);
+    removeButton(index: number): void {
+        if (index != null && index < this._buttons.length) {
+            let button: TextButton = this._buttons.splice(index, 1)[0];
+            button.destroy();
+            button = null;
+            this._buttonsLayout.layout();
         }
     }
 
-    private _createDebug(options: CardBodyOptions): void {
-        if (options.debug) {
+    clearButtons(): void {
+        this._buttonsLayout.clear();
+        this._buttons = [];
+        this.layout();
+    }
+
+    setBackground(options: Phaser.Types.GameObjects.Graphics.FillStyle): void {
+        if (options) {
+            if (!this._backgroundContainer) {
+                this._backgroundContainer = this.scene.add.container(0, 0);
+                this.add(this._backgroundContainer);
+                this.sendToBack(this._backgroundContainer);
+            }
+            this._backgroundContainer.removeAll(true);
+            if (this._options.cornerRadius != null) {
+                const backgroundTop: Phaser.GameObjects.Graphics = this.scene.add.graphics({fillStyle: options});
+                backgroundTop.fillRect(-(this._options.width / 2), -(this.height / 2), this._options.width, this._options.cornerRadius);
+                this._backgroundContainer.add(backgroundTop);
+                const backgroundBottom: Phaser.GameObjects.Graphics = this.scene.add.graphics({fillStyle: options});
+                backgroundBottom.fillRoundedRect(-(this._options.width / 2), -(this.height / 2), this._options.width, this.height, this._options.cornerRadius);
+                this._backgroundContainer.add(backgroundBottom);
+            } else {
+                const background: Phaser.GameObjects.Graphics = this.scene.add.graphics({fillStyle: options});
+                background.fillRect(-(this._options.width / 2), -(this.height / 2), this._options.width, this.height);
+            }
+        }
+    }
+
+    private _createDebug(enabled?: boolean): void {
+        if (enabled) {
             const debugBox = this.scene.add.graphics({lineStyle: {color: 0xfc03e8, alpha: 1, width: 1}});
-            debugBox.strokeRect(-(options.width / 2), -(this.height / 2), options.width, this.height);
+            debugBox.strokeRect(-(this.width / 2), -(this.height / 2), this.width, this.height);
             this.add(debugBox);
             this.bringToTop(debugBox);
-
-            const debugText = this.scene.add.text(0, 0, `w:${options.width.toFixed(1)};h:${this.height.toFixed(1)}`, { 
-                font: '40px Courier', 
-                color: '#fc03e8'
-            });
-            debugText.setOrigin(0.5);
-            debugText.setDepth(1000);
-            debugText.setVisible(false);
-            this.setInteractive().on(Phaser.Input.Events.POINTER_OVER, (pointer: Phaser.Input.Pointer) => {
-                debugText.setVisible(true);
-            }, this).on(Phaser.Input.Events.POINTER_OUT, () => {
-                debugText.setVisible(false);
-            });
+            Helpers.displayDebug(this.scene, this, 'CardBody');
         }
     }
 }

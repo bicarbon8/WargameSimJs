@@ -7,7 +7,7 @@ export interface TextButtonOptions {
     text?: string;
     textStyle?: Phaser.Types.GameObjects.Text.TextStyle;
     cornerRadius?: number;
-    colour?: number;
+    background?: Phaser.Types.GameObjects.Graphics.FillStyle;
     interactive?: boolean;
     padding?: number;
     debug?: boolean;

@@ -18,7 +18,7 @@ export module WarGame {
         dice = new DiceManager();
         players = new PlayerManager();
         teamMgr = new TeamManager();
-        phases = new PhaseManager();
+        phases = new PhaseManager(teamMgr);
         ui = new UIManager(options?.uiMgrOpts);
     }
 

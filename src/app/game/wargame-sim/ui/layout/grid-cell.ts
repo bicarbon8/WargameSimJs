@@ -26,7 +26,7 @@ export class GridCell extends Phaser.GameObjects.Container {
         const height: number = options.height || 0;
         this.updateSize(width, height);
         this.setBackground(options.backgroundColor, options.backgroundAlpha, options.border, options.borderColor, options.borderAlpha);
-        this.setContents(options);
+        this.setContent(options);
         if (this._debug) {
             this._displayDebugInfo();
         }
@@ -77,10 +77,10 @@ export class GridCell extends Phaser.GameObjects.Container {
         }
     }
 
-    setContents(options: GridCellOptions): void {
-        if (options.contents) {
+    setContent(options: GridCellOptions): void {
+        if (options.content) {
             if (this._contents) { this.remove(this._contents); } // remove previous contents
-            this._contents = options.contents;
+            this._contents = options.content;
             this.setContentsScale(options.scaleToFit, options.keepAspectRatio);
             this.setContentsPosition(this._alignment);
             this.add(this._contents);

@@ -8,4 +8,7 @@ export module Constants {
     export const DEPTH_MIDGROUND: number = 1;
     export const DEPTH_PLAYER: number = 2;
     export const DEPTH_MENU: number = 3;
+    export const CAMERA_MOVE_START_EVENT: string = 'camera-move-start';
+    export const CAMERA_MOVE_END_EVENT: string = 'camera-move-end';
+    export const CAMERA_ZOOM_EVENT: string = 'camera-zoom';
 }

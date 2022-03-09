@@ -1,12 +1,17 @@
 import { Constants } from "../../utils/constants";
+import { Helpers } from "../../utils/helpers";
 import { LayoutManager } from "../layout/layout-manager";
 import { LayoutManagerOptions } from "../layout/layout-manager-options";
 import { CardBody } from "./card-body";
+import { CardBodyOptions } from "./card-body-options";
 import { CardHeader } from "./card-header";
+import { CardHeaderOptions } from "./card-header-options";
 import { CardImage } from "./card-image";
+import { CardImageOptions } from "./card-image-options";
 import { CardOptions } from "./card-options";
 
 export class Card extends LayoutManager {
+    private readonly _options: CardOptions;
     private _header: CardHeader;
     private _image: CardImage;
     private _body: CardBody;
@@ -19,8 +24,8 @@ export class Card extends LayoutManager {
             orientation: 'vertical'
         }
         super(opts);
+        this._options = options;
         this._createGameObject(options);
-        this.setDepth(Constants.DEPTH_MENU);
     }
 
     get header(): CardHeader {
@@ -36,59 +41,67 @@ export class Card extends LayoutManager {
     }
 
     private _createGameObject(options: CardOptions): void {
-        if (!options.width) { options.width = this.scene.game.canvas.width; }
-        this._createHeader(options);
-        this._createImage(options);
-        this._createBody(options);
-        this._createDebug(options);
+        this.setHeader(options.header);
+        this.setImage(options.image);
+        this.setBody(options.body);
+        this._createDebug(options.debug);
     }
 
-    private _createHeader(options: CardOptions): void {
-        if (options.header) {
-            if (!options.header.width) { options.header.width = options.width; }
-            if (!options.header.scene) { options.header.scene = options.scene; }
-            this._header = new CardHeader(options.header);
+    setHeader(options?: CardHeaderOptions): void {
+        if (this._header) {
+            this._header.destroy();
+            this._header = null;
+        }
+        if (options) {
+            options.width = options.width || this._options.width;
+            options.scene = options.scene || this._options.scene;
+            this._header = new CardHeader(options);
+            this._options.width = this._options.width || this._header.width;
             this.addContents(this._header);
+        } else {
+            this.layout();
         }
     }
 
-    private _createImage(options: CardOptions): void {
-        if (options.image) {
-            if (!options.image.width) { options.image.width = options.width; }
-            if (!options.image.scene) { options.image.scene = options.scene; }
-            this._image = new CardImage(options.image);
+    setImage(options?: CardImageOptions): void {
+        if (this._image) {
+            this._image.destroy();
+            this._image = null;
+        }
+        if (options) {
+            options.width = options.width || this._options.width;
+            options.scene = options.scene || this._options.scene;
+            this._image = new CardImage(options);
+            this._options.width = this._options.width || this._image.width;
             this.addContents(this._image);
+        } else {
+            this.layout();
         }
     }
 
-    private _createBody(options: CardOptions): void {
-        if (options.body) {
-            if (!options.body.width) { options.body.width = options.width; }
-            if (!options.body.scene) { options.body.scene = options.scene; }
-            this._body = new CardBody(options.body);
+    setBody(options: CardBodyOptions): void {
+        if (this._body) {
+            this._body.destroy();
+            this._body = null;
+        }
+        if (options) {
+            options.width = options.width || this._options.width;
+            options.scene = options.scene || this._options.scene;
+            this._body = new CardBody(options);
+            this._options.width = this._options.width || this._body.width;
             this.addContents(this._body);
+        } else {
+            this.layout();
         }
     }
 
-    private _createDebug(options: CardOptions): void {
-        if (options.debug) {
+    private _createDebug(enabled?: boolean): void {
+        if (enabled) {
             const debugBox = this.scene.add.graphics({lineStyle: {color: 0xfc03e8, alpha: 1, width: 1}});
-            debugBox.strokeRect(-(options.width / 2), -(this.height / 2), options.width, this.height);
+            debugBox.strokeRect(-(this.width / 2), -(this.height / 2), this.width, this.height);
             this.add(debugBox);
             this.bringToTop(debugBox);
-
-            const debugText = this.scene.add.text(0, 0, `w:${options.width.toFixed(1)};h:${this.height.toFixed(1)}`, { 
-                font: '40px Courier', 
-                color: '#fc03e8'
-            });
-            debugText.setOrigin(0.5);
-            debugText.setDepth(1000);
-            debugText.setVisible(false);
-            this.setInteractive().on(Phaser.Input.Events.POINTER_OVER, (pointer: Phaser.Input.Pointer) => {
-                debugText.setVisible(true);
-            }, this).on(Phaser.Input.Events.POINTER_OUT, () => {
-                debugText.setVisible(false);
-            });
+            Helpers.displayDebug(this.scene, this, 'Card');
         }
     }
 }

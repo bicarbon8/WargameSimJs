@@ -11,6 +11,7 @@ import { HeavyPlayer } from "../../players/player-types/heavy-player";
 import { IPlayer } from "../../players/i-player";
 import { Constants } from "../../utils/constants";
 import { LayoutManager } from "../layout/layout-manager";
+import { GridLayout } from "../layout/grid-layout";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: true,
@@ -22,16 +23,23 @@ export class PickTeamsScene extends Phaser.Scene {
     private _width: number;
     private _height: number;
     private _currentTeamIndex: number;
+    private _currentTeam: Team;
+    private _teamRemainingPointsText: Phaser.GameObjects.Text;
     private _layout: LayoutManager;
+    private _startButton: TextButton;
+    private _removeTeamLayout: LayoutManager;
+    private _addTeamLayout: LayoutManager;
+    private _playerCardsLayout: LayoutManager;
     
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
         super(settingsConfig || sceneConfig);
         this._currentTeamIndex = 0;
         // create starting team
-        WarGame.teamMgr.addTeam(new Team({
+        this._currentTeam = new Team({
             name: `Team ${WarGame.teamMgr.teams.length}`,
             points: 100
-        }));
+        });
+        WarGame.teamMgr.addTeam(this._currentTeam);
     }
 
     preload(): void {
@@ -54,6 +62,11 @@ export class PickTeamsScene extends Phaser.Scene {
         this._createTeamPickerButtons();
         this._createStartButton();
 
+        if (this._layout.height > this._height) {
+            const scaleY: number = this._height / this._layout.height;
+            this._layout.setScale(scaleY);
+        }
+
         this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
             let world: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
             console.info(`screen: ${pointer.x.toFixed(0)},${pointer.y.toFixed(0)}; world: ${world.x.toFixed(0)},${world.y.toFixed(0)}`);
@@ -61,7 +74,25 @@ export class PickTeamsScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number): void {
-        
+        if (WarGame.teamMgr.teams[this._currentTeamIndex].id !== this._currentTeam?.id) {
+            this._currentTeam = WarGame.teamMgr.teams[this._currentTeamIndex];
+        }
+        this._teamRemainingPointsText.setText(`'${this._currentTeam.name}' remaining points: ${this._currentTeam.remainingPoints}`);
+        if (WarGame.teamMgr.teams.length > 1) {
+            if (WarGame.teamMgr.teams.every((t: Team) => t.getPlayers().length > 0)) {
+                this._startButton.setAlpha(1);
+                this._startButton.text.setColor('#ffffff');
+            }
+
+            this._removeTeamLayout.setAlpha(1);
+        } else {
+            this._removeTeamLayout.setAlpha(0.25);
+        }
+        if (this._currentTeam.getPlayers().length > 0) {
+            this._addTeamLayout.setAlpha(1);
+        } else {
+            this._addTeamLayout.setAlpha(0.25);
+        }
     }
 
     private _createLayoutManager(): void {
@@ -71,72 +102,34 @@ export class PickTeamsScene extends Phaser.Scene {
     }
 
     private _createTitleText(): void {
-        const title: Phaser.GameObjects.Text = this.add.text(0, 0, 'War Game\nSimulator!', {font: '40px Courier', color: '#6666ff', stroke: '#000000', strokeThickness: 4, align: 'center'});
+        const title: Phaser.GameObjects.Text = this.add.text(0, 0, 'War Game\nSimulator!', {font: '60px Courier', color: '#6666ff', stroke: '#000000', strokeThickness: 4, align: 'center'});
         this._layout.addContents(title);
     }
 
     private _createTeamPickerButtons(): void {
         const chooseTeamText = new TextButton({
             scene: this,
-            text: '~~~~~ Choose your Team ~~~~~',
+            text: '~~~~~ Choose your Teams ~~~~~',
             padding: 10,
-            colour: 0x8d8d8d,
+            background: {color: 0x8d8d8d},
             cornerRadius: 5
         });
         this._layout.addContents(chooseTeamText);
 
-        let currentTeam: Team = WarGame.teamMgr.teams[this._currentTeamIndex];
-        const teamRemainingPointsText: Phaser.GameObjects.Text = this.add.text(0, chooseTeamText.y + chooseTeamText.height, `'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
-        teamRemainingPointsText.setOrigin(0.5)
-        teamRemainingPointsText.setX(this._width / 2);
-        teamRemainingPointsText.setColor('#000000');
+        this._teamRemainingPointsText = this.add.text(0, chooseTeamText.y + chooseTeamText.height, `'${this._currentTeam.name}' remaining points: ${this._currentTeam.remainingPoints}`);
+        this._teamRemainingPointsText.setOrigin(0.5)
+        this._teamRemainingPointsText.setColor('#000000');
 
-        this._layout.addContents(chooseTeamText, teamRemainingPointsText);
+        this._layout.addContents(chooseTeamText, this._teamRemainingPointsText);
 
-        const playerCards: LayoutManager = new LayoutManager({
+        this._playerCardsLayout = new LayoutManager({
             scene: this,
             orientation: 'horizontal',
             padding: 5
         });
-        this._layout.addContents(playerCards);
+        this._layout.addContents(this._playerCardsLayout);
         
-        const cardWidth: number = (this.game.canvas.width - (5 * 7)) / 6;
-
-        const previousTeamCard: Card = new Card({
-            scene: this,
-            width: cardWidth,
-            header: {
-                text: 'Remove Team',
-                textStyle: {
-                    font: '20px Courier',
-                    color: '#c0c0c0'
-                },
-            },
-            body: {
-                buttons: [
-                    {
-                        text: ' << ',
-                        textStyle: {
-                            font: '40px Courier',
-                            color: '#ffffff'
-                        },
-                        padding: 10,
-                        colour: 0xc0c0c0,
-                        cornerRadius: 20,
-                        interactive: true
-                    }
-                ]
-            }
-        });
-        playerCards.addContents(previousTeamCard);
-        previousTeamCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (this._currentTeamIndex > 0) {
-                this._currentTeamIndex--;
-                if (WarGame.teamMgr.teams.length > this._currentTeamIndex) {
-                    WarGame.teamMgr.removeTeam(WarGame.teamMgr.teams[this._currentTeamIndex + 1]);
-                }
-            }
-        }, this);
+        const cardWidth: number = (this.game.canvas.width - (5 * 5)) / 4;
 
         const basicPlayer = new BasicPlayer(this);
         const basicPlayerCard = new Card({
@@ -144,7 +137,7 @@ export class PickTeamsScene extends Phaser.Scene {
             width: cardWidth,
             header: {
                 text: 'Basic',
-                backgroundColor: 0x808080,
+                background: {color: 0x808080},
                 cornerRadius: 5
             },
             image: {
@@ -154,51 +147,46 @@ export class PickTeamsScene extends Phaser.Scene {
             },
             body: {
                 title: `Cost: ${basicPlayer.stats.cost}`,
-                backgroundColor: 0x808080,
+                background: {color: 0x808080},
                 cornerRadius: 5,
                 buttons: [
                     {
                         text: ' - ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 10,
-                        interactive: true,
-                        debug: true
+                        interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 10,
                         interactive: true
                     },
-                ],
-                debug: true
-            },
-            debug: true
+                ]
+            }
         });
-        playerCards.addContents(basicPlayerCard);
+        this._playerCardsLayout.addContents(basicPlayerCard);
         basicPlayerCard.cardBody.buttons[0];
         basicPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const basicPlayers: IPlayer[] = currentTeam.getPlayersByName(basicPlayer.name);
+            const basicPlayers: IPlayer[] = this._currentTeam.getPlayersByName(basicPlayer.name);
             if (basicPlayers.length > 0) {
-                currentTeam.removePlayer(basicPlayers[0]);
-                basicPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(basicPlayer.name).length} `);
-                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+                this._currentTeam.removePlayer(basicPlayers[0]);
+                basicPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(basicPlayer.name).length} `);
             }
         }, this);
         basicPlayerCard.cardBody.buttons[2];
         basicPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (currentTeam.remainingPoints >= basicPlayer.stats.cost) {
-                currentTeam.addPlayer(new BasicPlayer(this));
-                basicPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(basicPlayer.name).length} `);
-                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+            if (this._currentTeam.remainingPoints >= basicPlayer.stats.cost) {
+                this._currentTeam.addPlayer(new BasicPlayer(this));
+                basicPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(basicPlayer.name).length} `);
             }
         }, this);
 
@@ -209,7 +197,7 @@ export class PickTeamsScene extends Phaser.Scene {
             header: {
                 scene: this,
                 text: 'Hero',
-                backgroundColor: 0x808080,
+                background: {color: 0x808080},
                 cornerRadius: 5
             },
             image: {
@@ -219,48 +207,46 @@ export class PickTeamsScene extends Phaser.Scene {
             },
             body: {
                 title: `Cost: ${heroPlayer.stats.cost}`,
-                backgroundColor: 0x808080,
+                background: {color: 0x808080},
                 cornerRadius: 5,
                 buttons: [
                     {
                         text: ' - ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 10,
                         interactive: true
                     },
                 ]
             }
         });
-        playerCards.addContents(heroPlayerCard);
+        this._playerCardsLayout.addContents(heroPlayerCard);
         heroPlayerCard.cardBody.buttons[0];
         heroPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const heroPlayers: IPlayer[] = currentTeam.getPlayersByName(heroPlayer.name);
+            const heroPlayers: IPlayer[] = this._currentTeam.getPlayersByName(heroPlayer.name);
             if (heroPlayers.length > 0) {
-                currentTeam.removePlayer(heroPlayers[0]);
-                heroPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(heroPlayer.name).length} `);
-                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+                this._currentTeam.removePlayer(heroPlayers[0]);
+                heroPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heroPlayer.name).length} `);
             }
         }, this);
         heroPlayerCard.cardBody.buttons[2];
         heroPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (currentTeam.remainingPoints >= heroPlayer.stats.cost) {
-                currentTeam.addPlayer(new HeroPlayer(this));
-                heroPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(heroPlayer.name).length} `);
-                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+            if (this._currentTeam.remainingPoints >= heroPlayer.stats.cost) {
+                this._currentTeam.addPlayer(new HeroPlayer(this));
+                heroPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heroPlayer.name).length} `);
             }
         }, this);
 
@@ -271,7 +257,7 @@ export class PickTeamsScene extends Phaser.Scene {
             header: {
                 scene: this,
                 text: 'Light',
-                backgroundColor: 0x808080,
+                background: {color: 0x808080},
                 cornerRadius: 5
             },
             image: {
@@ -281,47 +267,45 @@ export class PickTeamsScene extends Phaser.Scene {
             },
             body: {
                 title: `Cost: ${new LightPlayer(this).stats.cost}`,
-                backgroundColor: 0x808080,
+                background: {color: 0x808080},
                 cornerRadius: 5,
                 buttons: [
                     {
                         text: ' - ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 10,
                         interactive: true
                     },
                 ]
             }
         });
-        playerCards.addContents(lightPlayerCard);
+        this._playerCardsLayout.addContents(lightPlayerCard);
         lightPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const lightPlayers: IPlayer[] = currentTeam.getPlayersByName(lightPlayer.name);
+            const lightPlayers: IPlayer[] = this._currentTeam.getPlayersByName(lightPlayer.name);
             if (lightPlayers.length > 0) {
-                currentTeam.removePlayer(lightPlayers[0]);
-                lightPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(lightPlayer.name).length} `);
-                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+                this._currentTeam.removePlayer(lightPlayers[0]);
+                lightPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(lightPlayer.name).length} `);
             }
         }, this);
         lightPlayerCard.cardBody.buttons[2];
         lightPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (currentTeam.remainingPoints >= lightPlayer.stats.cost) {
-                currentTeam.addPlayer(new LightPlayer(this));
-                lightPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(lightPlayer.name).length} `);
-                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+            if (this._currentTeam.remainingPoints >= lightPlayer.stats.cost) {
+                this._currentTeam.addPlayer(new LightPlayer(this));
+                lightPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(lightPlayer.name).length} `);
             }
         }, this);
 
@@ -332,7 +316,7 @@ export class PickTeamsScene extends Phaser.Scene {
             header: {
                 scene: this,
                 text: 'Heavy',
-                backgroundColor: 0x808080,
+                background: {color: 0x808080},
                 cornerRadius: 5
             },
             image: {
@@ -342,86 +326,45 @@ export class PickTeamsScene extends Phaser.Scene {
             },
             body: {
                 title: `Cost: ${new HeavyPlayer(this).stats.cost}`,
-                backgroundColor: 0x808080,
+                background: {color: 0x808080},
                 cornerRadius: 5,
                 buttons: [
                     {
                         text: ' - ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        colour: 0x606060,
+                        background: {color: 0x606060},
                         cornerRadius: 10,
                         interactive: true
                     },
                 ]
             }
         });
-        playerCards.addContents(heavyPlayerCard);
+        this._playerCardsLayout.addContents(heavyPlayerCard);
         heavyPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const heavyPlayers: IPlayer[] = currentTeam.getPlayersByName(heavyPlayer.name);
+            const heavyPlayers: IPlayer[] = this._currentTeam.getPlayersByName(heavyPlayer.name);
             if (heavyPlayers.length > 0) {
-                currentTeam.removePlayer(heavyPlayers[0]);
-                heavyPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(heavyPlayer.name).length} `);
-                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
+                this._currentTeam.removePlayer(heavyPlayers[0]);
+                heavyPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heavyPlayer.name).length} `);
             }
         }, this);
         heavyPlayerCard.cardBody.buttons[2];
         heavyPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (currentTeam.remainingPoints >= heavyPlayer.stats.cost) {
-                currentTeam.addPlayer(new HeavyPlayer(this));
-                heavyPlayerCard.cardBody.buttons[1].text.setText(` ${currentTeam.getPlayersByName(heavyPlayer.name).length} `);
-                teamRemainingPointsText.setText(`'${currentTeam.name}' remaining points: ${currentTeam.remainingPoints}`);
-            }
-        }, this);
-
-        const nextTeamCard: Card = new Card({
-            scene: this,
-            width: cardWidth,
-            header: {
-                text: 'Add Team',
-                textStyle: {
-                    font: '20px Courier',
-                    color: '#000000'
-                },
-            },
-            body: {
-                buttons: [
-                    {
-                        text: ' >> ',
-                        textStyle: {
-                            font: '40px Courier',
-                            color: '#000000'
-                        },
-                        padding: 10,
-                        colour: 0x606060,
-                        cornerRadius: 20,
-                        interactive: true
-                    }
-                ]
-            }
-        });
-        playerCards.addContents(nextTeamCard);
-        nextTeamCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (this._currentTeamIndex < 9) {
-                this._currentTeamIndex++;
-                if (WarGame.teamMgr.teams.length - 1 < this._currentTeamIndex) {
-                    WarGame.teamMgr.addTeam(new Team({
-                        name: `Team ${WarGame.teamMgr.teams.length}`,
-                        points: 100
-                    }));
-                }
+            if (this._currentTeam.remainingPoints >= heavyPlayer.stats.cost) {
+                this._currentTeam.addPlayer(new HeavyPlayer(this));
+                heavyPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heavyPlayer.name).length} `);
             }
         }, this);
 
@@ -429,37 +372,138 @@ export class PickTeamsScene extends Phaser.Scene {
     }
 
     private _createStartButton(): void {
-        const startButton = new TextButton({
+        const startAreaGrid: GridLayout = new GridLayout({
             scene: this,
-            text: 'Start Game',
+            rows: 1,
+            columns: 3,
+            height: this._width / 3
+        });
+        // const startAreaLayout: LayoutManager = new LayoutManager({scene: this, padding: 10});
+
+        this._removeTeamLayout = new LayoutManager({scene: this, orientation: 'vertical', padding: 10});
+        const removeTeamText = this.add.text(0, 0, 'Remove Team', {
+            font: '20px Courier',
+            color: '#000000'
+        });
+        const removeTeamButton = new TextButton({
+            scene: this,
+            width: this.game.canvas.width / 6,
+            text: ' << ',
             textStyle: {
-                font: '20px Courier', 
-                color: '#808080'
+                font: '40px Courier',
+                color: '#000000'
             },
             padding: 10,
-            colour: 0x8888ff,
-            cornerRadius: 5,
+            background: {color: 0x606060},
+            cornerRadius: 20,
             interactive: true
         });
-        startButton.setAlpha(0.5);
-        startButton.setPosition((this._width / 2) - (startButton.width / 2), this._height - startButton.height - 5);
-        startButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (WarGame.teamMgr.teams.length > 0) {
-                this.game.scene.start('gameplay-scene');
-                this.game.scene.stop(this);
+        this._removeTeamLayout.addContents(removeTeamText, removeTeamButton);
+        startAreaGrid.setGridCellContent(0, 0, this._removeTeamLayout);
+        // startAreaLayout.addContents(this._removeTeamLayout);
+        removeTeamButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            if (this._currentTeamIndex > 0) {
+                this._currentTeamIndex--;
+                if (WarGame.teamMgr.teams.length > this._currentTeamIndex) {
+                    WarGame.teamMgr.removeTeam(WarGame.teamMgr.teams[this._currentTeamIndex + 1]);
+                }
+                this.tweens.add({
+                    targets: this._playerCardsLayout,
+                    x: this._playerCardsLayout.width,
+                    ease: 'Sine.easeOut',
+                    duration: 100,
+                    onComplete: (tween: Phaser.Tweens.Tween, targets: LayoutManager) => {
+                        this._playerCardsLayout.setX(-this._playerCardsLayout.width);
+                        this.tweens.add({
+                            targets: this._playerCardsLayout,
+                            x: 0,
+                            ease: 'Sine.easeOut',
+                            duration: 100
+                        });
+                    },
+                    onCompleteScope: this
+                });
             }
-        }).on(Phaser.Input.Events.POINTER_OVER, () => {
-            if (WarGame.teamMgr.teams.length > 0 && WarGame.teamMgr.teams.every((t: Team) => t.getPlayers().length > 0)) {
-                startButton.setAlpha(1);
-                startButton.text.setColor('#ffffff');
+        }, this);
+
+        this._startButton = new TextButton({
+            scene: this,
+            width: this.game.canvas.width / 3,
+            text: 'Start',
+            textStyle: {
+                font: '60px Courier', 
+                color: '#808080'
+            },
+            padding: 20,
+            background: {color: 0x8888ff},
+            cornerRadius: 20,
+            interactive: true
+        });
+        this._startButton.setAlpha(0.5);
+        startAreaGrid.setGridCellContent(0, 1, this._startButton);
+        // startAreaLayout.addContents(this._startButton);
+        this._startButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            if (WarGame.teamMgr.teams.length > 1) {
+                this.game.scene.stop(this);
+                this.game.scene.start('gameplay-scene');
             }
         }).on(Phaser.Input.Events.POINTER_UP, () => {
-            startButton.setAlpha(0.5);
-            startButton.text.setColor('#808080');
+            this._startButton.setAlpha(0.5);
+            this._startButton.text.setColor('#808080');
         }).on(Phaser.Input.Events.POINTER_OUT, () => {
-            startButton.setAlpha(0.5);
-            startButton.text.setColor('#808080');
+            this._startButton.setAlpha(0.5);
+            this._startButton.text.setColor('#808080');
         });
-        this._layout.addContents(startButton);
+
+        this._addTeamLayout = new LayoutManager({scene: this, orientation: 'vertical', padding: 10});
+        const addTeamText = this.add.text(0, 0, 'Add Team', {
+            font: '20px Courier',
+            color: '#000000'
+        });
+        const addTeamButton = new TextButton({
+            scene: this,
+            width: this.game.canvas.width / 6,
+            text: ' >> ',
+            textStyle: {
+                font: '40px Courier',
+                color: '#000000'
+            },
+            padding: 10,
+            background: {color: 0x606060},
+            cornerRadius: 20,
+            interactive: true
+        });
+        this._addTeamLayout.addContents(addTeamText, addTeamButton);
+        startAreaGrid.setGridCellContent(0, 2, this._addTeamLayout);
+        // startAreaLayout.addContents(this._addTeamLayout);
+        addTeamButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            if (this._currentTeamIndex < 9 && this._currentTeam.getPlayers().length > 0) {
+                this._currentTeamIndex++;
+                if (WarGame.teamMgr.teams.length - 1 < this._currentTeamIndex) {
+                    WarGame.teamMgr.addTeam(new Team({
+                        name: `Team ${WarGame.teamMgr.teams.length}`,
+                        points: 100
+                    }));
+                }
+                this.tweens.add({
+                    targets: this._playerCardsLayout,
+                    x: -(this._playerCardsLayout.width),
+                    ease: 'Sine.easeOut',
+                    duration: 100,
+                    onComplete: (tween: Phaser.Tweens.Tween, targets: LayoutManager) => {
+                        this._playerCardsLayout.setX(this._playerCardsLayout.width);
+                        this.tweens.add({
+                            targets: this._playerCardsLayout,
+                            x: 0,
+                            ease: 'Sine.easeOut',
+                            duration: 100
+                        });
+                    },
+                    onCompleteScope: this
+                });
+            }
+        }, this);
+
+        this._layout.addContents(startAreaGrid);
     }
 }

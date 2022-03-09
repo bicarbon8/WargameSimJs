@@ -2,10 +2,17 @@ import { Team } from "../teams/team";
 import { PhaseType } from "./phase-type";
 import { IPhase } from "./i-phase";
 import { WarGame } from "../war-game";
+import { TeamManager } from "../teams/team-manager";
 
 export class PriorityPhase implements IPhase {
+    private readonly _teamMgr: TeamManager;
+    
+    constructor(teamManager: TeamManager) {
+        this._teamMgr = teamManager;
+    }
+
     async runPhase(): Promise<void> {
-        let teams: Team[] = WarGame.teamMgr.teams;
+        let teams: Team[] = this._teamMgr.teams;
         let orderedTeams: Team[] = this._orderTeamsByPriority(teams);
         for (var i=0; i<orderedTeams.length; i++) {
             let team: Team = orderedTeams[i];

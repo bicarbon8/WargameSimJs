@@ -39,35 +39,49 @@ export class LayoutManager extends Phaser.GameObjects.Container {
         }
     }
 
-    private _layoutHorizontal(): void {
-        let contentsWidth: number = this.contents
-            .map((c: LayoutContent) => c.displayWidth)
-            .reduce((previous: number, current: number) => previous + current);
-        contentsWidth += (this.padding * (this.contents.length + 1));
-        let contentsHeight: number = Helpers.getHighest(...this.contents.map((c: LayoutContent) => (c.displayHeight) + (this.padding * 2)));
-        let xOffset: number = -(contentsWidth / 2) + this.padding;
+    clear(): void {
         for (var i=0; i<this.contents.length; i++) {
             let c: LayoutContent = this.contents[i];
-            let width: number = c.displayWidth;
-            c.setPosition(xOffset + (width / 2), 0);
-            xOffset += width + this.padding;
+            c.destroy();
+            c = null;
         }
-        this.setSize(contentsWidth, contentsHeight);
+        this._contents = [];
+        this.layout();
+    }
+
+    private _layoutHorizontal(): void {
+        if (this._contents.length) {
+            let contentsWidth: number = this.contents
+                .map((c: LayoutContent) => c.displayWidth)
+                .reduce((previous: number, current: number) => previous + current);
+            contentsWidth += (this.padding * (this.contents.length + 1));
+            let contentsHeight: number = Helpers.getHighest(...this.contents.map((c: LayoutContent) => (c.displayHeight) + (this.padding * 2)));
+            let xOffset: number = -(contentsWidth / 2) + this.padding;
+            for (var i=0; i<this.contents.length; i++) {
+                let c: LayoutContent = this.contents[i];
+                let width: number = c.displayWidth;
+                c.setPosition(xOffset + (width / 2), 0);
+                xOffset += width + this.padding;
+            }
+            this.setSize(contentsWidth, contentsHeight);
+        }
     }
 
     private _layoutVertical(): void {
-        let contentsHeight: number = this.contents
-            .map((c: LayoutContent) => c.displayHeight)
-            .reduce((previous: number, current: number) => previous + current);
-        contentsHeight += (this.padding * (this.contents.length + 1));
-        let contentsWidth: number = Helpers.getHighest(...this.contents.map((c: LayoutContent) => (c.displayWidth) + (this.padding * 2)));
-        let yOffset: number = -(contentsHeight / 2) + this.padding;
-        for (var i=0; i<this.contents.length; i++) {
-            let c: LayoutContent = this.contents[i];
-            let height: number = c.displayHeight;
-            c.setPosition(0, yOffset + (height / 2));
-            yOffset += height + this.padding;
+        if (this._contents.length) {
+            let contentsHeight: number = this.contents
+                .map((c: LayoutContent) => c.displayHeight)
+                .reduce((previous: number, current: number) => previous + current);
+            contentsHeight += (this.padding * (this.contents.length + 1));
+            let contentsWidth: number = Helpers.getHighest(...this.contents.map((c: LayoutContent) => (c.displayWidth) + (this.padding * 2)));
+            let yOffset: number = -(contentsHeight / 2) + this.padding;
+            for (var i=0; i<this.contents.length; i++) {
+                let c: LayoutContent = this.contents[i];
+                let height: number = c.displayHeight;
+                c.setPosition(0, yOffset + (height / 2));
+                yOffset += height + this.padding;
+            }
+            this.setSize(contentsWidth, contentsHeight);
         }
-        this.setSize(contentsWidth, contentsHeight);
     }
 }

@@ -1,3 +1,4 @@
+import { TeamManager } from "../teams/team-manager";
 import { FightingPhase } from "./fighting-phase";
 import { IPhase } from "./i-phase";
 import { MovementPhase } from "./movement-phase";
@@ -8,9 +9,9 @@ export class PhaseManager {
     private readonly _phases: IPhase[];
     private _phaseIndex: number = 0;
 
-    constructor() {
+    constructor(teamManager: TeamManager) {
         this._phases = [
-            new PriorityPhase(), 
+            new PriorityPhase(teamManager), 
             new MovementPhase(), 
             new ShootingPhase(), 
             new FightingPhase()

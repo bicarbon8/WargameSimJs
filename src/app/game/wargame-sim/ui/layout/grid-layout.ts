@@ -1,6 +1,8 @@
 import { Rand } from "../../utils/rand";
 import { GridCell } from "./grid-cell";
+import { GridCellOptions } from "./grid-cell-options";
 import { GridLayoutOptions } from "./grid-layout-options";
+import { LayoutContent } from "./layout-content";
 
 export class GridLayout extends Phaser.GameObjects.Container {
     public readonly id: number;
@@ -35,6 +37,17 @@ export class GridLayout extends Phaser.GameObjects.Container {
         return this._right;
     }
 
+    setGridCellContent(row: number, column: number, content: LayoutContent | GridCellOptions): void {
+        const cell: GridCell = this.getGridCell(row, column);
+        if (cell) {
+            if ((content as GridCellOptions)?.content) {
+                cell.setContent(content);
+            } else {
+                cell.setContent({content: content as LayoutContent});
+            }
+        }
+    }
+
     getGridCell(row: number, column: number): GridCell {
         return this._grid[row][column];
     }
@@ -64,7 +77,7 @@ export class GridLayout extends Phaser.GameObjects.Container {
                 let cellWidth: number = this.width / cols;
                 for (var col=0; col<cols; col++) {
                     let cell: GridCell = options.customGrid[row][col] as GridCell;
-                    if (typeof cell?.setContents === 'function') {
+                    if (typeof cell?.setContent === 'function') {
                         cell.setPosition(xOffset + (cell.width / 2) + (cell.width * col), yOffset + (cell.height / 2) + (cell.height * row));
                     } else {
                         cell = new GridCell({

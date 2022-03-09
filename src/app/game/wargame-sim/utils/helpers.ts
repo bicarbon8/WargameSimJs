@@ -1,3 +1,5 @@
+import { LayoutContent } from "../ui/layout/layout-content";
+
 export module Helpers {
     /**
      * performs a comparison to determine if a number, `val` is between two other numbers,
@@ -57,6 +59,24 @@ export module Helpers {
             }
         }
         return lowest;
+    }
+
+    export function displayDebug(scene: Phaser.Scene, object: LayoutContent, name?: string): void {
+        const debugText = scene.add.text(0, 0, `${name}\nx:${object.x.toFixed(1)},y:${object.y.toFixed(1)}\nw:${object.displayWidth.toFixed(1)};h:${object.displayHeight.toFixed(1)}`, { 
+            font: '40px Courier', 
+            color: '#fc03e8',
+            align: 'center'
+        });
+        debugText.setOrigin(0.5);
+        const screenCentre: Phaser.Math.Vector2 = scene.cameras.main.getWorldPoint((scene.game.canvas.width / 2), (scene.game.canvas.height / 2));
+        debugText.setPosition(screenCentre.x, screenCentre.y);
+        debugText.setDepth(1000);
+        debugText.setVisible(false);
+        object.setInteractive().on(Phaser.Input.Events.POINTER_OVER, () => {
+            debugText.setVisible(true);
+        }, object).on(Phaser.Input.Events.POINTER_OUT, () => {
+            debugText.setVisible(false);
+        }, object);
     }
 }
 

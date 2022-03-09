@@ -10,10 +10,10 @@ import { PlayerSpritesheetMapping } from "./player-types/player-spritesheet-mapp
 
 export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite> {
     readonly id: number;
-    private readonly _scene: Phaser.Scene;
     private readonly _name: string;
     private readonly _stats: PlayerStats;
     private readonly _spriteMapping: PlayerSpritesheetMapping;
+    private _scene: Phaser.Scene;
     private _tileX: number;
     private _tileY: number;
     private _teamId: number;
@@ -55,6 +55,7 @@ export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameOb
         this._tileY = y;
         let worldPos: Phaser.Math.Vector2 = WarGame.map.getTileWorldCentre(x, y);
         if (worldPos) {
+            console.info(`adding player ${this.id} to map at: ${x},${y} - world: ${worldPos.x},${worldPos.y}`);
             this.obj.setPosition(worldPos.x, worldPos.y);
             this.obj.setVisible(true);
         }
@@ -108,9 +109,18 @@ export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameOb
         }).length > 0;
     }
 
+    setScene(scene: Phaser.Scene): void {
+        if (scene) {
+            this.obj.destroy();
+            this._obj = null;
+            this._scene = scene;
+        }
+    }
+
     private _createGameObject(): void {
         this._obj = this._scene.add.sprite(0, 0, 'players', this._spriteMapping.front);
+        this._obj.setOrigin(0.5);
         this._obj.setDepth(Constants.DEPTH_PLAYER);
-        this._obj.setVisible(false);
+        this.obj.setVisible(false); // set visible when added to map
     }
 }

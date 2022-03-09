@@ -3,10 +3,12 @@ import { GameMap } from "../../map/game-map";
 import { Constants } from "../../utils/constants";
 import { IPlayer } from "../../players/i-player";
 import { Team } from "../../teams/team";
-import { BasicPlayer } from "../../players/player-types/basic-player";
 import { InputController } from "../controllers/input-controller";
 import { KBMController } from "../controllers/kbm-controller";
 import { WarGame } from "../../war-game";
+import { HasGameObject } from "../../interfaces/has-game-object";
+import { PhaseType } from "../../phases/phase-type";
+import { Card } from "../card/card";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: false,
@@ -15,12 +17,15 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 };
 
 export class GameplayScene extends Phaser.Scene {
-    private readonly _players: Phaser.GameObjects.Sprite[] = [];
+    private _width: number;
+    private _height: number;
     private _controller: InputController;
     private _highlightedTiles: Phaser.Tilemaps.Tile[] = [];
-    private _playerPlacements: number = 0;
+    private _currentTeamIndex: number = 0;
     private _downTime: number = 0;
-
+    private _gameMenu: Card;
+    private _gameMenuHiddenUntil: number;
+    
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
         super(settingsConfig || sceneConfig);
     }
@@ -36,27 +41,44 @@ export class GameplayScene extends Phaser.Scene {
         }); // 12w by 8h
     }
 
-    create(): void {
+    async create(): Promise<void> {
+        this._width = this.game.canvas.width;
+        this._height = this.game.canvas.height;
+        await WarGame.phases.runCurrentPhase();
         this._createMap();
         this._setupCamera();
         this._setupController();
-        this._handlePickTeams();
+        this._showMenu();
+
+        this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+            let world: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+            console.info(`screen: ${pointer.x.toFixed(0)},${pointer.y.toFixed(0)}; world: ${world.x.toFixed(0)},${world.y.toFixed(0)}`);
+        });
     }
 
     update(time: number, delta: number): void {
         this._controller.update(time, delta);
+        this._gameMenu.setScale(1 / this.cameras.main.zoom);
+        const view: Phaser.Geom.Rectangle = this.cameras.main.worldView;
+        const x: number = view.left + (this._gameMenu.displayWidth / 2) + 10;
+        const y: number = view.top + (this._gameMenu.displayHeight / 2) + 10;
+        this._gameMenu.setPosition(x, y);
+        if (this._gameMenuHiddenUntil && time > this._gameMenuHiddenUntil) {
+            this._gameMenu.setVisible(true);
+            this._gameMenuHiddenUntil = undefined;
+        }
     }
 
     private _createMap(): void {
         const mult: number = WarGame.teamMgr.teams.length;
         WarGame.map = new GameMap({
             scene: this,
-            width: mult * 50,
-            height: mult * 50,
-            roomMaxWidth: 50,
-            roomMaxHeight: 50,
-            roomMinWidth: 25,
-            roomMinHeight: 25,
+            width: mult * 20,
+            height: mult * 20,
+            roomMaxWidth: 20,
+            roomMaxHeight: 20,
+            roomMinWidth: 10,
+            roomMinHeight: 10,
             maxRooms: mult,
             seed: 'bicarbon8',
             layerDepth: Constants.DEPTH_PLAYER
@@ -65,32 +87,20 @@ export class GameplayScene extends Phaser.Scene {
         console.info(`map width: ${WarGame.map.obj.width}, height: ${WarGame.map.obj.height}, position: ${WarGame.map.obj.x}, ${WarGame.map.obj.y}`);
     }
 
-    private _handlePickTeams(): void {
-        // TODO: display player selection scene / menu
-        let teams: Team[] = WarGame.teamMgr.teams;
-        for (var i=0; i<teams.length; i++) {
-            let team: Team = teams[i];
-            do {
-                let player: IPlayer = new BasicPlayer(this);
-                team.addPlayer(player);
-            } while (team.remainingPoints > 10);
-        }
-        this._handleTileHighlighting();
-        this._startPlacePlayers();
-    }
-
     private _handleTileHighlighting(): void {
         WarGame.map.obj.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
             this._clearHighlightedTiles();
             let worldLoc: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
             let pointerTile: Phaser.Tilemaps.Tile = WarGame.map.obj.getTileAtWorldXY(worldLoc.x, worldLoc.y);
             if (pointerTile) {
-                let teamPlayers: IPlayer[] = WarGame.teamMgr.teams[this._playerPlacements]?.getPlayers();
+                let teamPlayers: IPlayer[] = WarGame.teamMgr.getTeamsByPriority()[this._currentTeamIndex]?.getPlayers();
                 let tiles: Phaser.Tilemaps.Tile[] = WarGame.map.getTilesInRange(pointerTile.x, pointerTile.y, (teamPlayers.length / 3) * 32)
                     .filter((tile: Phaser.Tilemaps.Tile) => !WarGame.map.isTileOccupied(tile.x, tile.y));
-                this._highlightedTiles = this._highlightedTiles.concat(tiles);
-                for (var i=0; i<this._highlightedTiles.length; i++) {
-                    this._highlightedTiles[i].alpha = 0.5;
+                if (teamPlayers.length <= tiles.length) {
+                    this._highlightedTiles = this._highlightedTiles.concat(tiles);
+                    for (var i=0; i<this._highlightedTiles.length; i++) {
+                        this._highlightedTiles[i].alpha = 0.5;
+                    }
                 }
             }
         }, this).on(Phaser.Input.Events.POINTER_OUT, () => {
@@ -105,17 +115,18 @@ export class GameplayScene extends Phaser.Scene {
         }
     }
 
-    private _startPlacePlayers(): void {
+    private _handleTeamPlacement(): void {
+        this._handleTileHighlighting();
         WarGame.map.obj.once(Phaser.Input.Events.POINTER_DOWN, () => {
             if (this.time.now > this._downTime + Constants.CLICK_HANDLING_DELAY) {
                 this._downTime = this.time.now;
-                let players: IPlayer[] = WarGame.teamMgr.teams[this._playerPlacements++]?.getPlayers();
-                if (players?.length) {
-                    this._placePlayers(...players);
+                let team: Team = WarGame.teamMgr.getTeamsByPriority()[this._currentTeamIndex];
+                if (team) {
+                    this._placeTeam(team, ...this._highlightedTiles);
                 }
             }
-            if (this._playerPlacements < WarGame.teamMgr.teams.length) {
-                this._startPlacePlayers();
+            if (this._currentTeamIndex < WarGame.teamMgr.teams.length) {
+                this._handleTeamPlacement();
             } else {
                 WarGame.map.obj.off(Phaser.Input.Events.POINTER_MOVE);
                 WarGame.map.obj.off(Phaser.Input.Events.POINTER_OUT);
@@ -123,15 +134,22 @@ export class GameplayScene extends Phaser.Scene {
         }, this);
     }
 
-    private _placePlayers(...players: IPlayer[]): void {
-        for (var i=0; i<this._highlightedTiles.length; i++) {
-            if (i>players.length) { break; }
+    private _placeTeam(team: Team, ...tiles: Phaser.Tilemaps.Tile[]): void {
+        const players: IPlayer[] = team.getPlayers();
+        if (tiles.length >= players.length) {
+            for (var i=0; i<this._highlightedTiles.length; i++) {
+                if (i>players.length) { break; }
 
-            let t: Phaser.Tilemaps.Tile = this._highlightedTiles[i];
-            let p: IPlayer = players[i];
-            WarGame.map.addPlayer(p, t.x, t.y);
+                let t: Phaser.Tilemaps.Tile = this._highlightedTiles[i];
+                let p: IPlayer = players[i];
+                if (p) {
+                    (p as unknown as HasGameObject<Phaser.GameObjects.Sprite>).setScene(this);
+                    WarGame.map.addPlayer(p, t.x, t.y);
+                }
+            }
+            this._clearHighlightedTiles();
+            this._currentTeamIndex++;
         }
-        this._clearHighlightedTiles();
     }
 
     private _setupCamera(): void {
@@ -144,5 +162,56 @@ export class GameplayScene extends Phaser.Scene {
 
     private _setupController(): void {
         this._controller = new KBMController(this);
+    }
+
+    private _showMenu(): void {
+        const menuWidth: number = this._width / 3;
+        this._gameMenu = new Card({
+            scene: this,
+            width: menuWidth,
+            header: {
+                text: `Current Phase: [${PhaseType[WarGame.phases.currentPhase().getType()]}]`,
+                textStyle: {font: '20px Courier', color: '#ffffff'},
+                background: {color: 0x006000},
+                cornerRadius: 5
+            },
+            body: {
+                title: `Current Team: [${WarGame.teamMgr.getTeamsByPriority()[this._currentTeamIndex].name}]`,
+                titleStyle: {font: '20px Courier', color: '#606060'},
+                description: 'Press location on the\nMap to place your team.',
+                descriptionStyle: {font: '10px Courier', color: '#606060'},
+                background: {color: 0xc0c0c0},
+                cornerRadius: 5,
+                buttons: [
+                    {
+                        text: 'Press "Go" to begin',
+                        background: {alpha: 0},
+                        padding: 5
+                    },
+                    {
+                        text: 'Go',
+                        background: {color: 0x00ff00},
+                        interactive: true,
+                        cornerRadius: 5,
+                        padding: 5
+                    }
+                ]
+            }
+        });
+        this.add.existing(this._gameMenu);
+        this._gameMenu.cardBody.buttons[1].on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this._gameMenu.cardBody.clearButtons();
+            this._handleTeamPlacement();
+        }, this);
+        this._controller.on(Constants.CAMERA_ZOOM_EVENT, () => {
+            this._gameMenu.setVisible(false);
+            this._gameMenuHiddenUntil = this.time.now + 250;
+        }, this);
+        this._controller.on(Constants.CAMERA_MOVE_START_EVENT, () => {
+            this._gameMenu.setVisible(false);
+        }).on(Constants.CAMERA_MOVE_END_EVENT, () => {
+            this._gameMenu.setVisible(true);
+        });
+        this._gameMenu.setDepth(Constants.DEPTH_MENU);
     }
 }

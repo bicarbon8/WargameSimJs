@@ -9,13 +9,13 @@ import { Constants } from "../utils/constants";
 import { AStarFinder } from "astar-typescript";
 
 export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
-    private readonly _scene: Phaser.Scene;
     private readonly _options: GameMapOptions;
     private readonly _tileWidth: number;
     private readonly _tileHeight: number;
-    private readonly _grid: 0|1[][];
+    private readonly _grid: number[][];
     private readonly _pathFinder: AStarFinder;
 
+    private _scene: Phaser.Scene;
     private _layer: Phaser.Tilemaps.TilemapLayer;
     private _tileMap: Phaser.Tilemaps.Tilemap;
     
@@ -25,8 +25,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         this._scene = options.scene;
         this._tileWidth = 32;
         this._tileHeight = this._tileWidth;
-        this._grid = [];
-        this._createGameObj();
+        this._grid = this._createGrid();
         this._pathFinder = new AStarFinder({
             grid: {matrix: this._grid},
             diagonalAllowed: false,
@@ -35,6 +34,9 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     }
 
     get obj(): Phaser.Tilemaps.TilemapLayer {
+        if (!this._layer) {
+            this._createGameObj();
+        }
         return this._layer;
     }
 
@@ -112,7 +114,15 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         return this.obj.getTileAt(tileX, tileY) !== null;
     }
 
-    private _createGameObj(): void {
+    setScene(scene: Phaser.Scene): void {
+        if (scene) {
+            this.obj.destroy();
+            this._layer = null;
+            this._scene = scene;
+        }
+    }
+
+    private _createGrid(): number[][] {
         const dungeon = new Dungeon({
             randomSeed: this._options.seed,
             width: this._options.width, // in tiles, not pixels
@@ -132,7 +142,21 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
             },
             doorPadding: this._options.doorPadding
         });
+        const grid: number[][] = [];
+        for (var y=0; y<this._options.height; y++) {
+            grid[y] = [];
+            for (var x=0; x<this._options.width; x++) {
+                if (dungeon.hasRoomAt(x, y)) {
+                    grid[y][x] = 1;
+                } else {
+                    grid[y][x] = 0;
+                }
+            }
+        }
+        return grid;
+    }
 
+    private _createGameObj(): void {
         this._tileMap = this._scene.make.tilemap({
             tileWidth: this._tileWidth,
             tileHeight: this._tileHeight,
@@ -142,16 +166,10 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         let tileset: Phaser.Tilemaps.Tileset = this._tileMap.addTilesetImage('tiles', 'map-tiles', this._tileWidth, this._tileHeight, 0, 0);
         this._layer = this._tileMap.createBlankLayer('map-layer', tileset);
         this._layer.setDepth(this._options.layerDepth || Constants.DEPTH_PLAYER);
-        for (var y=0; y<this._options.height; y++) {
-            for (var x=0; x<this._options.width; x++) {
-                if (x === 0) {
-                    this._grid[y] = [];
-                }
-                if (dungeon.hasRoomAt(x, y)) {
+        for (var y=0; y<this._grid.length; y++) {
+            for (var x=0; x<this._grid[y].length; x++) {
+                if (this._grid[y][x] === 1) {
                     this._layer.putTileAt(Rand.getRandomWeightedValue(TILE_MAPPING.GROUND).index, x, y);
-                    this._grid[y][x] = 1;
-                } else {
-                    this._grid[y][x] = 0;
                 }
             }
         }
@@ -167,6 +185,6 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         if (!options.roomMaxWidth) { options.roomMaxWidth = 250; }
         if (!options.roomMaxHeight) { options.roomMaxHeight = 250; }
         if (!options.doorPadding) { options.doorPadding = 0; }
-        if (!options.layerDepth) { options.layerDepth = Constants.DEPTH_PLAYER; }
+        if (!options.layerDepth) { options.layerDepth = Constants.DEPTH_PLAYER - 0.1; }
     }
 }
