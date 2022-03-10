@@ -9,4 +9,5 @@ export interface CardHeaderOptions {
     background?: Phaser.Types.GameObjects.Graphics.FillStyle;
     cornerRadius?: number;
     debug?: boolean;
+    padding?: number;
 }

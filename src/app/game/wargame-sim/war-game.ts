@@ -10,7 +10,7 @@ export module WarGame {
     export var map: GameMap;
     export var players: PlayerManager;
     export var teamMgr: TeamManager;
-    export var phases: PhaseManager;
+    export var phaseMgr: PhaseManager;
     export var ui: UIManager;
     export var dice: DiceManager;
 
@@ -18,14 +18,14 @@ export module WarGame {
         dice = new DiceManager();
         players = new PlayerManager();
         teamMgr = new TeamManager();
-        phases = new PhaseManager(teamMgr);
+        phaseMgr = new PhaseManager(teamMgr);
         ui = new UIManager(options?.uiMgrOpts);
     }
 
     export function stop(): void {
         ui.destroy();
         ui = null;
-        phases = null;
+        phaseMgr = null;
         players = null;
         teamMgr = null;
         dice = null;

@@ -1,5 +1,7 @@
-import { Constants } from "../../utils/constants";
 import { Helpers } from "../../utils/helpers";
+import { TextButton } from "../buttons/text-button";
+import { TextButtonOptions } from "../buttons/text-button-options";
+import { LayoutContent } from "../layout/layout-content";
 import { LayoutManager } from "../layout/layout-manager";
 import { LayoutManagerOptions } from "../layout/layout-manager-options";
 import { CardBody } from "./card-body";
@@ -25,7 +27,7 @@ export class Card extends LayoutManager {
         }
         super(opts);
         this._options = options;
-        this._createGameObject(options);
+        this._createGameObject();
     }
 
     get header(): CardHeader {
@@ -36,62 +38,149 @@ export class Card extends LayoutManager {
         return this._image;
     }
 
-    get cardBody(): CardBody {
+    get cardbody(): CardBody {
         return this._body;
     }
 
-    private _createGameObject(options: CardOptions): void {
-        this.setHeader(options.header);
-        this.setImage(options.image);
-        this.setBody(options.body);
-        this._createDebug(options.debug);
+    updateHeaderText(text: string, style?: Phaser.Types.GameObjects.Text.TextStyle): void {
+        if (text) {
+            if (this.header) {
+                this.header.updateText(text, style);
+            } else {
+                this._options.header = {
+                    text: text,
+                    textStyle: style
+                };
+                this._createHeaderObject(this._options.header);
+            }
+            this.layout();
+        }
     }
 
-    setHeader(options?: CardHeaderOptions): void {
-        if (this._header) {
-            this._header.destroy();
-            this._header = null;
+    removeHeaderText(destroy?: boolean): Phaser.GameObjects.Text {
+        return this.header?.removeText(destroy);
+    }
+
+    removeHeader(destroy?: boolean): CardHeader {
+        const header: CardHeader = this.removeContent(this.header, destroy) as CardHeader;
+        this.layout();
+        return header;
+    }
+
+    updateImage(key: string): void {
+        if (this.image) {
+            // TODO
         }
+    }
+
+    removeImage(destroy?: boolean): CardImage {
+        const image: CardImage = this.removeContent(this.image, destroy) as CardImage;
+        this.layout();
+        return image;
+    }
+
+    updateBodyTitle(title?: string, style?: Phaser.Types.GameObjects.Text.TextStyle): void {
+        if (title) {
+            if (this.cardbody) {
+                this.cardbody.updateTitle(title, style);
+            } else {
+                this._options.body = {
+                    title: title,
+                    titleStyle: style
+                };
+                this._createCardBodyObject(this._options.body);
+            }
+            this.layout();
+        }
+    }
+
+    removeBodyTitle(destroy?: boolean): LayoutContent {
+        const title: LayoutContent = this.cardbody?.removeTitle(destroy);
+        this.layout();
+        return title;
+    }
+
+    updateBodyDescription(description?: string, style?: Phaser.Types.GameObjects.Text.TextStyle): void {
+        if (description) {
+            if (this.cardbody) {
+                this.cardbody.updateDescription(description, style);
+            } else {
+                this._options.body = {
+                    description: description,
+                    descriptionStyle: style
+                };
+                this._createCardBodyObject(this._options.body);
+            }
+            this.layout();
+        }
+    }
+
+    removeBodyDescription(destroy?: boolean): LayoutContent {
+        const desc: LayoutContent = this.cardbody?.removeDescription(destroy);
+        this.layout();
+        return desc;
+    }
+
+    addBodyButtons(...buttonOptions: TextButtonOptions[]): void {
+        if (buttonOptions?.length) {
+            if (this.cardbody) {
+                this.cardbody.addButtons(...buttonOptions);
+            } else {
+                this._options.body = {
+                    buttons: buttonOptions
+                };
+                this._createCardBodyObject(this._options.body);
+            }
+            this.layout();
+        }
+    }
+
+    removeBodyButtons(destroy?: boolean): TextButton[] {
+        const buttons: TextButton[] = this.cardbody.removeAllButtons(destroy);
+        this.layout();
+        return buttons;
+    }
+
+    removeCardBody(destroy?: boolean): CardBody {
+        const body: CardBody = this.removeContent(this.cardbody, destroy) as CardBody;
+        this.layout();
+        return body;
+    }
+
+    private _createGameObject(): void {
+        this._createHeaderObject(this._options.header);
+        this._createImageObject(this._options.image);
+        this._createCardBodyObject(this._options.body);
+        this._createDebug(this._options.debug);
+    }
+
+    private _createHeaderObject(options?: CardHeaderOptions): void {
         if (options) {
             options.width = options.width || this._options.width;
             options.scene = options.scene || this._options.scene;
             this._header = new CardHeader(options);
             this._options.width = this._options.width || this._header.width;
             this.addContents(this._header);
-        } else {
-            this.layout();
         }
     }
 
-    setImage(options?: CardImageOptions): void {
-        if (this._image) {
-            this._image.destroy();
-            this._image = null;
-        }
+    private _createImageObject(options?: CardImageOptions): void {
         if (options) {
             options.width = options.width || this._options.width;
             options.scene = options.scene || this._options.scene;
             this._image = new CardImage(options);
             this._options.width = this._options.width || this._image.width;
             this.addContents(this._image);
-        } else {
-            this.layout();
         }
     }
 
-    setBody(options: CardBodyOptions): void {
-        if (this._body) {
-            this._body.destroy();
-            this._body = null;
-        }
+    private _createCardBodyObject(options: CardBodyOptions): void {
         if (options) {
             options.width = options.width || this._options.width;
             options.scene = options.scene || this._options.scene;
             this._body = new CardBody(options);
             this._options.width = this._options.width || this._body.width;
             this.addContents(this._body);
-        } else {
-            this.layout();
         }
     }
 

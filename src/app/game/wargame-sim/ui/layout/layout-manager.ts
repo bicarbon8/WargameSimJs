@@ -31,22 +31,37 @@ export class LayoutManager extends Phaser.GameObjects.Container {
         }
     }
 
+    removeContent(content: LayoutContent, destroy?: boolean): LayoutContent {
+        let removed: LayoutContent;
+        if (content) {
+            let index: number = this._contents.indexOf(content);
+            if (index >= 0) {
+                removed = this._contents.splice(index, 1)[0];
+                this.remove(content, destroy);
+            }
+            this.layout();
+        }
+        return removed;
+    }
+
+    removeAllContent(destroy?: boolean): LayoutContent[] {
+        const removed: LayoutContent[] = [];
+        for (var i=0; i<this.contents.length; i++) {
+            let c: LayoutContent = this.contents[i];
+            this.remove(c, destroy);
+            removed.push(c);
+        }
+        this._contents = [];
+        this.layout();
+        return removed;
+    }
+
     layout(): void {
         if (this.orientation == 'horizontal') {
             this._layoutHorizontal();
         } else {
             this._layoutVertical();
         }
-    }
-
-    clear(): void {
-        for (var i=0; i<this.contents.length; i++) {
-            let c: LayoutContent = this.contents[i];
-            c.destroy();
-            c = null;
-        }
-        this._contents = [];
-        this.layout();
     }
 
     private _layoutHorizontal(): void {

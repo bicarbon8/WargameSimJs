@@ -174,19 +174,19 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         });
         this._playerCardsLayout.addContents(basicPlayerCard);
-        basicPlayerCard.cardBody.buttons[0];
-        basicPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
+        basicPlayerCard.cardbody.buttons[0];
+        basicPlayerCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
             const basicPlayers: IPlayer[] = this._currentTeam.getPlayersByName(basicPlayer.name);
             if (basicPlayers.length > 0) {
                 this._currentTeam.removePlayer(basicPlayers[0]);
-                basicPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(basicPlayer.name).length} `);
+                basicPlayerCard.cardbody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(basicPlayer.name).length} `);
             }
         }, this);
-        basicPlayerCard.cardBody.buttons[2];
-        basicPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
+        basicPlayerCard.cardbody.buttons[2];
+        basicPlayerCard.cardbody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
             if (this._currentTeam.remainingPoints >= basicPlayer.stats.cost) {
                 this._currentTeam.addPlayer(new BasicPlayer(this));
-                basicPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(basicPlayer.name).length} `);
+                basicPlayerCard.cardbody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(basicPlayer.name).length} `);
             }
         }, this);
 
@@ -234,19 +234,19 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         });
         this._playerCardsLayout.addContents(heroPlayerCard);
-        heroPlayerCard.cardBody.buttons[0];
-        heroPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
+        heroPlayerCard.cardbody.buttons[0];
+        heroPlayerCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
             const heroPlayers: IPlayer[] = this._currentTeam.getPlayersByName(heroPlayer.name);
             if (heroPlayers.length > 0) {
                 this._currentTeam.removePlayer(heroPlayers[0]);
-                heroPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heroPlayer.name).length} `);
+                heroPlayerCard.cardbody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heroPlayer.name).length} `);
             }
         }, this);
-        heroPlayerCard.cardBody.buttons[2];
-        heroPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
+        heroPlayerCard.cardbody.buttons[2];
+        heroPlayerCard.cardbody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
             if (this._currentTeam.remainingPoints >= heroPlayer.stats.cost) {
                 this._currentTeam.addPlayer(new HeroPlayer(this));
-                heroPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heroPlayer.name).length} `);
+                heroPlayerCard.cardbody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heroPlayer.name).length} `);
             }
         }, this);
 
@@ -294,18 +294,18 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         });
         this._playerCardsLayout.addContents(lightPlayerCard);
-        lightPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
+        lightPlayerCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
             const lightPlayers: IPlayer[] = this._currentTeam.getPlayersByName(lightPlayer.name);
             if (lightPlayers.length > 0) {
                 this._currentTeam.removePlayer(lightPlayers[0]);
-                lightPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(lightPlayer.name).length} `);
+                lightPlayerCard.cardbody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(lightPlayer.name).length} `);
             }
         }, this);
-        lightPlayerCard.cardBody.buttons[2];
-        lightPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
+        lightPlayerCard.cardbody.buttons[2];
+        lightPlayerCard.cardbody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
             if (this._currentTeam.remainingPoints >= lightPlayer.stats.cost) {
                 this._currentTeam.addPlayer(new LightPlayer(this));
-                lightPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(lightPlayer.name).length} `);
+                lightPlayerCard.cardbody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(lightPlayer.name).length} `);
             }
         }, this);
 
@@ -353,18 +353,18 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         });
         this._playerCardsLayout.addContents(heavyPlayerCard);
-        heavyPlayerCard.cardBody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
+        heavyPlayerCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
             const heavyPlayers: IPlayer[] = this._currentTeam.getPlayersByName(heavyPlayer.name);
             if (heavyPlayers.length > 0) {
                 this._currentTeam.removePlayer(heavyPlayers[0]);
-                heavyPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heavyPlayer.name).length} `);
+                heavyPlayerCard.cardbody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heavyPlayer.name).length} `);
             }
         }, this);
-        heavyPlayerCard.cardBody.buttons[2];
-        heavyPlayerCard.cardBody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
+        heavyPlayerCard.cardbody.buttons[2];
+        heavyPlayerCard.cardbody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
             if (this._currentTeam.remainingPoints >= heavyPlayer.stats.cost) {
                 this._currentTeam.addPlayer(new HeavyPlayer(this));
-                heavyPlayerCard.cardBody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heavyPlayer.name).length} `);
+                heavyPlayerCard.cardbody.buttons[1].text.setText(` ${this._currentTeam.getPlayersByName(heavyPlayer.name).length} `);
             }
         }, this);
 

@@ -44,7 +44,7 @@ export class GameplayScene extends Phaser.Scene {
     async create(): Promise<void> {
         this._width = this.game.canvas.width;
         this._height = this.game.canvas.height;
-        await WarGame.phases.runCurrentPhase();
+        await WarGame.phaseMgr.runCurrentPhase();
         this._createMap();
         this._setupCamera();
         this._setupController();
@@ -63,10 +63,14 @@ export class GameplayScene extends Phaser.Scene {
         const x: number = view.left + (this._gameMenu.displayWidth / 2) + 10;
         const y: number = view.top + (this._gameMenu.displayHeight / 2) + 10;
         this._gameMenu.setPosition(x, y);
+
         if (this._gameMenuHiddenUntil && time > this._gameMenuHiddenUntil) {
             this._gameMenu.setVisible(true);
             this._gameMenuHiddenUntil = undefined;
         }
+
+        this._gameMenu.updateHeaderText(`Current Phase: [${PhaseType[WarGame.phaseMgr.currentPhase().getType()]}]`);
+        this._gameMenu.updateBodyTitle(`Current Team: [${WarGame.teamMgr.getTeamsByPriority()[this._currentTeamIndex]?.name}]`);
     }
 
     private _createMap(): void {
@@ -116,7 +120,6 @@ export class GameplayScene extends Phaser.Scene {
     }
 
     private _handleTeamPlacement(): void {
-        this._handleTileHighlighting();
         WarGame.map.obj.once(Phaser.Input.Events.POINTER_DOWN, () => {
             if (this.time.now > this._downTime + Constants.CLICK_HANDLING_DELAY) {
                 this._downTime = this.time.now;
@@ -130,6 +133,8 @@ export class GameplayScene extends Phaser.Scene {
             } else {
                 WarGame.map.obj.off(Phaser.Input.Events.POINTER_MOVE);
                 WarGame.map.obj.off(Phaser.Input.Events.POINTER_OUT);
+                WarGame.phaseMgr.moveToNextPhase();
+                this._startMovementPhase();
             }
         }, this);
     }
@@ -170,7 +175,7 @@ export class GameplayScene extends Phaser.Scene {
             scene: this,
             width: menuWidth,
             header: {
-                text: `Current Phase: [${PhaseType[WarGame.phases.currentPhase().getType()]}]`,
+                text: `Current Phase: [${PhaseType[WarGame.phaseMgr.currentPhase().getType()]}]`,
                 textStyle: {font: '20px Courier', color: '#ffffff'},
                 background: {color: 0x006000},
                 cornerRadius: 5
@@ -199,8 +204,10 @@ export class GameplayScene extends Phaser.Scene {
             }
         });
         this.add.existing(this._gameMenu);
-        this._gameMenu.cardBody.buttons[1].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._gameMenu.cardBody.clearButtons();
+        this._gameMenu.cardbody.buttons[1].on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this._gameMenu.removeBodyButtons(true);
+            this._gameMenu.updateBodyDescription('');
+            this._handleTileHighlighting();
             this._handleTeamPlacement();
         }, this);
         this._controller.on(Constants.CAMERA_ZOOM_EVENT, () => {
@@ -213,5 +220,56 @@ export class GameplayScene extends Phaser.Scene {
             this._gameMenu.setVisible(true);
         });
         this._gameMenu.setDepth(Constants.DEPTH_MENU);
+    }
+
+    private _startMovementPhase(): void {
+        this._currentTeamIndex = 0;
+        this._gameMenu.updateBodyDescription('Tap each player and pick a\nlocation within their\nmovement range.');
+        this._gameMenu.addBodyButtons({
+            text: 'Continue',
+            padding: 5,
+            background: {color: 0x00f000},
+            cornerRadius: 5,
+            interactive: true
+        },{
+            text: 'to next Team',
+            padding: 5,
+            background: {alpha: 0},
+            interactive: true
+        });
+        this._gameMenu.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this._currentTeamIndex++;
+            if (this._currentTeamIndex >= WarGame.teamMgr.teams.length) {
+                this._currentTeamIndex = 0;
+                this._gameMenu.removeBodyButtons(true);
+                WarGame.phaseMgr.moveToNextPhase();
+                this._startShootingPhase();
+            }
+        }, this);
+    }
+
+    private _startShootingPhase(): void {
+        this._currentTeamIndex = 0;
+        this._gameMenu.updateBodyDescription('Tap each player and pick an\nopponent in range\nto attempt to shoot them.');
+        this._gameMenu.addBodyButtons({
+            text: 'Continue',
+            padding: 5,
+            background: {color: 0x00f000},
+            cornerRadius: 5,
+            interactive: true
+        },{
+            text: 'to next Team',
+            padding: 5,
+            background: {alpha: 0},
+            interactive: true
+        });
+        this._gameMenu.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this._currentTeamIndex++;
+            if (this._currentTeamIndex >= WarGame.teamMgr.teams.length) {
+                this._currentTeamIndex = 0;
+                this._gameMenu.removeBodyButtons(true);
+                WarGame.phaseMgr.moveToNextPhase();
+            }
+        }, this);
     }
 }
