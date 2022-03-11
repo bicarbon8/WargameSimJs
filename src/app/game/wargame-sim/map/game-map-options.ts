@@ -1,6 +1,8 @@
+import { PlayerManager } from "../players/player-manager";
+
 export interface GameMapOptions {
-    scene: Phaser.Scene;
-    
+    playerManager: PlayerManager;
+    scene?: Phaser.Scene;
     width?: number;
     height?: number;
     seed?: string;

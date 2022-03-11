@@ -13,7 +13,7 @@ describe('TeamManager', () => {
     mgr.addTeams(teamA, teamB, teamC);
 
     let expected: Team[] = [teamB, teamC, teamA];
-    expect(mgr.getTeamsByPriority()).toEqual(expected);
+    expect(mgr.teams()).toEqual(expected);
   });
 
   it('can get teams sorted by score', () => {

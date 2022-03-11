@@ -6,22 +6,15 @@ describe('Priority', () => {
   it('will randomly prioritise team orders on runPhase call', async () => {
     let teamMgr = new TeamManager();
     for (var i=0; i<10; i++) {
-      let team: Team = new Team(`team-${i}`, 'c0c0c0', 100);
-      teamMgr.addTeams(team);
+      let team: Team = new Team({name:`team-${i}`, points:100});
+      teamMgr.addTeam(team);
     }
-    let unordered: Team[] = teamMgr.getTeamsByPriority();
+    let unordered: Team[] = teamMgr.teams();
     let priorityPhase: PriorityPhase = new PriorityPhase(teamMgr);
 
-    for (var i=0; i<unordered.length; i++) {
-      expect(unordered[i].getPriority()).toBe(0);
-    }
+    priorityPhase.start();
 
-    await priorityPhase.runPhase();
-
-    let ordered: Team[] = teamMgr.getTeamsByPriority();
+    let ordered: Team[] = teamMgr.teams();
     expect(ordered).not.toEqual(unordered);
-    for (var i=0; i<ordered.length; i++) {
-      expect(ordered[i].getPriority()).toBe(i);
-    }
   });
 });

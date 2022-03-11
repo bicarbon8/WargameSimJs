@@ -1,4 +1,4 @@
-import { BasePlayer } from './base-player';
+import { Player } from './player';
 
 describe('BasePlayer', () => {
   

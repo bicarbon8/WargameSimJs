@@ -1,36 +1,44 @@
+import { WarGame } from "../war-game";
 import { IPlayer } from "./i-player";
+import { Player } from "./player";
+import { PlayerOptions } from "./player-options";
 import { PlayerStatusEffect } from "./player-status-effect";
 
-export class PlayerManager {
-    private readonly _players: IPlayer[]
+export class PlayerManager extends Phaser.Events.EventEmitter {
+    private readonly _players: Map<string, IPlayer>
 
     constructor() {
-        this._players = [];
+        super();
+        this._players = new Map<string, IPlayer>();
     }
 
     get players(): IPlayer[] {
-        return this._players;
+        return Array.from(this._players.values());
     }
 
-    addPlayer(player: IPlayer): boolean {
-        if (player) {
-            if (!this.getPlayerById(player.id)) {
-                this._players.push(player);
-                return true;
-            }
+    addPlayer(options: PlayerOptions): IPlayer {
+        let player: IPlayer;
+        if (options) {
+            player = new Player(options);
+            this._players.set(player.id, player);
+            this.emit(WarGame.EVENTS.PLAYER_ADDED, player);
         }
-        return false;
+        return player;
     }
 
-    removePlayer(player: IPlayer): boolean {
+    removePlayer(player: IPlayer, destroy?: boolean): IPlayer {
+        let removed: IPlayer;
         if (player) {
-            const index: number = this._players.findIndex((p: IPlayer) => p.id === player.id);
-            if (index !== -1) {
-                this._players.splice(index, 1);
-                return true;
+            removed = this.getPlayerById(player.id);
+            if (removed) {
+                this._players.delete(removed.id);
+                this.emit(WarGame.EVENTS.PLAYER_REMOVED, removed);
+                if (destroy) {
+                    removed.destroy();
+                }
             }
         }
-        return false;
+        return removed;
     }
 
     getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
@@ -49,11 +57,8 @@ export class PlayerManager {
         return players;
     }
 
-    getPlayerById(id: number): IPlayer {
-        let players: IPlayer[] = this.players.filter((player: IPlayer) => {
-            if (player.id === id) { return true; }
-        });
-        return (players?.length) ? players[0] : null;
+    getPlayerById(id: string): IPlayer {
+        return this._players.get(id);
     }
 
     getPlayerAt(tileX: number, tileY: number): IPlayer {
@@ -66,8 +71,8 @@ export class PlayerManager {
     areAllies(...players: IPlayer[]): boolean {
         if (players) {
             for (var i = 0; i < players.length - 1; i++) {
-                let teamAId: number = players[i].teamId;
-                let teamBId: number = players[i + 1].teamId;
+                let teamAId: string = players[i].teamId;
+                let teamBId: string = players[i + 1].teamId;
                 if (teamAId != teamBId) {
                     return false;
                 }

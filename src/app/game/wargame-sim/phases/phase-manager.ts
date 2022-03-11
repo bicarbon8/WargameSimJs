@@ -1,3 +1,4 @@
+import * as Phaser from "phaser";
 import { TeamManager } from "../teams/team-manager";
 import { FightingPhase } from "./fighting-phase";
 import { IPhase } from "./i-phase";
@@ -5,29 +6,30 @@ import { MovementPhase } from "./movement-phase";
 import { PriorityPhase } from "./priority-phase";
 import { ShootingPhase } from "./shooting-phase";
 
-export class PhaseManager {
+export class PhaseManager extends Phaser.Events.EventEmitter {
     private readonly _phases: IPhase[];
     private _phaseIndex: number = 0;
 
     constructor(teamManager: TeamManager) {
+        super();
         this._phases = [
-            new PriorityPhase(teamManager), 
-            new MovementPhase(), 
-            new ShootingPhase(), 
-            new FightingPhase()
+            new PriorityPhase(this, teamManager), 
+            new MovementPhase(this), 
+            new ShootingPhase(this), 
+            new FightingPhase(this)
         ];
     }
 
-    numberOfPhases(): number {
-        return this._phases.length;
+    get phases(): IPhase[] {
+        return this._phases;
     }
 
-    currentPhase(): IPhase {
+    get currentPhase(): IPhase {
         return this._phases[this._phaseIndex];
     }
 
-    async runCurrentPhase(): Promise<void> {
-        await this.currentPhase().runPhase();
+    startCurrentPhase(): void {
+        this.currentPhase.start();
     }
 
     moveToNextPhase(): void {

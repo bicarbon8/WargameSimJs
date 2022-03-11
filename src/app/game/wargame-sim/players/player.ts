@@ -1,29 +1,28 @@
 import { HasGameObject } from "../interfaces/has-game-object";
-import { Constants } from "../utils/constants";
 import { Rand } from "../utils/rand";
 import { WarGame } from "../war-game";
 import { IPlayer } from "./i-player";
 import { PlayerOptions } from "./player-options";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
-import { PlayerSpritesheetMapping } from "./player-types/player-spritesheet-mappings";
+import { PlayerSpritesheetMapping } from "./player-spritesheet-mappings";
 
-export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite> {
-    readonly id: number;
+export class Player implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite> {
+    readonly id: string;
     private readonly _name: string;
     private readonly _stats: PlayerStats;
     private readonly _spriteMapping: PlayerSpritesheetMapping;
     private _scene: Phaser.Scene;
     private _tileX: number;
     private _tileY: number;
-    private _teamId: number;
+    private _teamId: string;
     private _remainingWounds: number;
     private _effects: Set<PlayerStatusEffect>;
     private _obj: Phaser.GameObjects.Sprite;
 
     constructor(options: PlayerOptions) {
-        this.id = Rand.getId();
-        this._scene = options.scene;
+        this.id = Rand.guid();
+        this._scene = options.scene || WarGame.uiMgr.game.scene.getScenes(true)?.shift();
         this._name = options.name;
         this._stats = options.stats;
         this._spriteMapping = options.spriteMapping;
@@ -50,7 +49,7 @@ export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameOb
         return this._obj;
     }
 
-    setTile(x: number, y: number): void {
+    setTile(x: number, y: number): this {
         this._tileX = x;
         this._tileY = y;
         let worldPos: Phaser.Math.Vector2 = WarGame.map.getTileWorldCentre(x, y);
@@ -59,37 +58,41 @@ export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameOb
             this.obj.setPosition(worldPos.x, worldPos.y);
             this.obj.setVisible(true);
         }
+        return this;
     }
 
-    get teamId(): number {
+    get teamId(): string {
         return this._teamId;
     }
 
-    setTeamId(id: number): void {
+    setTeamId(id: string): this {
         this._teamId = id;
+        return this;
     }
 
     get stats(): PlayerStats {
         return this._stats;
     }
 
-    wound(): void {
+    wound(): this {
         this._remainingWounds--;
+        return this;
     }
 
     get statusEffects(): PlayerStatusEffect[] {
         return Array.from(this._effects.values());
     }
 
-    setEffects(...effects: PlayerStatusEffect[]): void {
+    setEffects(...effects: PlayerStatusEffect[]): this {
         if (effects) {
             for (var i=0; i<effects.length; i++) {
                 this._effects.add(effects[i]);
             }
         }
+        return this;
     }
 
-    removeEffects(...effects: PlayerStatusEffect[]): void {
+    removeEffects(...effects: PlayerStatusEffect[]): this {
         if (effects) {
             for (var i=0; i<effects.length; i++) {
                 if (this._effects.has(effects[i])) {
@@ -97,6 +100,7 @@ export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameOb
                 }
             }
         }
+        return this;
     }
 
     isDead(): boolean {
@@ -105,22 +109,29 @@ export abstract class BasePlayer implements IPlayer, HasGameObject<Phaser.GameOb
 
     isBattling(): boolean {
         return WarGame.map.getPlayersInRange(this._tileX, this._tileY, 1).filter((player: IPlayer) => {
-            if (player.id !== this.id && WarGame.players.areEnemies(this, player)) { return true; }
+            if (player.id !== this.id && WarGame.playerMgr.areEnemies(this, player)) { return true; }
         }).length > 0;
     }
 
-    setScene(scene: Phaser.Scene): void {
+    setScene(scene: Phaser.Scene): this {
         if (scene) {
             this.obj.destroy();
             this._obj = null;
             this._scene = scene;
+        }
+        return this;
+    }
+
+    destroy(): void {
+        if (this._obj) {
+            this.obj.destroy();
         }
     }
 
     private _createGameObject(): void {
         this._obj = this._scene.add.sprite(0, 0, 'players', this._spriteMapping.front);
         this._obj.setOrigin(0.5);
-        this._obj.setDepth(Constants.DEPTH_PLAYER);
+        this._obj.setDepth(WarGame.DEPTH.PLAYER);
         this.obj.setVisible(false); // set visible when added to map
     }
 }

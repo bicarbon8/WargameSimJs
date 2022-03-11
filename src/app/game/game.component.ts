@@ -14,7 +14,9 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-      WarGame.start();
+      this._zone.runOutsideAngular(() => {
+          WarGame.start();
+      });
   }
 
   ngOnDestroy(): void {

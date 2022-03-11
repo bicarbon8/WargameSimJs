@@ -1,11 +1,14 @@
 import { IPlayer } from "../players/i-player";
+import { PlayerOptions } from "../players/player-options";
 import { PlayerStatusEffect } from "../players/player-status-effect";
 import { Rand } from "../utils/rand";
 import { WarGame } from "../war-game";
+import { TeamManager } from "./team-manager";
 import { TeamOptions } from "./team-options";
 
 export class Team {
-    readonly id: number;
+    readonly id: string;
+    private _teamMgr: TeamManager;
     private _name: string;
     private _colour: string;
     private _originalPoints: number;
@@ -14,7 +17,8 @@ export class Team {
     private _priority: number;
 
     constructor(options: TeamOptions) {
-        this.id = Rand.getId();
+        this.id = Rand.guid();
+        this._teamMgr = options.teamManager;
         this._name = options.name;
         this._colour = options.colour;
         this._originalPoints = options.points;
@@ -37,29 +41,35 @@ export class Team {
 
     getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
         let teamPlayers: IPlayer[] = [];
-        let allPlayers: IPlayer[] = WarGame.players.getPlayers(...effects);
+        let allPlayers: IPlayer[] = WarGame.playerMgr.getPlayers(...effects);
         for (var i=0; i<allPlayers.length; i++) {
             let p: IPlayer = allPlayers[i];
-            if (p && !p.isDead() && p.teamId == this.id) {
+            if (p && !p.isDead() && p.teamId === this.id) {
                 teamPlayers.push(p);
             }
         }
         return teamPlayers;
     }
 
-    addPlayer(player: IPlayer): void {
-        if (player && this.remainingPoints >= player.stats.cost) {
-            this._remainingPoints -= player.stats.cost;
+    addPlayer(options: PlayerOptions): IPlayer {
+        let added: IPlayer;
+        if (options && this.remainingPoints >= options.stats.cost) {
+            this._remainingPoints -= options.stats.cost;
+            const player: IPlayer = WarGame.playerMgr.addPlayer(options);
             player.setTeamId(this.id);
-            WarGame.players.addPlayer(player);
+            this._teamMgr?.emit(WarGame.EVENTS.PLAYER_ADDED, player);
         }
+        return added;
     }
 
-    removePlayer(player: IPlayer): void {
+    removePlayer(player: IPlayer, destroy?: boolean): IPlayer {
+        let removed: IPlayer;
         if (player) {
-            WarGame.players.removePlayer(player);
+            WarGame.playerMgr.removePlayer(player, destroy);
             this._remainingPoints += player.stats.cost;
+            this._teamMgr?.emit(WarGame.EVENTS.PLAYER_REMOVED, player);
         }
+        return removed;
     }
 
     get remainingPoints(): number {
@@ -80,5 +90,12 @@ export class Team {
 
     set priority(priority: number) {
         this._priority = priority;
+    }
+
+    destroy(): void {
+        this.getPlayers().forEach((p: IPlayer) => {
+            this.removePlayer(p, true);
+        });
+        this._teamMgr = null;
     }
 }

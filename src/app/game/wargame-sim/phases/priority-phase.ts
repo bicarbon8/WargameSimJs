@@ -3,25 +3,49 @@ import { PhaseType } from "./phase-type";
 import { IPhase } from "./i-phase";
 import { WarGame } from "../war-game";
 import { TeamManager } from "../teams/team-manager";
+import { PhaseManager } from "./phase-manager";
 
 export class PriorityPhase implements IPhase {
+    private readonly _phaseMgr: PhaseManager
     private readonly _teamMgr: TeamManager;
+    private _started: boolean;
+    private _completed: boolean;
     
-    constructor(teamManager: TeamManager) {
+    constructor(phaseManager: PhaseManager, teamManager: TeamManager) {
+        this._phaseMgr = phaseManager;
         this._teamMgr = teamManager;
     }
 
-    async runPhase(): Promise<void> {
+    start(): IPhase {
+        this._started = true;
+        this._phaseMgr.emit(WarGame.EVENTS.PHASE_STARTED, this);
         let teams: Team[] = this._teamMgr.teams;
         let orderedTeams: Team[] = this._orderTeamsByPriority(teams);
         for (var i=0; i<orderedTeams.length; i++) {
             let team: Team = orderedTeams[i];
             team.priority = i;
         }
+        this._completed = true;
+        this._phaseMgr.emit(WarGame.EVENTS.PHASE_COMPLETED, this);
+        return this;
+    }
+
+    isComplete(): boolean {
+        return this._completed;
+    }
+
+    reset(): IPhase {
+        this._started = false;
+        this._completed = false;
+        return this;
     }
 
     getType(): PhaseType {
         return PhaseType.priority;
+    }
+
+    getName(): string {
+        return PhaseType[this.getType()];
     }
 
     private _orderTeamsByPriority(teams: Team[]): Team[] {

@@ -5,11 +5,12 @@ import { GameMapOptions } from "./game-map-options";
 import TILE_MAPPING from "./tile-mapping";
 import { WarGame } from "../war-game";
 import { HasGameObject } from "../interfaces/has-game-object";
-import { Constants } from "../utils/constants";
 import { AStarFinder } from "astar-typescript";
+import { PlayerManager } from "../players/player-manager";
 
 export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     private readonly _options: GameMapOptions;
+    private readonly _playerMgr: PlayerManager;
     private readonly _tileWidth: number;
     private readonly _tileHeight: number;
     private readonly _grid: number[][];
@@ -23,6 +24,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         this._setDefaultOptions(options);
         this._options = options;
         this._scene = options.scene;
+        this._playerMgr = options.playerManager;
         this._tileWidth = 32;
         this._tileHeight = this._tileWidth;
         this._grid = this._createGrid();
@@ -54,14 +56,13 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     addPlayer(player: IPlayer, tileX: number, tileY: number): void {
         if (player && this.isValidLocation(tileX, tileY)) {
             if (!this.isTileOccupied(tileX, tileY)) {
-                WarGame.players.addPlayer(player);
                 player.setTile(tileX, tileY);
             }
         }
     }
 
     movePlayer(startX: number, startY: number, endX: number, endY: number): void {
-        const player: IPlayer = WarGame.players.getPlayerAt(startX, startY);
+        const player: IPlayer = this._playerMgr.getPlayerAt(startX, startY);
         if (player && this.isValidLocation(endX, endY)) {
             if (!this.isTileOccupied(endX, endY)) {
                 player.setTile(endX, endY);
@@ -88,14 +89,14 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     getPlayersInRange(tileX: number, tileY: number, range: number): IPlayer[] {
         return this.getTilesInRange(tileX, tileY, range)
         .map((tile: Phaser.Tilemaps.Tile) => {
-            return WarGame.players.getPlayerAt(tile.x, tile.y);
+            return this._playerMgr.getPlayerAt(tile.x, tile.y);
         }).filter((val: IPlayer) => {
             if (val) { return true; }
         });
     }
 
     isTileOccupied(tileX: number, tileY: number): boolean {
-        let player: IPlayer = WarGame.players.getPlayerAt(tileX, tileY);
+        let player: IPlayer = this._playerMgr.getPlayerAt(tileX, tileY);
         if (player) {
             return true;
         }
@@ -165,7 +166,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         });
         let tileset: Phaser.Tilemaps.Tileset = this._tileMap.addTilesetImage('tiles', 'map-tiles', this._tileWidth, this._tileHeight, 0, 0);
         this._layer = this._tileMap.createBlankLayer('map-layer', tileset);
-        this._layer.setDepth(this._options.layerDepth || Constants.DEPTH_PLAYER);
+        this._layer.setDepth(this._options.layerDepth);
         for (var y=0; y<this._grid.length; y++) {
             for (var x=0; x<this._grid[y].length; x++) {
                 if (this._grid[y][x] === 1) {
@@ -177,14 +178,15 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     }
 
     private _setDefaultOptions(options: GameMapOptions): void {
-        if (!options.seed) { options.seed = `${Rand.getInt(0, 10000)}`; }
-        if (!options.width) { options.width = 500; }
-        if (!options.height) { options.height = 500; }
-        if (!options.roomMinWidth) { options.roomMinWidth = 100; }
-        if (!options.roomMinHeight) { options.roomMinHeight = 100; }
-        if (!options.roomMaxWidth) { options.roomMaxWidth = 250; }
-        if (!options.roomMaxHeight) { options.roomMaxHeight = 250; }
-        if (!options.doorPadding) { options.doorPadding = 0; }
-        if (!options.layerDepth) { options.layerDepth = Constants.DEPTH_PLAYER - 0.1; }
+        options.scene = options.scene || options.scene || WarGame.uiMgr?.game?.scene?.getScenes(true)?.shift();
+        options.seed = options.seed || `${Rand.getInt(0, 10000)}`;
+        options.width = options.width || 500;
+        options.height = options.height || 500;
+        options.roomMinWidth = options.roomMinWidth || 100;
+        options.roomMinHeight = options.roomMinHeight || 100;
+        options.roomMaxWidth = options.roomMaxWidth || 250;
+        options.roomMaxHeight = options.roomMaxHeight || 250;
+        options.doorPadding = options.doorPadding || 0;
+        options.layerDepth = options.layerDepth || WarGame.DEPTH.MIDGROUND;
     }
 }

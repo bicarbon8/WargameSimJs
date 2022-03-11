@@ -1,6 +1,9 @@
 import { PhaseType } from "./phase-type";
 
 export interface IPhase {
-    runPhase(): Promise<void>;
+    start(): IPhase;
+    isComplete(): boolean;
+    reset(): IPhase;
     getType(): PhaseType;
+    getName(): string;
 }
