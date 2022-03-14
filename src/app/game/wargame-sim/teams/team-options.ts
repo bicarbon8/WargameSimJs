@@ -1,3 +1,4 @@
+import { PlayerManager } from "../players/player-manager";
 import { TeamManager } from "./team-manager";
 
 export interface TeamOptions {
@@ -5,4 +6,5 @@ export interface TeamOptions {
     colour?: string;
     points: number;
     teamManager?: TeamManager;
+    playerManager?: PlayerManager;
 }

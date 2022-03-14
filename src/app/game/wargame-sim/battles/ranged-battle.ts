@@ -3,38 +3,40 @@ import { WarGame } from "../war-game";
 import { Battle } from "./battle";
 
 export class RangedBattle extends Battle {
+    get attacker(): IPlayer {
+        return this.attackers?.shift();
+    }
+    
     addAttacker(attacker: IPlayer): void {
         if (attacker) {
-            this._attackers.clear();
-            this._attackers.set(attacker.id, attacker);
+            this.resetAttackers();
+            this._attackers.add(attacker.id);
         }
-    }
-
-    getAttacker(): IPlayer {
-        let attackers: IPlayer[] = this.getAttackers();
-        if (attackers?.length) {
-            return attackers[0];
-        }
-        return null;
     }
 
     runBattle(): void {
-        let attacker: IPlayer = this.getAttacker();
-        let defenders: IPlayer[] = this.getDefenders();
-        for (var i=0; i<defenders.length; i++) {
-            let defender: IPlayer = defenders[i];
-            let roll: number = WarGame.dice.roll();
-            if (roll >= attacker.getStats().ranged) {
-                console.info(`player: ${attacker.getName()} fired at: ${defender.getName()}...`);
-                let success: boolean = this.tryToWound(attacker, defender);
-                if (success) {
-                    console.info(`player: ${attacker.getName()} hit player: ${defender.getName()}!`);
-                    defender.wound();
+        let attacker: IPlayer = this.attacker;
+        let defenders: IPlayer[] = this.defenders;
+        if (attacker && defenders?.length) {
+            for (var i=0; i<defenders.length; i++) {
+                let defender: IPlayer = defenders[i];
+                let roll: number = WarGame.dice.roll();
+                if (roll >= attacker.stats.ranged) {
+                    this.battleManager.emit(WarGame.EVENTS.PLAYER_FIRED_SHOT, attacker, defender);
+                    console.info(`player: ${attacker.name} fired at: ${defender.name}...`);
+                    let success: boolean = this.tryToWound(attacker, defender);
+                    if (success) {
+                        this.battleManager.emit(WarGame.EVENTS.PLAYER_HIT_SHOT, attacker, defender);
+                        console.info(`player: ${attacker.name} hit player: ${defender.name}!`);
+                        defender.wound();
+                    } else {
+                        this.battleManager.emit(WarGame.EVENTS.PLAYER_MISSED_SHOT, attacker, defender);
+                        console.info(`player: ${attacker.name} missed player: ${defender.name}!`);
+                    }
                 } else {
-                    console.info(`player: ${attacker.getName()} missed player: ${defender.getName()}!`);
+                    this.battleManager.emit(WarGame.EVENTS.PLAYER_MISFIRED_SHOT, attacker, defender);
+                    console.info(`player: ${attacker.name} was unable to fire at: ${defender.name}.`);
                 }
-            } else {
-                console.info(`player: ${attacker.getName()} was unable to fire at: ${defender.getName()}.`);
             }
         }
     }

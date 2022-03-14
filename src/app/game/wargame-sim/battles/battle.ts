@@ -1,42 +1,72 @@
 import { IPlayer } from "../players/i-player";
 import { WarGame } from "../war-game";
+import { BattleManager } from "./battle-manager";
 
 export abstract class Battle {
-    protected _attackers: Map<number, IPlayer>;
-    protected _defenders: Map<number, IPlayer>;
+    private readonly _battleMgr: BattleManager;
+    private readonly _defenders: Set<string>;
+    protected readonly _attackers: Set<string>;
+
+    constructor(battleManager: BattleManager) {
+        this._battleMgr = battleManager;
+        this._attackers = new Set<string>();
+        this._defenders = new Set<string>();
+    }
+
+    get battleManager(): BattleManager {
+        return this._battleMgr;
+    }
+
+    get attackers(): IPlayer[] {
+        return this._battleMgr.teamManager.playerManager.getPlayers()
+        .filter((p: IPlayer) => this._attackers.has(p.id));
+    }
+
+    get defenders(): IPlayer[] {
+        return this._battleMgr.teamManager.playerManager.getPlayers()
+        .filter((p: IPlayer) => this._defenders.has(p.id));
+    }
 
     addDefenders(...defenders: IPlayer[]): void {
         if (defenders) {
             for (var i=0; i<defenders.length; i++) {
-                this._defenders.set(defenders[i].id, defenders[i]);
+                this._defenders.add(defenders[i].id);
             }
         }
     }
 
     abstract runBattle(): void;
 
-    getAttackers(): IPlayer[] {
-        return Array.from(this._attackers.values());
-    }
-
-    getDefenders(): IPlayer[] {
-        return Array.from(this._defenders.values());
-    }
-
     getTotalAttackPoints(playerArray: IPlayer[]): number {
         var points = 0;
         for (var i=0; i<playerArray.length; i++) {
-            points += playerArray[i].getStats().attacks;
+            points += playerArray[i].stats.attacks;
         }
 
         return points;
     }
 
     tryToWound(attacker: IPlayer, defender: IPlayer): boolean {
-        let atk: number = attacker.getStats().strength;
-        let def: number = defender.getStats().defense;
+        let atk: number = attacker.stats.strength;
+        let def: number = defender.stats.defense;
         
         return this._doesWound(atk, def);
+    }
+
+    reset(): this {
+        this.resetAttackers();
+        this.resetDefenders();
+        return this;
+    }
+
+    resetAttackers(): this {
+        this._attackers.clear();
+        return this;
+    }
+
+    resetDefenders(): this {
+        this._defenders.clear();
+        return this;
     }
 
     /**

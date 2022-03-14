@@ -1,4 +1,3 @@
-import { HasGameObject } from "../interfaces/has-game-object";
 import { Rand } from "../utils/rand";
 import { WarGame } from "../war-game";
 import { IPlayer } from "./i-player";
@@ -6,9 +5,11 @@ import { PlayerOptions } from "./player-options";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
 import { PlayerSpritesheetMapping } from "./player-spritesheet-mappings";
+import { PlayerManager } from "./player-manager";
 
-export class Player implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite> {
+export class Player implements IPlayer {
     readonly id: string;
+    private readonly _playerMgr: PlayerManager;
     private readonly _name: string;
     private readonly _stats: PlayerStats;
     private readonly _spriteMapping: PlayerSpritesheetMapping;
@@ -23,6 +24,7 @@ export class Player implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite>
     constructor(options: PlayerOptions) {
         this.id = Rand.guid();
         this._scene = options.scene || WarGame.uiMgr.game.scene.getScenes(true)?.shift();
+        this._playerMgr = options.playerManager;
         this._name = options.name;
         this._stats = options.stats;
         this._spriteMapping = options.spriteMapping;
@@ -49,14 +51,14 @@ export class Player implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite>
         return this._obj;
     }
 
-    setTile(x: number, y: number): this {
-        this._tileX = x;
-        this._tileY = y;
-        let worldPos: Phaser.Math.Vector2 = WarGame.map.getTileWorldCentre(x, y);
-        if (worldPos) {
-            console.info(`adding player ${this.id} to map at: ${x},${y} - world: ${worldPos.x},${worldPos.y}`);
-            this.obj.setPosition(worldPos.x, worldPos.y);
+    setTile(x: number, y: number, worldLocation: Phaser.Math.Vector2): this {
+        if (worldLocation) {
+            this._tileX = x;
+            this._tileY = y;
+            console.info(`adding player ${this.id} to map at: ${x},${y} - world: ${worldLocation.x},${worldLocation.y}`);
+            this.obj.setPosition(worldLocation.x, worldLocation.y);
             this.obj.setVisible(true);
+            this._playerMgr.emit(WarGame.EVENTS.PLAYER_MOVED, this);
         }
         return this;
     }
@@ -133,5 +135,6 @@ export class Player implements IPlayer, HasGameObject<Phaser.GameObjects.Sprite>
         this._obj.setOrigin(0.5);
         this._obj.setDepth(WarGame.DEPTH.PLAYER);
         this.obj.setVisible(false); // set visible when added to map
+        this.obj.setInteractive();
     }
 }

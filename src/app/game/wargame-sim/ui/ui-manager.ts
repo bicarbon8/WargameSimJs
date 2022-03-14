@@ -4,15 +4,16 @@ import { PickTeamsScene } from "./scenes/pick-teams-scene";
 import { UIManagerOptions } from './ui-manager-options';
 
 export class UIManager {
-    private readonly _game: Phaser.Game;
+    private readonly _conf: Phaser.Types.Core.GameConfig;
+    private _game: Phaser.Game;
 
     constructor(options?: UIManagerOptions) {
-        let conf: Phaser.Types.Core.GameConfig = {
+        this._conf = {
             type: Phaser.AUTO,
             width: options?.width || window.innerWidth,
             height: options?.height || window.innerHeight * 0.8,
             scale: {
-                mode: Phaser.Scale.NONE,
+                mode: Phaser.Scale.CENTER_BOTH,
                 autoCenter: Phaser.Scale.CENTER_BOTH
             },
             backgroundColor: '#ffffff',
@@ -30,30 +31,49 @@ export class UIManager {
             roundPixels: true,
             scene: [PickTeamsScene, GameplayScene]
         };
-        this._game = new Phaser.Game(conf);
           
         window.addEventListener('resize', () => {
-            this._game.canvas.width = options?.width || window.innerWidth;
-            this._game.canvas.height = options?.height || window.innerHeight * 0.8;
-            this._game.scale.refresh();
+            this.game.canvas.width = options?.width || window.innerWidth;
+            this.game.canvas.height = options?.height || window.innerHeight * 0.8;
+            this.game?.scale.refresh();
         });
 
         document.addEventListener("visibilitychange", () => {
-            this._game.scene.getScenes(false).forEach((scene: Phaser.Scene) => {
+            this.game?.scene.getScenes(false).forEach((scene: Phaser.Scene) => {
                 if (document.hidden) {
-                    this._game.scene.pause(scene);
+                    this.game?.scene.pause(scene);
                 } else {
-                    this._game.scene.resume(scene);
+                    this.game?.scene.resume(scene);
                 }
             });
         }, false);
     }
 
-    destroy(): void {
-        this.game.destroy(true, true);
-    }
-
     get game(): Phaser.Game {
         return this._game;
+    }
+
+    /**
+     * gets the currently active Scene
+     */
+    get scene(): Phaser.Scene {
+        const s: Phaser.Scene[] = this.game.scene.getScenes(true);
+        if (s?.length) {
+            return s[0];
+        }
+        return null;
+    }
+
+    start(): UIManager {
+        this._game = new Phaser.Game(this._conf);
+        return this;
+    }
+
+    destroy(): void {
+        this.game?.destroy(true, true);
+    }
+
+    pointerToWorld(x: number, y: number): Phaser.Math.Vector2 {
+        return this.scene.cameras.main.getWorldPoint(x, y);
     }
 }

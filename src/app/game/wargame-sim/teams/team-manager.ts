@@ -1,23 +1,31 @@
 import * as Phaser from "phaser";
+import { PlayerManager } from "../players/player-manager";
 import { WarGame } from "../war-game";
 import { Team } from "./team";
 import { TeamOptions } from "./team-options";
 
 export class TeamManager extends Phaser.Events.EventEmitter {
     private readonly _teams: Team[];
+    private readonly _playerMgr: PlayerManager;
     
     private _currentTeamIndex: number;
 
-    constructor() {
+    constructor(playerManager: PlayerManager) {
         super();
         this._teams = [];
+        this._playerMgr = playerManager;
         this._currentTeamIndex = 0;
+    }
+
+    get playerManager(): PlayerManager {
+        return this._playerMgr;
     }
 
     addTeam(options: TeamOptions): Team {
         let team: Team;
         if (options) {
             options.teamManager = options.teamManager || this;
+            options.playerManager = options.playerManager || this.playerManager;
             team = new Team(options);
             this._teams.push(team);
             this.emit(WarGame.EVENTS.TEAM_ADDED, team);
@@ -81,22 +89,28 @@ export class TeamManager extends Phaser.Events.EventEmitter {
         return this._teams[this.currentTeamIndex];
     }
 
-    moveNext(): this {
+    moveNext(): Team {
         this._currentTeamIndex++;
         if (this._currentTeamIndex >= this._teams.length) {
             this._currentTeamIndex = 0;
         }
         this.emit(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this.currentTeam);
-        return this;
+        return this.currentTeam;
     }
 
-    movePrevious(): this {
+    movePrevious(): Team {
         this._currentTeamIndex--;
         if (this._currentTeamIndex < 0) {
             this._currentTeamIndex = this._teams.length - 1;
         }
         this.emit(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this.currentTeam);
-        return this;
+        return this.currentTeam;
+    }
+
+    resetTeamIndex(): Team {
+        this._currentTeamIndex = 0;
+        this.emit(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this.currentTeam);
+        return this.currentTeam;
     }
 
     getTeamById(id: string): Team {

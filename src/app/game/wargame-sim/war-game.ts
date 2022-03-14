@@ -6,6 +6,7 @@ import { PlayerSpritesheetMappings } from "./players/player-spritesheet-mappings
 import { TeamManager } from "./teams/team-manager";
 import { UIManager } from "./ui/ui-manager";
 import { DiceManager } from "./utils/dice-manager";
+import { BattleManager } from "./battles/battle-manager";
 import { WarGameOptions } from "./war-game-options";
 
 export module WarGame {
@@ -15,13 +16,16 @@ export module WarGame {
     export var phaseMgr: PhaseManager;
     export var uiMgr: UIManager;
     export var dice: DiceManager;
+    export var battleMgr: BattleManager;
 
     export function start(options?: WarGameOptions): void {
         dice = new DiceManager();
         playerMgr = new PlayerManager();
-        teamMgr = new TeamManager();
-        phaseMgr = new PhaseManager(teamMgr);
+        teamMgr = new TeamManager(playerMgr);
         uiMgr = new UIManager(options?.uiMgrOpts);
+        battleMgr = new BattleManager(teamMgr, uiMgr);
+        phaseMgr = new PhaseManager(teamMgr, uiMgr, battleMgr);
+        uiMgr.start();
     }
 
     export function stop(): void {
@@ -63,13 +67,16 @@ export module WarGame {
         export const CAMERA_ZOOM: string = 'camera-zoom';
         export const PHASE_START: string = 'phase-start';
         export const PHASE_END: string = 'phase-end';
-        export const PHASE_STARTED: string = 'update-menu-header-text';
-        export const PHASE_COMPLETED: string = 'update-menu-body-title';
         export const TEAM_ADDED: string = 'team-added';
         export const TEAM_REMOVED: string = 'team-removed';
         export const CURRENT_TEAM_CHANGED: string = 'current-team-changed';
         export const PLAYER_ADDED: string = 'player-added';
         export const PLAYER_REMOVED: string = 'player-removed';
+        export const PLAYER_MOVED: string = 'player-moved';
+        export const PLAYER_FIRED_SHOT: string = 'player-fired-shot';
+        export const PLAYER_MISFIRED_SHOT: string = 'player-misfired-shot';
+        export const PLAYER_HIT_SHOT: string = 'player-hit-shot';
+        export const PLAYER_MISSED_SHOT: string = 'player-missed-shot';
     }
     export module PLAYERS {
         export const BASIC: PlayerOptions = {

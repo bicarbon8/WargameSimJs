@@ -8,35 +8,38 @@ import { PhaseManager } from "./phase-manager";
 export class PriorityPhase implements IPhase {
     private readonly _phaseMgr: PhaseManager
     private readonly _teamMgr: TeamManager;
-    private _started: boolean;
-    private _completed: boolean;
+    private _active: boolean;
     
     constructor(phaseManager: PhaseManager, teamManager: TeamManager) {
         this._phaseMgr = phaseManager;
         this._teamMgr = teamManager;
     }
 
+    get active(): boolean {
+        return this._active;
+    }
+
     start(): IPhase {
-        this._started = true;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_STARTED, this);
+        this.reset();
+        this._active = true;
+        this._phaseMgr.emit(WarGame.EVENTS.PHASE_START, this);
         let teams: Team[] = this._teamMgr.teams;
         let orderedTeams: Team[] = this._orderTeamsByPriority(teams);
         for (var i=0; i<orderedTeams.length; i++) {
             let team: Team = orderedTeams[i];
             team.priority = i;
         }
-        this._completed = true;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_COMPLETED, this);
+        this._active = false;
+        this._phaseMgr.emit(WarGame.EVENTS.PHASE_END, this);
         return this;
     }
 
-    isComplete(): boolean {
-        return this._completed;
+    skipTeam(team?: Team): IPhase {
+        return this;
     }
 
     reset(): IPhase {
-        this._started = false;
-        this._completed = false;
+        this._active = false;
         return this;
     }
 

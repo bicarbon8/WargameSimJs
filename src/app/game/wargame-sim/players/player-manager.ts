@@ -19,6 +19,7 @@ export class PlayerManager extends Phaser.Events.EventEmitter {
     addPlayer(options: PlayerOptions): IPlayer {
         let player: IPlayer;
         if (options) {
+            options.playerManager = options.playerManager || this;
             player = new Player(options);
             this._players.set(player.id, player);
             this.emit(WarGame.EVENTS.PLAYER_ADDED, player);

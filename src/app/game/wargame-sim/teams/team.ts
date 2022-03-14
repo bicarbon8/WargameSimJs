@@ -1,4 +1,5 @@
 import { IPlayer } from "../players/i-player";
+import { PlayerManager } from "../players/player-manager";
 import { PlayerOptions } from "../players/player-options";
 import { PlayerStatusEffect } from "../players/player-status-effect";
 import { Rand } from "../utils/rand";
@@ -9,6 +10,7 @@ import { TeamOptions } from "./team-options";
 export class Team {
     readonly id: string;
     private _teamMgr: TeamManager;
+    private _playerMgr: PlayerManager;
     private _name: string;
     private _colour: string;
     private _originalPoints: number;
@@ -19,6 +21,7 @@ export class Team {
     constructor(options: TeamOptions) {
         this.id = Rand.guid();
         this._teamMgr = options.teamManager;
+        this._playerMgr = options.playerManager;
         this._name = options.name;
         this._colour = options.colour;
         this._originalPoints = options.points;
@@ -41,7 +44,7 @@ export class Team {
 
     getPlayers(...effects: PlayerStatusEffect[]): IPlayer[] {
         let teamPlayers: IPlayer[] = [];
-        let allPlayers: IPlayer[] = WarGame.playerMgr.getPlayers(...effects);
+        let allPlayers: IPlayer[] = this._playerMgr.getPlayers(...effects);
         for (var i=0; i<allPlayers.length; i++) {
             let p: IPlayer = allPlayers[i];
             if (p && !p.isDead() && p.teamId === this.id) {
@@ -55,7 +58,7 @@ export class Team {
         let added: IPlayer;
         if (options && this.remainingPoints >= options.stats.cost) {
             this._remainingPoints -= options.stats.cost;
-            const player: IPlayer = WarGame.playerMgr.addPlayer(options);
+            const player: IPlayer = this._playerMgr.addPlayer(options);
             player.setTeamId(this.id);
             this._teamMgr?.emit(WarGame.EVENTS.PLAYER_ADDED, player);
         }
@@ -65,7 +68,7 @@ export class Team {
     removePlayer(player: IPlayer, destroy?: boolean): IPlayer {
         let removed: IPlayer;
         if (player) {
-            WarGame.playerMgr.removePlayer(player, destroy);
+            this._playerMgr.removePlayer(player, destroy);
             this._remainingPoints += player.stats.cost;
             this._teamMgr?.emit(WarGame.EVENTS.PLAYER_REMOVED, player);
         }

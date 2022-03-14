@@ -56,7 +56,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     addPlayer(player: IPlayer, tileX: number, tileY: number): void {
         if (player && this.isValidLocation(tileX, tileY)) {
             if (!this.isTileOccupied(tileX, tileY)) {
-                player.setTile(tileX, tileY);
+                player.setTile(tileX, tileY, this.getTileWorldCentre(tileX, tileY));
             }
         }
     }
@@ -65,7 +65,18 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         const player: IPlayer = this._playerMgr.getPlayerAt(startX, startY);
         if (player && this.isValidLocation(endX, endY)) {
             if (!this.isTileOccupied(endX, endY)) {
-                player.setTile(endX, endY);
+                const tile: Phaser.Tilemaps.Tile = this.obj.getTileAt(endX, endY);
+                WarGame.uiMgr.scene.tweens.add({
+                    targets: player.obj,
+                    x: tile.getCenterX(),
+                    y: tile.getCenterY(),
+                    ease: 'Sine.easeOut',
+                    duration: 500,
+                    onComplete: () => {
+                        player.setTile(endX, endY, this.getTileWorldCentre(endX, endY));
+                    },
+                    onCompleteScope: this
+                });
             }
         }
     }
