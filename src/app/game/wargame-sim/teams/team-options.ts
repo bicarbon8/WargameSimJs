@@ -3,7 +3,7 @@ import { TeamManager } from "./team-manager";
 
 export interface TeamOptions {
     name: string;
-    colour?: string;
+    color?: string;
     points: number;
     teamManager?: TeamManager;
     playerManager?: PlayerManager;

@@ -71,9 +71,11 @@ export class CardBody extends LayoutManager {
         }
     }
 
-    removeTitle(destroy?: boolean): LayoutContent {
+    removeTitle(destroy: boolean = true): LayoutContent {
         if (this._title) {
-            return this.removeContent(this._title, destroy);
+            const obj: LayoutContent = this.removeContent(this._title, destroy);
+            this._title = null;
+            return obj;
         }
         return null;
     }
@@ -115,9 +117,11 @@ export class CardBody extends LayoutManager {
         }
     }
 
-    removeDescription(destroy?: boolean): LayoutContent {
+    removeDescription(destroy: boolean = true): LayoutContent {
         if (this._description) {
-            return this.removeContent(this._description, destroy);
+            const obj: LayoutContent = this.removeContent(this._description, destroy);
+            this._description = null;
+            return obj;
         }
         return null;
     }
@@ -173,7 +177,7 @@ export class CardBody extends LayoutManager {
         }
     }
 
-    removeAllButtons(destroy?: boolean): TextButton[] {
+    removeAllButtons(destroy: boolean = true): TextButton[] {
         const buttons: TextButton[] = this._buttonsLayout.removeAllContent(destroy) as TextButton[];
         this._buttons = [];
         this.layout();

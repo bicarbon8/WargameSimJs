@@ -12,30 +12,40 @@ export class Team {
     private _teamMgr: TeamManager;
     private _playerMgr: PlayerManager;
     private _name: string;
-    private _colour: string;
+    private _color: string;
     private _originalPoints: number;
     private _remainingPoints: number;
     private _score: number;
-    private _priority: number;
 
     constructor(options: TeamOptions) {
         this.id = Rand.guid();
         this._teamMgr = options.teamManager;
         this._playerMgr = options.playerManager;
         this._name = options.name;
-        this._colour = options.colour;
+        this._color = options.color || Rand.colorString();
         this._originalPoints = options.points;
         this._remainingPoints = this._originalPoints;
         this._score = 0;
-        this._priority = 0;
     }
 
     get name(): string {
         return this._name;
     }
 
-    get colour(): string {
-        return this._colour;
+    get color(): string {
+        return this._color;
+    }
+
+    get remainingPoints(): number {
+        return this._remainingPoints;
+    }
+
+    get score(): number {
+        return this._score;
+    }
+
+    hasPlayers(): boolean {
+        return this.getPlayers().length > 0;
     }
 
     getPlayersByName(name: string): IPlayer[] {
@@ -75,24 +85,8 @@ export class Team {
         return removed;
     }
 
-    get remainingPoints(): number {
-        return this._remainingPoints;
-    }
-
-    get score(): number {
-        return this._score;
-    }
-
     addToScore(increase: number): void {
         this._score += increase;
-    }
-
-    get priority(): number {
-        return this._priority;
-    }
-
-    set priority(priority: number) {
-        this._priority = priority;
     }
 
     destroy(): void {

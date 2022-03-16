@@ -5,31 +5,45 @@ import { GridCellOptions } from "./grid-cell-options";
 
 export class GridCell extends Phaser.GameObjects.Container {
     public readonly id: string;
-
+    
     private _scaleToFit: boolean;
     private _keepAspectRatio: boolean;
     private _top: number;
     private _bottom: number;
     private _left: number;
     private _right: number;
+    private _row: number;
+    private _column: number;
+    private _padding: number;
     private _alignment: Alignment;
     private _background: Phaser.GameObjects.Graphics;
-    private _contents: LayoutContent;
+    private _content: LayoutContent;
     private _debug: boolean;
     private _debugText: Phaser.GameObjects.Text;
     
     constructor(options: GridCellOptions) {
         super(options.scene, options.x, options.y);
-        this.id = options.id || Rand.guid();
+        this.id = Rand.guid();
+        this._row = options.row || 0;
+        this._column = options.column || 0;
+        this._padding = options.padding || 0;
         this._debug = options.debug;
         const width: number = options.width || 0;
         const height: number = options.height || 0;
         this.updateSize(width, height);
-        this.setBackground(options.backgroundColor, options.backgroundAlpha, options.border, options.borderColor, options.borderAlpha);
+        this.setBackground(options.style);
         this.setContent(options);
         if (this._debug) {
             this._displayDebugInfo();
         }
+    }
+
+    get row(): number {
+        return this._row;
+    }
+
+    get column(): number { 
+        return this._column;
     }
 
     get top(): number {
@@ -55,8 +69,12 @@ export class GridCell extends Phaser.GameObjects.Container {
         return this._alignment;
     }
 
-    get contents(): LayoutContent {
-        return this._contents;
+    get content(): LayoutContent {
+        return this._content;
+    }
+
+    contentAs<T extends LayoutContent>(): T {
+        return this.content as T;
     }
 
     get background(): Phaser.GameObjects.Graphics {
@@ -72,92 +90,94 @@ export class GridCell extends Phaser.GameObjects.Container {
         if (this.background) {
             // TODO: update background size and position
         }
-        if (this.contents) {
+        if (this.content) {
             // TODO: update contents scale and position
         }
     }
 
     setContent(options: GridCellOptions): void {
         if (options.content) {
-            if (this._contents) { this.remove(this._contents); } // remove previous contents
-            this._contents = options.content;
-            this.setContentsScale(options.scaleToFit, options.keepAspectRatio);
-            this.setContentsPosition(this._alignment);
-            this.add(this._contents);
-            this.bringToTop(this._contents);
+            if (this._content) { this.remove(this._content); } // remove previous contents
+            this._content = options.content;
+            this.setContentScale(options.scaleToFit, options.keepAspectRatio);
+            this.setContentPosition(options.alignment);
+            this.add(this._content);
+            this.bringToTop(this._content);
             if (this._debug) {
                 this._displayDebugInfo();
             }
         }
     }
 
-    setBackground(backgroundColor: number, backgroundAlpha: number, border: number, borderColor: number, borderAlpha: number): void {
-        if (this._background) { 
-            this.remove(this._background);
-            this._background.destroy();
-            this._background = null;
+    setBackground(style: Phaser.Types.GameObjects.Graphics.Styles): void {
+        if (style || this._debug) {
+            if (this._background) { 
+                this.remove(this._background);
+                this._background.destroy();
+                this._background = null;
+            }
+            style = style || {
+                lineStyle: {
+                    width: 1,
+                    color: 0xfc03e8,
+                    alpha: 1
+                }
+            };
+            this._background = this.scene.add.graphics(style);
+            this.add(this._background);
+            if (style?.fillStyle) {this._background.fillRect(this.left, this.top, this.width, this.height);}
+            if (style?.lineStyle || this._debug) {this._background.strokeRect(this.left, this.top, this.width, this.height);}
+            this.sendToBack(this._background);
         }
-        this._background = this.scene.add.graphics({fillStyle: {
-            color: backgroundColor || 0x000000,
-            alpha: backgroundAlpha || 0
-        }, lineStyle: {
-            width: border || (this._debug) ? 1 : 0,
-            color: borderColor || (this._debug) ? 0xfc03e8 : 0x000000,
-            alpha: borderAlpha || (this._debug) ? 1 : 0
-        }});
-        this.add(this._background);
-        this._background.fillRect(this.left, this.top, this.width, this.height);
-        this._background.strokeRect(this.left, this.top, this.width, this.height);
-        this.sendToBack(this._background);
     }
 
-    setContentsScale(scaleToFit: boolean = true, keepAspectRatio: boolean = true): void {
+    setContentScale(scaleToFit: boolean = true, keepAspectRatio: boolean = true): void {
         this._scaleToFit = scaleToFit;
         this._keepAspectRatio = keepAspectRatio;
-        if (this.contents) {
-            const width: number = this.contents.width;
-            const height: number = this.contents.height;
-            if (this._scaleToFit && (width > this.width || height > this.height)) {
-                const scaleX: number = this.width / width;
-                const scaleY: number = this.height / height;
+        if (this.content) {
+            const width: number = this.content.width;
+            const height: number = this.content.height;
+            if (this._scaleToFit && (width > (this.width - (this._padding * 2)) || height > (this.height - (this._padding * 2)))) {
+                const scaleX: number = (this.width - (this._padding * 2)) / width;
+                const scaleY: number = (this.height - (this._padding * 2)) / height;
                 if (this._keepAspectRatio) {
                     const scale: number = (scaleX < scaleY) ? scaleX : scaleY;
-                    this.contents.setScale(scale);    
+                    this.content.setScale(scale);    
                 } else {
-                    this.contents.setScale(scaleX, scaleY);
+                    this.content.setScale(scaleX, scaleY);
                 }
             } else {
-                this.contents.setScale(1);
+                this.content.setScale(1);
             }
         }
     }
 
-    setContentsPosition(alignment: Alignment): void {
+    setContentPosition(alignment: Alignment): void {
         this._alignment = alignment;
-        if (this.contents) {
-            if (!(this.contents instanceof Phaser.GameObjects.Container)) { this.contents.setOrigin(0.5, 0.5); }
-            switch(this.alignment.horizontal) {
+        if (this.content) {
+            if (!(this.content instanceof Phaser.GameObjects.Container)) { this.content.setOrigin(0.5, 0.5); }
+            switch(this.alignment?.horizontal) {
                 case 'right':
-                    this.contents.setX(this.width - ((this.contents.width * this.contents.scaleX) / 2));
+                    this.content.setX(this.right - this._padding - ((this.content.width * this.content.scaleX) / 2));
                     break;
                 case 'right':
-                    this.contents.setX((this.contents.width * this.contents.scaleX) / 2);
+                    this.content.setX(this.left + this._padding + ((this.content.width * this.content.scaleX) / 2));
                     break;
                 case 'centre':
                 default:
-                    this.contents.setX(0);
+                    this.content.setX(0);
                     break;
             }
-            switch(this.alignment.vertical) {
+            switch(this.alignment?.vertical) {
                 case 'bottom':
-                    this.contents.setY(this.height - ((this.contents.height * this.contents.scaleY) / 2));
+                    this.content.setY(this.bottom - this._padding - ((this.content.height * this.content.scaleY) / 2));
                     break;
                 case 'top':
-                    this.contents.setY((this.contents.height * this.contents.scaleY) / 2);
+                    this.content.setY(this.top + this._padding + ((this.content.height * this.content.scaleY) / 2));
                     break;
                 case 'middle':
                 default:
-                    this.contents.setY(0);
+                    this.content.setY(0);
                     break;
             }
         }

@@ -1,21 +1,21 @@
 import { Alignment } from "./alignment";
+import { GridLayout } from "./grid-layout";
 import { LayoutContent } from "./layout-content";
 
 export interface GridCellOptions {
-    id?: string;
     scene?: Phaser.Scene;
+    gridLayout?: GridLayout;
     x?: number;
     y?: number;
     width?: number;
     height?: number;
+    row?: number;
+    column?: number;
+    padding?: number;
     alignment?: Alignment;
     scaleToFit?: boolean;
     keepAspectRatio?: boolean;
-    backgroundColor?: number;
-    backgroundAlpha?: number;
-    border?: number;
-    borderColor?: number;
-    borderAlpha?: number;
+    style?: Phaser.Types.GameObjects.Graphics.Styles,
     content?: LayoutContent;
     debug?: boolean;
 }

@@ -1,4 +1,5 @@
 import { IPlayer } from "../players/i-player";
+import { ButtonStyle } from "../ui/buttons/button-style";
 import { Helpers } from "../utils/helpers";
 import { Rand } from "../utils/rand";
 import { WarGame } from "../war-game";
@@ -46,12 +47,12 @@ export class MeleBattle extends Battle {
             winner = this.attackers;
             loser = this.defenders;
             attacks = attackerScores;
-            console.info('attackers succeeded in their attack!');
+            this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers succeeded in their attack!', ButtonStyle.info);
         } else {
             winner = this.defenders;
             loser = this.attackers;
             attacks = defenderScores;
-            console.info('attackers failed to attack defenders!');
+            this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers failed to attack defenders!', ButtonStyle.info);
         }
         this.pushBackPlayers(loser);
 
@@ -59,11 +60,15 @@ export class MeleBattle extends Battle {
             var success = this.tryToWound(winner[i], loser[0]);
             if (success) {
                 // TODO: let winner pick who to wound
-                let index: number = Rand.getInt(0, loser.length);
-                loser[index].wound();
-                console.info(`defender: ${loser[index].name} wounded!`);
+                let index: number = Rand.getInt(0, loser.length - 1);
+                let lp: IPlayer = loser[index];
+                lp.wound();
+                if (lp.isDead()) {
+                    loser.splice(index, 1);
+                }
+                this.battleManager.emit(WarGame.EVENTS.MESSAGE, `defender: ${lp.name} wounded!`, ButtonStyle.info);
             } else {
-                console.info('attackers caused no damage with attack!');
+                this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers caused no damage with attack!', ButtonStyle.info);
             }
         }
     }

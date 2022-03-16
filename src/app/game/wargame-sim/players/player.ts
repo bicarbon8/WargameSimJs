@@ -6,6 +6,9 @@ import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
 import { PlayerSpritesheetMapping } from "./player-spritesheet-mappings";
 import { PlayerManager } from "./player-manager";
+import { Team } from "../teams/team";
+import { Helpers } from "../utils/helpers";
+import { LayoutManager } from "../ui/layout/layout-manager";
 
 export class Player implements IPlayer {
     readonly id: string;
@@ -19,11 +22,12 @@ export class Player implements IPlayer {
     private _teamId: string;
     private _remainingWounds: number;
     private _effects: Set<PlayerStatusEffect>;
-    private _obj: Phaser.GameObjects.Sprite;
+    private _obj: Phaser.GameObjects.Container;
+    private _woundsIndicator: LayoutManager;
 
     constructor(options: PlayerOptions) {
         this.id = Rand.guid();
-        this._scene = options.scene || WarGame.uiMgr.game.scene.getScenes(true)?.shift();
+        this._scene = options.scene || WarGame.uiMgr.scene;
         this._playerMgr = options.playerManager;
         this._name = options.name;
         this._stats = options.stats;
@@ -44,7 +48,7 @@ export class Player implements IPlayer {
         return this._tileY;
     }
 
-    get obj(): Phaser.GameObjects.Sprite {
+    get obj(): Phaser.GameObjects.Container {
         if (!this._obj) {
             this._createGameObject();
         }
@@ -69,6 +73,8 @@ export class Player implements IPlayer {
 
     setTeamId(id: string): this {
         this._teamId = id;
+        this._obj?.destroy();
+        this._obj = null;
         return this;
     }
 
@@ -78,6 +84,19 @@ export class Player implements IPlayer {
 
     wound(): this {
         this._remainingWounds--;
+        this._woundsIndicator.removeContent(this._woundsIndicator.contents[0]);
+        if (this.isDead()) {
+            this._playerMgr.emit(WarGame.EVENTS.PLAYER_DIED, this);
+            this._scene.tweens.add({
+                targets: this.obj,
+                alpha: 0,
+                yoyo: true,
+                loop: 2,
+                onComplete: (tween: Phaser.Tweens.Tween, targets: Phaser.GameObjects.Sprite) => {
+                    this._playerMgr.removePlayer(this, true);
+                }
+            })
+        }
         return this;
     }
 
@@ -131,10 +150,54 @@ export class Player implements IPlayer {
     }
 
     private _createGameObject(): void {
-        this._obj = this._scene.add.sprite(0, 0, 'players', this._spriteMapping.front);
-        this._obj.setOrigin(0.5);
-        this._obj.setDepth(WarGame.DEPTH.PLAYER);
+        this._obj = this._scene.add.container(0, 0);
+        this.obj.setDepth(WarGame.DEPTH.PLAYER);
         this.obj.setVisible(false); // set visible when added to map
+
+        const sprite: Phaser.GameObjects.Sprite = this._scene.add.sprite(0, 0, 'players', this._spriteMapping.front);
+        sprite.setOrigin(0.5);
+        this.obj.add(sprite);
+
+        this._createTeamBackground();
+
+        this.obj.setSize(32, 32);
         this.obj.setInteractive();
+
+        this._createRemainingWoundsIndicator();
+    }
+
+    private _createTeamBackground(): void {
+        if (this._teamId) {
+            const team: Team = WarGame.teamMgr.getTeamById(this._teamId);
+            const circle: Phaser.GameObjects.Graphics = this._scene.add.graphics({fillStyle: {color: Rand.colorNumber(team.color)}});
+            circle.fillCircle(0, 0, 16);
+            this.obj.add(circle);
+            this.obj.sendToBack(circle);
+        }
+    }
+
+    private _createRemainingWoundsIndicator(): void {
+        this._woundsIndicator = new LayoutManager({
+            scene: this._scene,
+            y: -20,
+            orientation: 'horizontal',
+            padding: 2
+        });
+        this._woundsIndicator.setVisible(false); // only visible on mouseover player
+        this.obj.add(this._woundsIndicator);
+        for (var i=0; i<this.stats.wounds; i++) {
+            let square: Phaser.GameObjects.Graphics = this._scene.add.graphics({fillStyle: {color: 0xff6060}, lineStyle: {color: 0x000000, width: 1}});
+            square.fillRect(-2, -2, 4, 4);
+            square.strokeRect(-2, -2, 4, 4);
+            let squareContainer: Phaser.GameObjects.Container = this._scene.add.container(0, 0, [square]);
+            squareContainer.setSize(4, 4);
+            this._woundsIndicator.addContents(squareContainer);
+        }
+
+        this.obj.on(Phaser.Input.Events.POINTER_OVER, () => {
+            this._woundsIndicator.setVisible(true);
+        }, this).on(Phaser.Input.Events.POINTER_OUT, () => {
+            this._woundsIndicator.setVisible(false);
+        });
     }
 }

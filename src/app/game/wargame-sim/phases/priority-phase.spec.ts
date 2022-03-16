@@ -1,20 +1,29 @@
+import { BattleManager } from '../battles/battle-manager';
+import { PlayerManager } from '../players/player-manager';
 import { Team } from '../teams/team';
 import { TeamManager } from '../teams/team-manager';
+import { UIManager } from '../ui/ui-manager';
+import { PhaseManager } from './phase-manager';
 import { PriorityPhase } from './priority-phase';
 
 describe('Priority', () => {
   it('will randomly prioritise team orders on runPhase call', async () => {
-    let teamMgr = new TeamManager();
+    let teamMgr = new TeamManager(new PlayerManager());
     for (var i=0; i<10; i++) {
-      let team: Team = new Team({name:`team-${i}`, points:100});
-      teamMgr.addTeam(team);
+      teamMgr.addTeam({name:`team-${i}`, points:100});
     }
-    let unordered: Team[] = teamMgr.teams();
-    let priorityPhase: PriorityPhase = new PriorityPhase(teamMgr);
-
+    const unordered: Team[] = teamMgr.teams;
+    const uiMgr: UIManager = new UIManager();
+    const priorityPhase: PriorityPhase = new PriorityPhase(new PhaseManager(teamMgr, uiMgr, new BattleManager(teamMgr, uiMgr)), teamMgr);
     priorityPhase.start();
 
-    let ordered: Team[] = teamMgr.teams();
-    expect(ordered).not.toEqual(unordered);
+    let same: boolean = true;
+    for (var i=0; i<teamMgr.teams.length; i++) {
+      if(priorityPhase.getTeam(i).id !== unordered[i].id) {
+        same = false;
+        break;
+      }
+    }
+    expect(same).toBe(false);
   });
 });

@@ -7,7 +7,6 @@ import { TeamOptions } from "./team-options";
 export class TeamManager extends Phaser.Events.EventEmitter {
     private readonly _teams: Team[];
     private readonly _playerMgr: PlayerManager;
-    
     private _currentTeamIndex: number;
 
     constructor(playerManager: PlayerManager) {
@@ -19,6 +18,10 @@ export class TeamManager extends Phaser.Events.EventEmitter {
 
     get playerManager(): PlayerManager {
         return this._playerMgr;
+    }
+
+    get teams(): Team[] {
+        return this._teams;
     }
 
     addTeam(options: TeamOptions): Team {
@@ -39,15 +42,18 @@ export class TeamManager extends Phaser.Events.EventEmitter {
         }
     }
 
-    removeTeam(team: Team, destroy?: boolean): Team {
+    removeTeam(team: Team | number, destroy?: boolean): Team {
         let removed: Team;
         if (team) {
-            const index: number = this._teams.findIndex((t: Team) => t.id === team.id);
-            if (index >= 0) {
+            const tt: Team = team as Team;
+            let index: number;
+            if (tt?.id) {
+                index = this._teams.findIndex((t: Team) => t.id === tt.id);
+            } else {
+                index = team as number;
+            }
+            if (index >= 0 && index < this._teams.length) {
                 removed = this._teams.splice(index, 1)[0];
-                if (this.currentTeamIndex >= index) {
-                    this.movePrevious();
-                }
                 if (destroy) {
                     removed.destroy();
                 }
@@ -55,62 +61,6 @@ export class TeamManager extends Phaser.Events.EventEmitter {
             }
         }
         return removed;
-    }
-
-    get currentTeamIndex(): number {
-        return this._currentTeamIndex;
-    }
-
-    get teams(): Team[] {
-        let ordered: Team[] = [];
-        for (var i=0; i<this._teams.length; i++) {
-            let t: Team = this._teams[i];
-            if (ordered.length > 0) {
-                for (var j=0; j<ordered.length; j++) {
-                    let ot: Team = ordered[j];
-                    if (t.priority > ot.priority) {
-                        if (j >= ordered.length-1) {
-                            ordered.push(t);
-                            break;
-                        }
-                    } else {
-                        ordered.splice(j, 0, t);
-                        break;
-                    }
-                }
-            } else {
-                ordered.push(t);
-            }
-        }
-        return ordered;
-    }
-
-    get currentTeam(): Team {
-        return this._teams[this.currentTeamIndex];
-    }
-
-    moveNext(): Team {
-        this._currentTeamIndex++;
-        if (this._currentTeamIndex >= this._teams.length) {
-            this._currentTeamIndex = 0;
-        }
-        this.emit(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this.currentTeam);
-        return this.currentTeam;
-    }
-
-    movePrevious(): Team {
-        this._currentTeamIndex--;
-        if (this._currentTeamIndex < 0) {
-            this._currentTeamIndex = this._teams.length - 1;
-        }
-        this.emit(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this.currentTeam);
-        return this.currentTeam;
-    }
-
-    resetTeamIndex(): Team {
-        this._currentTeamIndex = 0;
-        this.emit(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this.currentTeam);
-        return this.currentTeam;
     }
 
     getTeamById(id: string): Team {

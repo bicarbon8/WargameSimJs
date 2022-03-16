@@ -1,5 +1,4 @@
 import { Helpers } from "../../utils/helpers";
-import { LayoutContent } from "../layout/layout-content";
 import { CardHeaderOptions } from "./card-header-options";
 
 export class CardHeader extends Phaser.GameObjects.Container {
@@ -45,9 +44,11 @@ export class CardHeader extends Phaser.GameObjects.Container {
         }
     }
 
-    removeText(destroy?: boolean): Phaser.GameObjects.Text {
+    removeText(destroy: boolean = true): Phaser.GameObjects.Text {
+        const obj: Phaser.GameObjects.Text = this._text;
         this.remove(this._text, destroy);
-        return this._text;
+        this._text = null;
+        return obj;
     }
 
     resizeBackground(width: number, height: number): void {

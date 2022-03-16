@@ -9,14 +9,26 @@ export class PriorityPhase implements IPhase {
     private readonly _phaseMgr: PhaseManager
     private readonly _teamMgr: TeamManager;
     private _active: boolean;
+    private _orderedTeams: Team[];
+    private _currentPriority: number;
     
     constructor(phaseManager: PhaseManager, teamManager: TeamManager) {
         this._phaseMgr = phaseManager;
         this._teamMgr = teamManager;
+        this._currentPriority = 0;
+        this._orderedTeams = [];
     }
 
     get active(): boolean {
         return this._active;
+    }
+
+    get priorityTeam(): Team {
+        return this.getTeam(this._currentPriority);
+    }
+
+    get currentPriority(): number {
+        return this._currentPriority;
     }
 
     start(): IPhase {
@@ -24,22 +36,33 @@ export class PriorityPhase implements IPhase {
         this._active = true;
         this._phaseMgr.emit(WarGame.EVENTS.PHASE_START, this);
         let teams: Team[] = this._teamMgr.teams;
-        let orderedTeams: Team[] = this._orderTeamsByPriority(teams);
-        for (var i=0; i<orderedTeams.length; i++) {
-            let team: Team = orderedTeams[i];
-            team.priority = i;
-        }
+        this._orderedTeams = this._rollForPriority(teams);
+        this._teamMgr.emit(WarGame.EVENTS.TEAM_CHANGED, this.priorityTeam);
         this._active = false;
         this._phaseMgr.emit(WarGame.EVENTS.PHASE_END, this);
         return this;
     }
 
-    skipTeam(team?: Team): IPhase {
+    getTeam(priority: number): Team {
+        if (priority >= 0 && priority < this._teamMgr.teams.length) {
+            return this._orderedTeams[priority];
+        }
+        return null;
+    }
+
+    nextTeam(team?: Team): IPhase {
+        this._currentPriority++;
+        if (this._currentPriority >= this._teamMgr.teams.length) {
+            this._currentPriority = 0;
+        }
+        this._teamMgr.emit(WarGame.EVENTS.TEAM_CHANGED, this.priorityTeam);
         return this;
     }
 
     reset(): IPhase {
         this._active = false;
+        this._currentPriority = 0;
+        this._orderedTeams = [];
         return this;
     }
 
@@ -51,46 +74,45 @@ export class PriorityPhase implements IPhase {
         return PhaseType[this.getType()];
     }
 
-    private _orderTeamsByPriority(teams: Team[]): Team[] {
+    /**
+     * assign each team a priority order based on dice rolls using an array where
+     * ```
+     * |[0]|[1]|[2]|[3]|[4]|[5]| // rolls shifed down by 1 (0-5)
+     * | A | B |   | D | G | H |
+     * |   | C |   | E |   | I |
+     * |   |   |   | F |   |   |
+     * ```
+     * which, for each index is then ordered and reversed
+     * resulting in an array of teams like:
+     * ```
+     * | H | I | G | F | D | E | B | C | A |
+     * ```
+     * @param teams the teams to be prioritised
+     */
+    private _rollForPriority(teams: Team[]): Team[] {
+        if (teams?.length === 1) {
+            return teams;
+        }
         let orderedTeams: Team[] = [];
-        let diceRolls: number[] = WarGame.dice.rollMultiple(teams.length);
-        let orders: {} = {};
-        for (var i=0; i<diceRolls.length; i++) {
-            let roll: number = diceRolls[i];
-            let team: Team = teams[i];
-            if (!orders[roll.toString()]) {
-                orders[roll.toString()] = [];
+        if (teams?.length) {
+            const orders: Team[][] = [];
+            const rolls: number[] = WarGame.dice.rollMultiple(teams.length, 6);
+            // for each possible dice roll value (1-6) add each team to an array under that number
+            for (var i=0; i<6; i++) {
+                orders[i] = [];
+                for (var j=0; j<rolls.length; j++) {
+                    if (rolls[j] === i+1) {
+                        orders[i].push(teams[j]);
+                    }
+                }
             }
-            orders[roll.toString()].push(team);
-        }
-        for (var i=1; i<7; i++) {
-            let v = orders[i.toString()];
-            if (v) {
-                if (Array.isArray(v) && v.length > 1) {
-                    orders[i.toString()] = this._orderTeamsByPriority(v);
+            for (var i=0; i<orders.length; i++) {
+                let teams: Team[] = orders[i];
+                if (teams?.length) {
+                    orderedTeams = orderedTeams.concat(this._rollForPriority(teams));
                 }
             }
         }
-        orderedTeams = this._processOrders(orders);
-        return orderedTeams;
-    }
-
-    private _processOrders(orders: {}): Team[] {
-        let orderedTeams: Team[] = [];
-        for (var i=1; i<7; i++) {
-            let v = orders[i.toString()];
-            if (v) {
-                let ordered: Team[];
-                if (Array.isArray(v)) {
-                    ordered = v;
-                } else {
-                    ordered = this._processOrders(v);
-                }
-                for (var j=0; j<ordered.length; j++) {
-                    orderedTeams.push(ordered[j]);
-                }
-            }
-        }
-        return orderedTeams;
+        return orderedTeams.reverse();
     }
 }

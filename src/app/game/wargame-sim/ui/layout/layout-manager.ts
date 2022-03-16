@@ -31,7 +31,7 @@ export class LayoutManager extends Phaser.GameObjects.Container {
         }
     }
 
-    removeContent(content: LayoutContent, destroy?: boolean): LayoutContent {
+    removeContent(content: LayoutContent, destroy: boolean = true): LayoutContent {
         let removed: LayoutContent;
         if (content) {
             let index: number = this._contents.indexOf(content);
@@ -44,14 +44,13 @@ export class LayoutManager extends Phaser.GameObjects.Container {
         return removed;
     }
 
-    removeAllContent(destroy?: boolean): LayoutContent[] {
+    removeAllContent(destroy: boolean = true): LayoutContent[] {
         const removed: LayoutContent[] = [];
-        for (var i=0; i<this.contents.length; i++) {
-            let c: LayoutContent = this.contents[i];
+        while (this.contents?.length) {
+            let c: LayoutContent = this._contents.shift();
             this.remove(c, destroy);
             removed.push(c);
         }
-        this._contents = [];
         this.layout();
         return removed;
     }

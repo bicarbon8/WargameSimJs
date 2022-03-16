@@ -2,7 +2,7 @@ import { HasGameObject } from "../interfaces/has-game-object";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
 
-export interface IPlayer extends HasGameObject<Phaser.GameObjects.Sprite> {
+export interface IPlayer extends HasGameObject<Phaser.GameObjects.Container> {
     readonly id: string;
     readonly tileX: number;
     readonly tileY: number;

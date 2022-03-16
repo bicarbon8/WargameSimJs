@@ -70,11 +70,11 @@ export class PlayerManager extends Phaser.Events.EventEmitter {
     }
 
     areAllies(...players: IPlayer[]): boolean {
-        if (players) {
+        if (players?.length) {
             for (var i = 0; i < players.length - 1; i++) {
-                let teamAId: string = players[i].teamId;
-                let teamBId: string = players[i + 1].teamId;
-                if (teamAId != teamBId) {
+                let teamAId: string = players[i]?.teamId;
+                let teamBId: string = players[i + 1]?.teamId;
+                if (teamAId !== teamBId) {
                     return false;
                 }
             }

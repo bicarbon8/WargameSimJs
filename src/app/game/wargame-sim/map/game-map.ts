@@ -8,7 +8,7 @@ import { HasGameObject } from "../interfaces/has-game-object";
 import { AStarFinder } from "astar-typescript";
 import { PlayerManager } from "../players/player-manager";
 
-export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
+export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     private readonly _options: GameMapOptions;
     private readonly _playerMgr: PlayerManager;
     private readonly _tileWidth: number;
@@ -21,6 +21,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     private _tileMap: Phaser.Tilemaps.Tilemap;
     
     constructor(options: GameMapOptions) {
+        super();
         this._setDefaultOptions(options);
         this._options = options;
         this._scene = options.scene;
@@ -57,6 +58,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         if (player && this.isValidLocation(tileX, tileY)) {
             if (!this.isTileOccupied(tileX, tileY)) {
                 player.setTile(tileX, tileY, this.getTileWorldCentre(tileX, tileY));
+                this.emit(WarGame.EVENTS.PLAYER_ADDED, player);
             }
         }
     }
@@ -74,6 +76,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
                     duration: 500,
                     onComplete: () => {
                         player.setTile(endX, endY, this.getTileWorldCentre(endX, endY));
+                        this.emit(WarGame.EVENTS.PLAYER_MOVED, player);
                     },
                     onCompleteScope: this
                 });
@@ -186,6 +189,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
             }
         }
         this._layer.setCollisionByExclusion([0, 1, 2, 3, 4, 5, 6, 7]);
+        this._layer.setPosition(-(this._layer.width / 2), -(this._layer.height / 2));
     }
 
     private _setDefaultOptions(options: GameMapOptions): void {

@@ -13,14 +13,14 @@ export class ShootingPhase implements IPhase {
     private _active: boolean;
 
     private _inRangeEnemies: IPlayer[];
-    private _highlightedEnemies: IPlayer[];
+    private _highlightedTiles: Phaser.Tilemaps.Tile[];
     private _activePlayer: IPlayer;
     
     constructor(phaseManager: PhaseManager, battleManager: BattleManager) {
         this._phaseMgr = phaseManager;
         this._battleMgr = battleManager;
         this._shootTracker = new Set<string>();
-        this._highlightedEnemies = [];
+        this._highlightedTiles = [];
         this._inRangeEnemies = [];
     }
 
@@ -37,11 +37,11 @@ export class ShootingPhase implements IPhase {
         return this;
     }
 
-    skipTeam(team?: Team): IPhase {
-        team = this._battleMgr?.teamManager?.currentTeam;
+    nextTeam(team?: Team): IPhase {
+        team = this._battleMgr?.teamManager?.teams[this._phaseMgr.priorityPhase.currentPriority];
         if (team) {
             team.getPlayers().forEach((p: IPlayer) => this._shootTracker.add(p.id));
-            this._battleMgr.teamManager.moveNext();
+            this._phaseMgr.priorityPhase.nextTeam();
         }
         return this;
     }
@@ -71,7 +71,7 @@ export class ShootingPhase implements IPhase {
         let teamHasShot: boolean = false;
 
         const playerMovedCount: number = Array.from(this._shootTracker.values()).filter((id: string) => {
-            return this._battleMgr.teamManager.playerManager.getPlayerById(id).teamId === team.id;
+            return this._battleMgr.teamManager.playerManager.getPlayerById(id)?.teamId === team.id;
         }).length;
         if (playerMovedCount >= team.getPlayers().length) {
             teamHasShot = true;
@@ -93,7 +93,7 @@ export class ShootingPhase implements IPhase {
     private _startEventHandling(): void {
         this._battleMgr.on(WarGame.EVENTS.PLAYER_FIRED_SHOT, this._handlePlayerShot, this);
         this._battleMgr.on(WarGame.EVENTS.PLAYER_MISFIRED_SHOT, this._handlePlayerShot, this);
-        this._battleMgr.teamManager.on(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this._handleTeamChange, this);
+        this._battleMgr.teamManager.on(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
         this._battleMgr.teamManager.playerManager.players.forEach((p: IPlayer) => {
             p?.obj.on(Phaser.Input.Events.POINTER_UP, this._handlePlayerUp, this);
         });
@@ -102,14 +102,14 @@ export class ShootingPhase implements IPhase {
     private _stopEventHandling(): void {
         this._battleMgr.off(WarGame.EVENTS.PLAYER_FIRED_SHOT, this._handlePlayerShot, this);
         this._battleMgr.off(WarGame.EVENTS.PLAYER_MISFIRED_SHOT, this._handlePlayerShot, this);
-        this._battleMgr.teamManager.off(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this._handleTeamChange, this);
+        this._battleMgr.teamManager.off(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
         this._battleMgr.teamManager.playerManager.players.forEach((p: IPlayer) => {
             p?.obj.off(Phaser.Input.Events.POINTER_UP, this._handlePlayerUp, this);
         });
     }
 
     private _highlightTeam(): void {
-        const players: IPlayer[] = this._battleMgr.teamManager.currentTeam.getPlayers()
+        const players: IPlayer[] = this._phaseMgr.priorityPhase.priorityTeam.getPlayers()
         .filter((p: IPlayer) => !this._shootTracker.has(p.id));
         WarGame.uiMgr.scene.tweens.add({
             targets: players.map((p: IPlayer) => p.obj),
@@ -138,28 +138,32 @@ export class ShootingPhase implements IPhase {
                 }
             }
             this._activePlayer = null;
-            this._removeEnemyHighlighting();
+            this._removeTileHighlighting();
         } else {
-            this._removeEnemyHighlighting();
+            this._removeTileHighlighting();
             const world: Phaser.Math.Vector2 = this._battleMgr.uiManager.pointerToWorld(pointer.x, pointer.y);
             const tile: Phaser.Tilemaps.Tile = WarGame.map.obj.getTileAtWorldXY(world.x, world.y);
             if (tile) {
                 const player: IPlayer = this._battleMgr.teamManager.playerManager.getPlayerAt(tile.x, tile.y);
-                if (player?.teamId === this._battleMgr.teamManager.currentTeam.id) {
-                    this._activePlayer = player;
+                if (player?.teamId === this._phaseMgr.priorityPhase.priorityTeam.id) {
+                    let nearbyEnemies: IPlayer[] = WarGame.map.getPlayersInRange(player.tileX, player.tileY, 32)
+                    .filter((p: IPlayer) => WarGame.playerMgr.areEnemies(player, p));
+                    if (nearbyEnemies.length === 0) {
+                        this._activePlayer = player;
+                    }
                 }
                 if (this._activePlayer) {
                     if (this._shootTracker.has(this._activePlayer.id)) return;
 
-                    const enemiesInRange: IPlayer[] = WarGame.map.getPlayersInRange(tile.x, tile.y, (this._activePlayer.stats.move) * 32)
-                    .filter((player: IPlayer) => this._battleMgr.teamManager.playerManager.areEnemies(this._activePlayer, player));
+                    const tilesInRange: Phaser.Tilemaps.Tile[] = WarGame.map.getTilesInRange(tile.x, tile.y, (this._activePlayer.stats.move) * 32);
+                    const enemiesInRange: IPlayer[] = tilesInRange
+                    .map((tile: Phaser.Tilemaps.Tile) => WarGame.playerMgr.getPlayerAt(tile.x, tile.y))
+                    .filter((p: IPlayer) => WarGame.playerMgr.areEnemies(p, this._activePlayer));
                     this._inRangeEnemies = this._inRangeEnemies.concat(enemiesInRange);
-                    const enemiesNotInRange: IPlayer[] = this._battleMgr.teamManager.playerManager.getPlayers()
-                    .filter((p: IPlayer) => !enemiesInRange.includes(p) && p.id !== this._activePlayer.id);
-                    if (enemiesNotInRange?.length) {
-                        this._highlightedEnemies = this._highlightedEnemies.concat(enemiesNotInRange);
-                        for (var i=0; i<this._highlightedEnemies.length; i++) {
-                            this._highlightedEnemies[i].obj.alpha = 0.5;
+                    if (tilesInRange?.length) {
+                        this._highlightedTiles = this._highlightedTiles.concat(tilesInRange);
+                        for (var i=0; i<this._highlightedTiles.length; i++) {
+                            this._highlightedTiles[i].alpha = 0.5;
                         }
                     } else {
                         this._shootTracker.add(this._activePlayer.id);
@@ -170,17 +174,17 @@ export class ShootingPhase implements IPhase {
         }
     }
 
-    private _removeEnemyHighlighting(): void {
-        while (this._highlightedEnemies.length) {
-            let player: IPlayer = this._highlightedEnemies.shift();
-            player?.obj.clearAlpha();
+    private _removeTileHighlighting(): void {
+        while (this._highlightedTiles.length) {
+            let tile: Phaser.Tilemaps.Tile = this._highlightedTiles.shift();
+            tile?.clearAlpha();
         }
     }
 
     private _handlePlayerShot(player: IPlayer): void {
         this._shootTracker.add(player.id);
-        if (this._teamHasShot(this._battleMgr.teamManager.currentTeam)) {
-            this._battleMgr.teamManager.moveNext();
+        if (this._teamHasShot(this._phaseMgr.priorityPhase.priorityTeam)) {
+            this._phaseMgr.priorityPhase.nextTeam();
         }
         this._highlightTeam();
     }

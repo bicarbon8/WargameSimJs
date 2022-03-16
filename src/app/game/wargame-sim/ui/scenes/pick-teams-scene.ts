@@ -8,6 +8,8 @@ import { IPlayer } from "../../players/i-player";
 import { LayoutManager } from "../layout/layout-manager";
 import { GridLayout } from "../layout/grid-layout";
 import { LayoutContent } from "../layout/layout-content";
+import { ButtonStyle } from "../buttons/button-style";
+import { Rand } from "../../utils/rand";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: true,
@@ -16,14 +18,13 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 };
 
 export class PickTeamsScene extends Phaser.Scene {
-    private _width: number;
-    private _height: number;
     private _teamRemainingPointsText: Phaser.GameObjects.Text;
     private _layout: LayoutManager;
     private _startButton: TextButton;
     private _removeTeamCard: Card;
     private _addTeamCard: Card;
     private _playerCardsLayout: LayoutManager;
+    private _currentTeamIndex: number;
     
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
         super(settingsConfig || sceneConfig);
@@ -32,6 +33,7 @@ export class PickTeamsScene extends Phaser.Scene {
             name: `Team ${WarGame.teamMgr.teams.length}`,
             points: 100
         });
+        this._currentTeamIndex = 0;
     }
 
     preload(): void {
@@ -44,9 +46,6 @@ export class PickTeamsScene extends Phaser.Scene {
     }
 
     create(): void {
-        this._width = this.game.canvas.width;
-        this._height = this.game.canvas.height;
-
         this.cameras.main.centerOn(0, 0);
 
         this._createLayoutManager();
@@ -54,8 +53,8 @@ export class PickTeamsScene extends Phaser.Scene {
         this._createTeamPickerButtons();
         this._createStartButton();
 
-        if (this._layout.height > this._height) {
-            const scaleY: number = this._height / this._layout.height;
+        if (this._layout.height > WarGame.uiMgr.height) {
+            const scaleY: number = WarGame.uiMgr.height / this._layout.height;
             this._layout.setScale(scaleY);
         }
 
@@ -69,15 +68,19 @@ export class PickTeamsScene extends Phaser.Scene {
         
     }
 
+    get currentTeam(): Team {
+        return WarGame.teamMgr.teams[this._currentTeamIndex];
+    }
+
     updateCurrentTeamPointsRemainingDisplay(): void {
-        this._teamRemainingPointsText.setText(`'${WarGame.teamMgr.currentTeam.name}' remaining points: ${WarGame.teamMgr.currentTeam.remainingPoints}`);
+        this._teamRemainingPointsText.setText(`'${this.currentTeam?.name}' remaining points: ${this.currentTeam?.remainingPoints}`);
     }
 
     updateCurrentTeamPlayerCounts(): void {
-        const basic: number = WarGame.teamMgr.currentTeam.getPlayersByName(WarGame.PLAYERS.BASIC.name).length;
-        const hero: number = WarGame.teamMgr.currentTeam.getPlayersByName(WarGame.PLAYERS.HERO.name).length;
-        const light: number = WarGame.teamMgr.currentTeam.getPlayersByName(WarGame.PLAYERS.LIGHT.name).length;
-        const heavy: number = WarGame.teamMgr.currentTeam.getPlayersByName(WarGame.PLAYERS.HEAVY.name).length;
+        const basic: number = this.currentTeam?.getPlayersByName(WarGame.PLAYERS.BASIC.name).length;
+        const hero: number = this.currentTeam?.getPlayersByName(WarGame.PLAYERS.HERO.name).length;
+        const light: number = this.currentTeam?.getPlayersByName(WarGame.PLAYERS.LIGHT.name).length;
+        const heavy: number = this.currentTeam?.getPlayersByName(WarGame.PLAYERS.HEAVY.name).length;
         this._playerCardsLayout?.contents?.forEach((c: LayoutContent) => {
             let card: Card = c as Card;
             if (card) {
@@ -112,7 +115,7 @@ export class PickTeamsScene extends Phaser.Scene {
             this._startButton.setAlpha(0.25);
             this._startButton.text.setColor('#808080');
         }
-        if (WarGame.teamMgr.currentTeam.getPlayers().length > 0) {
+        if (this.currentTeam?.getPlayers().length > 0) {
             this._addTeamCard.setAlpha(1);
         } else {
             this._addTeamCard.setAlpha(0.25);
@@ -139,8 +142,8 @@ export class PickTeamsScene extends Phaser.Scene {
         const chooseTeamText = new TextButton({
             scene: this,
             text: '~~~~~ Choose your Teams ~~~~~',
+            buttonStyle: ButtonStyle.secondary,
             padding: 10,
-            background: {color: 0x8d8d8d},
             cornerRadius: 5
         });
         this._layout.addContents(chooseTeamText);
@@ -150,16 +153,6 @@ export class PickTeamsScene extends Phaser.Scene {
         this._teamRemainingPointsText.setColor('#000000');
         this.updateCurrentTeamPointsRemainingDisplay();
         this.updateCurrentTeamPlayerCounts();
-        WarGame.teamMgr.on(WarGame.EVENTS.PLAYER_ADDED, (p: IPlayer) => {
-            this.updateCurrentTeamPointsRemainingDisplay();
-            this.updateCurrentTeamPlayerCounts();
-        }, this).on(WarGame.EVENTS.PLAYER_REMOVED, (p: IPlayer) => {
-            this.updateCurrentTeamPointsRemainingDisplay();
-            this.updateCurrentTeamPlayerCounts();
-        }, this).on(WarGame.EVENTS.CURRENT_TEAM_CHANGED, (t: Team) => {
-            this.updateCurrentTeamPointsRemainingDisplay();
-            this.updateCurrentTeamPlayerCounts();
-        }, this);
 
         this._layout.addContents(chooseTeamText, this._teamRemainingPointsText);
 
@@ -193,20 +186,20 @@ export class PickTeamsScene extends Phaser.Scene {
                     {
                         text: ' - ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 10,
                         interactive: true
                     },
@@ -216,15 +209,15 @@ export class PickTeamsScene extends Phaser.Scene {
         this._playerCardsLayout.addContents(basicPlayerCard);
         basicPlayerCard.cardbody.buttons[0];
         basicPlayerCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const basicPlayers: IPlayer[] = WarGame.teamMgr.currentTeam.getPlayersByName(WarGame.PLAYERS.BASIC.name);
+            const basicPlayers: IPlayer[] = this.currentTeam?.getPlayersByName(WarGame.PLAYERS.BASIC.name);
             if (basicPlayers.length > 0) {
-                WarGame.teamMgr.currentTeam.removePlayer(basicPlayers[0], true);
+                this.currentTeam?.removePlayer(basicPlayers[0], true);
             }
         }, this);
         basicPlayerCard.cardbody.buttons[2];
         basicPlayerCard.cardbody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (WarGame.teamMgr.currentTeam.remainingPoints >= WarGame.PLAYERS.BASIC.stats.cost) {
-                WarGame.teamMgr.currentTeam.addPlayer(WarGame.PLAYERS.BASIC);
+            if (this.currentTeam?.remainingPoints >= WarGame.PLAYERS.BASIC.stats.cost) {
+                this.currentTeam?.addPlayer(WarGame.PLAYERS.BASIC);
             }
         }, this);
 
@@ -250,20 +243,20 @@ export class PickTeamsScene extends Phaser.Scene {
                     {
                         text: ' - ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 10,
                         interactive: true
                     },
@@ -273,15 +266,15 @@ export class PickTeamsScene extends Phaser.Scene {
         this._playerCardsLayout.addContents(heroPlayerCard);
         heroPlayerCard.cardbody.buttons[0];
         heroPlayerCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const heroPlayers: IPlayer[] = WarGame.teamMgr.currentTeam.getPlayersByName(WarGame.PLAYERS.HERO.name);
+            const heroPlayers: IPlayer[] = this.currentTeam?.getPlayersByName(WarGame.PLAYERS.HERO.name);
             if (heroPlayers.length > 0) {
-                WarGame.teamMgr.currentTeam.removePlayer(heroPlayers[0], true);
+                this.currentTeam?.removePlayer(heroPlayers[0], true);
             }
         }, this);
         heroPlayerCard.cardbody.buttons[2];
         heroPlayerCard.cardbody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (WarGame.teamMgr.currentTeam.remainingPoints >= WarGame.PLAYERS.HERO.stats.cost) {
-                WarGame.teamMgr.currentTeam.addPlayer(WarGame.PLAYERS.HERO);
+            if (this.currentTeam?.remainingPoints >= WarGame.PLAYERS.HERO.stats.cost) {
+                this.currentTeam?.addPlayer(WarGame.PLAYERS.HERO);
             }
         }, this);
 
@@ -307,20 +300,20 @@ export class PickTeamsScene extends Phaser.Scene {
                     {
                         text: ' - ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 10,
                         interactive: true
                     },
@@ -329,15 +322,15 @@ export class PickTeamsScene extends Phaser.Scene {
         });
         this._playerCardsLayout.addContents(lightPlayerCard);
         lightPlayerCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const lightPlayers: IPlayer[] = WarGame.teamMgr.currentTeam.getPlayersByName(WarGame.PLAYERS.LIGHT.name);
+            const lightPlayers: IPlayer[] = this.currentTeam?.getPlayersByName(WarGame.PLAYERS.LIGHT.name);
             if (lightPlayers.length > 0) {
-                WarGame.teamMgr.currentTeam.removePlayer(lightPlayers[0], true);
+                this.currentTeam?.removePlayer(lightPlayers[0], true);
             }
         }, this);
         lightPlayerCard.cardbody.buttons[2];
         lightPlayerCard.cardbody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (WarGame.teamMgr.currentTeam.remainingPoints >= WarGame.PLAYERS.LIGHT.stats.cost) {
-                WarGame.teamMgr.currentTeam.addPlayer(WarGame.PLAYERS.LIGHT);
+            if (this.currentTeam?.remainingPoints >= WarGame.PLAYERS.LIGHT.stats.cost) {
+                this.currentTeam?.addPlayer(WarGame.PLAYERS.LIGHT);
             }
         }, this);
 
@@ -363,20 +356,20 @@ export class PickTeamsScene extends Phaser.Scene {
                     {
                         text: ' - ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 10,
                         interactive: true
                     },
@@ -385,15 +378,15 @@ export class PickTeamsScene extends Phaser.Scene {
         });
         this._playerCardsLayout.addContents(heavyPlayerCard);
         heavyPlayerCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const heavyPlayers: IPlayer[] = WarGame.teamMgr.currentTeam.getPlayersByName(WarGame.PLAYERS.HEAVY.name);
+            const heavyPlayers: IPlayer[] = this.currentTeam?.getPlayersByName(WarGame.PLAYERS.HEAVY.name);
             if (heavyPlayers.length > 0) {
-                WarGame.teamMgr.currentTeam.removePlayer(heavyPlayers[0], true);
+                this.currentTeam?.removePlayer(heavyPlayers[0], true);
             }
         }, this);
         heavyPlayerCard.cardbody.buttons[2];
         heavyPlayerCard.cardbody.buttons[2].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (WarGame.teamMgr.currentTeam.remainingPoints >= WarGame.PLAYERS.HEAVY.stats.cost) {
-                WarGame.teamMgr.currentTeam.addPlayer(WarGame.PLAYERS.HEAVY);
+            if (this.currentTeam?.remainingPoints >= WarGame.PLAYERS.HEAVY.stats.cost) {
+                this.currentTeam?.addPlayer(WarGame.PLAYERS.HEAVY);
             }
         }, this);
 
@@ -401,7 +394,7 @@ export class PickTeamsScene extends Phaser.Scene {
     }
 
     private _createStartButton(): void {
-        const gridWidth: number = this._width / 3;
+        const gridWidth: number = WarGame.uiMgr.width / 3;
         const startAreaGrid: GridLayout = new GridLayout({
             scene: this,
             rows: 1,
@@ -425,12 +418,9 @@ export class PickTeamsScene extends Phaser.Scene {
                 buttons: [
                     {
                         text: ' << ',
-                        textStyle: {
-                            font: '40px Courier',
-                            color: '#000000'
-                        },
+                        textSize: 40,
                         padding: 10,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 20,
                         interactive: true
                     }
@@ -439,14 +429,15 @@ export class PickTeamsScene extends Phaser.Scene {
         });
         startAreaGrid.setGridCellContent(0, 0, this._removeTeamCard);
         this._removeTeamCard.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            if (WarGame.teamMgr.currentTeamIndex > 0) {
+            if (this._currentTeamIndex > 0) {
                 this.tweens.add({
                     targets: this._playerCardsLayout,
                     x: this._playerCardsLayout.width,
                     ease: 'Sine.easeOut',
                     duration: 100,
                     onComplete: (tween: Phaser.Tweens.Tween, targets: LayoutManager) => {
-                        WarGame.teamMgr.removeTeam(WarGame.teamMgr.currentTeam, true);
+                        this._currentTeamIndex--;
+                        WarGame.teamMgr.removeTeam(this._currentTeamIndex + 1, true);
                         this._playerCardsLayout.setX(-this._playerCardsLayout.width);
                         this.tweens.add({
                             targets: this._playerCardsLayout,
@@ -464,12 +455,9 @@ export class PickTeamsScene extends Phaser.Scene {
             scene: this,
             width: gridWidth,
             text: 'Start',
-            textStyle: {
-                font: '60px Courier', 
-                color: '#808080'
-            },
+            textSize: 60,
             padding: 20,
-            background: {color: 0x8888ff},
+            buttonStyle: ButtonStyle.primary,
             cornerRadius: 20,
             interactive: true
         });
@@ -484,7 +472,7 @@ export class PickTeamsScene extends Phaser.Scene {
 
         this._addTeamCard = new Card({
             scene: this,
-            width: this._width / 3,
+            width: WarGame.uiMgr.width / 3,
             header: {
                 text: 'Add Team',
                 textStyle: {
@@ -498,12 +486,9 @@ export class PickTeamsScene extends Phaser.Scene {
                 buttons: [
                     {
                         text: ' >> ',
-                        textStyle: {
-                            font: '40px Courier',
-                            color: '#000000'
-                        },
+                        textSize: 40,
                         padding: 10,
-                        background: {color: 0x606060},
+                        buttonStyle: ButtonStyle.secondary,
                         cornerRadius: 20,
                         interactive: true
                     }
@@ -520,11 +505,12 @@ export class PickTeamsScene extends Phaser.Scene {
                     ease: 'Sine.easeOut',
                     duration: 100,
                     onComplete: (tween: Phaser.Tweens.Tween, targets: LayoutManager) => {
+                        this._currentTeamIndex++;
                         WarGame.teamMgr.addTeam({
                             name: `Team ${WarGame.teamMgr.teams.length}`,
-                            points: 100
+                            points: 100,
+                            color: Rand.colorString()
                         });
-                        WarGame.teamMgr.moveNext();
                         this._playerCardsLayout.setX(this._playerCardsLayout.width);
                         this.tweens.add({
                             targets: this._playerCardsLayout,
@@ -541,15 +527,25 @@ export class PickTeamsScene extends Phaser.Scene {
         this._layout.addContents(startAreaGrid);
 
         this.updateStartButtonArea();
-        WarGame.teamMgr.on(WarGame.EVENTS.CURRENT_TEAM_CHANGED, (t: Team) => {
-            this.updateStartButtonArea();
-        }, this).on(WarGame.EVENTS.PLAYER_ADDED, (p: IPlayer) => {
+        WarGame.teamMgr.on(WarGame.EVENTS.PLAYER_ADDED, (p: IPlayer) => {
+            this.updateCurrentTeamPointsRemainingDisplay();
+            this.updateCurrentTeamPlayerCounts();
             this.updateStartButtonArea();
         }, this).on(WarGame.EVENTS.PLAYER_REMOVED, (p: IPlayer) => {
+            this.updateCurrentTeamPointsRemainingDisplay();
+            this.updateCurrentTeamPlayerCounts();
             this.updateStartButtonArea();
         }, this).on(WarGame.EVENTS.TEAM_ADDED, (p: IPlayer) => {
+            this.updateCurrentTeamPointsRemainingDisplay();
+            this.updateCurrentTeamPlayerCounts();
             this.updateStartButtonArea();
         }, this).on(WarGame.EVENTS.TEAM_REMOVED, (p: IPlayer) => {
+            this.updateCurrentTeamPointsRemainingDisplay();
+            this.updateCurrentTeamPlayerCounts();
+            this.updateStartButtonArea();
+        }, this).on(WarGame.EVENTS.TEAM_CHANGED, (t: Team) => {
+            this.updateCurrentTeamPointsRemainingDisplay();
+            this.updateCurrentTeamPlayerCounts();
             this.updateStartButtonArea();
         }, this);
     }

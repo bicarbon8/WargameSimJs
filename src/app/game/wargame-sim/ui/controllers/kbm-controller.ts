@@ -23,7 +23,7 @@ export class KBMController extends InputController {
     private _setupMouseBindings(): void {
         // Zoom Camera
         this.scene.input.on(Phaser.Input.Events.POINTER_WHEEL, (pointer: Phaser.Input.Pointer, deltaX: number, deltaY: number, deltaZ: number) => {
-            this.emit(WarGame.EVENTS.CAMERA_ZOOM);
+            this.emit(WarGame.EVENTS.CAMERA_ZOOM, deltaZ * -0.001);
             const zoom: number = this.scene.cameras.main.zoom;
             let newZoom: number = zoom + (deltaZ * -0.001);
             if (newZoom > WarGame.CONSTANTS.MAX_ZOOM) { newZoom = WarGame.CONSTANTS.MAX_ZOOM; }
@@ -67,10 +67,6 @@ export class KBMController extends InputController {
         });
 
         this.scene.input.keyboard.enableGlobalCapture();
-
-        this.game.canvas.oncontextmenu = (e) => {
-            e.preventDefault();
-        }
     }
 
     private _handleCameraScroll(): void {

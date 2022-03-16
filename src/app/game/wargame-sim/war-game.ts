@@ -37,10 +37,19 @@ export module WarGame {
         dice = null;
     }
 
+    export function width(): number {
+        return uiMgr?.width || 0;
+    }
+
+    export function height(): number {
+        return uiMgr?.height || 0;
+    }
+
     export function removeAllListeners(): void {
         playerMgr.removeAllListeners();
         teamMgr.removeAllListeners();
         phaseMgr.removeAllListeners();
+        battleMgr.removeAllListeners();
     }
 
     export module TIMING {
@@ -69,14 +78,16 @@ export module WarGame {
         export const PHASE_END: string = 'phase-end';
         export const TEAM_ADDED: string = 'team-added';
         export const TEAM_REMOVED: string = 'team-removed';
-        export const CURRENT_TEAM_CHANGED: string = 'current-team-changed';
+        export const TEAM_CHANGED: string = 'team-changed';
         export const PLAYER_ADDED: string = 'player-added';
         export const PLAYER_REMOVED: string = 'player-removed';
+        export const PLAYER_DIED: string = 'player-died';
         export const PLAYER_MOVED: string = 'player-moved';
         export const PLAYER_FIRED_SHOT: string = 'player-fired-shot';
         export const PLAYER_MISFIRED_SHOT: string = 'player-misfired-shot';
         export const PLAYER_HIT_SHOT: string = 'player-hit-shot';
         export const PLAYER_MISSED_SHOT: string = 'player-missed-shot';
+        export const MESSAGE: string = 'wargame-message';
     }
     export module PLAYERS {
         export const BASIC: PlayerOptions = {

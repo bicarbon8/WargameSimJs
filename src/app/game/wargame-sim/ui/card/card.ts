@@ -57,12 +57,13 @@ export class Card extends LayoutManager {
         }
     }
 
-    removeHeaderText(destroy?: boolean): Phaser.GameObjects.Text {
+    removeHeaderText(destroy: boolean = true): Phaser.GameObjects.Text {
         return this.header?.removeText(destroy);
     }
 
-    removeHeader(destroy?: boolean): CardHeader {
+    removeHeader(destroy: boolean = true): CardHeader {
         const header: CardHeader = this.removeContent(this.header, destroy) as CardHeader;
+        this._header = null;
         this.layout();
         return header;
     }
@@ -73,8 +74,9 @@ export class Card extends LayoutManager {
         }
     }
 
-    removeImage(destroy?: boolean): CardImage {
+    removeImage(destroy: boolean = true): CardImage {
         const image: CardImage = this.removeContent(this.image, destroy) as CardImage;
+        this._image = null;
         this.layout();
         return image;
     }
@@ -94,7 +96,7 @@ export class Card extends LayoutManager {
         }
     }
 
-    removeBodyTitle(destroy?: boolean): LayoutContent {
+    removeBodyTitle(destroy: boolean = true): LayoutContent {
         const title: LayoutContent = this.cardbody?.removeTitle(destroy);
         this.layout();
         return title;
@@ -115,7 +117,7 @@ export class Card extends LayoutManager {
         }
     }
 
-    removeBodyDescription(destroy?: boolean): LayoutContent {
+    removeBodyDescription(destroy: boolean = true): LayoutContent {
         const desc: LayoutContent = this.cardbody?.removeDescription(destroy);
         this.layout();
         return desc;
@@ -135,14 +137,15 @@ export class Card extends LayoutManager {
         }
     }
 
-    removeBodyButtons(destroy?: boolean): TextButton[] {
+    removeBodyButtons(destroy: boolean = true): TextButton[] {
         const buttons: TextButton[] = this.cardbody.removeAllButtons(destroy);
         this.layout();
         return buttons;
     }
 
-    removeCardBody(destroy?: boolean): CardBody {
+    removeCardBody(destroy: boolean = true): CardBody {
         const body: CardBody = this.removeContent(this.cardbody, destroy) as CardBody;
+        this._body = null;
         this.layout();
         return body;
     }

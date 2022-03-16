@@ -6,6 +6,7 @@ export interface GridLayoutOptions {
     height?: number;
     rows?: number;
     columns?: number;
-    customGrid?: any[][];
+    margins?: number;
+    padding?: number;
     debug?: boolean;
 }

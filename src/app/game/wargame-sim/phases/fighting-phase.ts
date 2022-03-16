@@ -29,7 +29,7 @@ export class FightingPhase implements IPhase {
         return this;
     }
 
-    skipTeam(team?: Team): IPhase {
+    nextTeam(team?: Team): IPhase {
         /* does nothing */
         return this;
     }

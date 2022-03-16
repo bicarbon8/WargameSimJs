@@ -1,4 +1,6 @@
 import { Helpers } from "../../utils/helpers";
+import { WarGame } from "../../war-game";
+import { ButtonStyle } from "./button-style";
 import { TextButtonOptions } from "./text-button-options";
 
 export class TextButton extends Phaser.GameObjects.Container {
@@ -21,23 +23,25 @@ export class TextButton extends Phaser.GameObjects.Container {
     }
 
     private _createGameObject(options: TextButtonOptions): void {
-        this.setText(options.text, options.textStyle);
-        this.setBackground(options.background);
+        this.setText(options.text, options.textSize, options.buttonStyle?.textColor);
+        this.setBackground(options.buttonStyle);
         
         if (options.interactive) { this.setInteractive(); }
 
         this._createDebug(options.debug);
     }
 
-    setText(text: string, style?: Phaser.Types.GameObjects.Text.TextStyle): void {
+    setText(text: string, size?: number, color?: string): void {
         if (text) {
             if (this._text) {
+                size = size || +this._text.style?.fontSize || 20;
+                color = color || this._text.style?.color || '#000000'
                 this._text.destroy();
                 this._text = null;
             }
-            const textStyle: Phaser.Types.GameObjects.Text.TextStyle = style || { 
-                font: '20px Courier', 
-                color: '#000000',
+            const textStyle: Phaser.Types.GameObjects.Text.TextStyle = { 
+                font: `${size || 20}px Courier`, 
+                color: color || '#000000',
             };
             const txt = this.scene.add.text(0, 0, text, textStyle);
             txt.setOrigin(0.5);
@@ -54,18 +58,21 @@ export class TextButton extends Phaser.GameObjects.Container {
         }
     }
 
-    setBackground(options?: Phaser.Types.GameObjects.Graphics.FillStyle): void {
+    setBackground(style?: ButtonStyle): void {
         if (this._background) {
             this._background.destroy();
             this._background = null;
         }
         
-        if (options) {
-            this._options.width = this._options.width || this.scene.game.canvas.width;
-            this._options.height = this._options.height || this.scene.game.canvas.height;
+        if (style) {
+            const fillStyle: Phaser.Types.GameObjects.Graphics.FillStyle = {
+                color: style.backgroundColor
+            };
+            this._options.width = this._options.width || WarGame.uiMgr.width;
+            this._options.height = this._options.height || WarGame.uiMgr.height;
             this._options.padding = this._options.padding || 0;
             this._options.cornerRadius = this._options.cornerRadius || 0;
-            const rect = this.scene.add.graphics({fillStyle: options});
+            const rect = this.scene.add.graphics({fillStyle: fillStyle});
             if (this._options.cornerRadius > 0) {
                 rect.fillRoundedRect(-(this._options.width / 2), -(this._options.height / 2), this._options.width, this._options.height, this._options.cornerRadius);
             } else {

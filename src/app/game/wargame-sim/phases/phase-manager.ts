@@ -6,6 +6,7 @@ import { UIManager } from "../ui/ui-manager";
 import { FightingPhase } from "./fighting-phase";
 import { IPhase } from "./i-phase";
 import { MovementPhase } from "./movement-phase";
+import { PhaseType } from "./phase-type";
 import { PriorityPhase } from "./priority-phase";
 import { ShootingPhase } from "./shooting-phase";
 
@@ -29,6 +30,22 @@ export class PhaseManager extends Phaser.Events.EventEmitter {
 
     get currentPhase(): IPhase {
         return this._phases[this._phaseIndex];
+    }
+
+    get priorityPhase(): PriorityPhase {
+        return this._phases[PhaseType.priority] as PriorityPhase;
+    }
+
+    get movementPhase(): MovementPhase {
+        return this._phases[PhaseType.movement] as MovementPhase;
+    }
+
+    get shootingPhase(): ShootingPhase {
+        return this._phases[PhaseType.shooting] as ShootingPhase;
+    }
+
+    get fightingPhase(): FightingPhase {
+        return this._phases[PhaseType.fighting] as FightingPhase;
     }
 
     startCurrentPhase(): IPhase {

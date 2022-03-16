@@ -38,11 +38,11 @@ export class MovementPhase implements IPhase {
         return this;
     }
 
-    skipTeam(team?: Team): IPhase {
-        team = this._teamMgr?.currentTeam;
+    nextTeam(team?: Team): IPhase {
+        team = team || this._phaseMgr.priorityPhase.priorityTeam;
         if (team) {
             team.getPlayers().forEach((p: IPlayer) => this._moveTracker.add(p.id));
-            this._teamMgr.moveNext();
+            this._phaseMgr.priorityPhase.nextTeam();
         }
         return this;
     }
@@ -93,7 +93,7 @@ export class MovementPhase implements IPhase {
 
     private _startEventHandling(): void {
         this._teamMgr.playerManager.on(WarGame.EVENTS.PLAYER_MOVED, this._handlePlayerMoved, this);
-        this._teamMgr.on(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this._handleTeamChange, this);
+        this._teamMgr.on(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
         this._teamMgr.playerManager.players.forEach((p: IPlayer) => {
             p?.obj.on(Phaser.Input.Events.POINTER_DOWN, this._handlePlayerDown, this);
         });
@@ -102,7 +102,7 @@ export class MovementPhase implements IPhase {
 
     private _stopEventHandling(): void {
         this._teamMgr.playerManager.off(WarGame.EVENTS.PLAYER_MOVED, this._handlePlayerMoved, this);
-        this._teamMgr.off(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this._handleTeamChange, this);
+        this._teamMgr.off(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
         this._teamMgr.playerManager.players.forEach((p: IPlayer) => {
             p?.obj.off(Phaser.Input.Events.POINTER_DOWN, this._handlePlayerDown, this);
         });
@@ -110,7 +110,7 @@ export class MovementPhase implements IPhase {
     }
 
     private _highlightTeam(): void {
-        const players: IPlayer[] = this._teamMgr.currentTeam.getPlayers()
+        const players: IPlayer[] = this._phaseMgr.priorityPhase.priorityTeam.getPlayers()
         .filter((p: IPlayer) => !this._moveTracker.has(p.id));
         WarGame.uiMgr.scene.tweens.add({
             targets: players.map((p: IPlayer) => p.obj),
@@ -129,8 +129,12 @@ export class MovementPhase implements IPhase {
             const tile: Phaser.Tilemaps.Tile = WarGame.map.obj.getTileAtWorldXY(world.x, world.y);
             if (tile) {
                 const player: IPlayer = this._teamMgr.playerManager.getPlayerAt(tile.x, tile.y);
-                if (player?.teamId === this._teamMgr.currentTeam.id) {
-                    this._activePlayer = player;
+                if (player?.teamId === this._phaseMgr.priorityPhase.priorityTeam.id) {
+                    let nearbyEnemies: IPlayer[] = WarGame.map.getPlayersInRange(player.tileX, player.tileY, 32)
+                    .filter((p: IPlayer) => WarGame.playerMgr.areEnemies(player, p));
+                    if (nearbyEnemies.length === 0) {
+                        this._activePlayer = player;
+                    }
                 }
                 if (this._activePlayer) {
                     if (this._moveTracker.has(this._activePlayer.id)) return;
@@ -170,8 +174,8 @@ export class MovementPhase implements IPhase {
 
     private _handlePlayerMoved(player: IPlayer): void {
         this._moveTracker.add(player.id);
-        if (this._teamHasMoved(this._teamMgr.currentTeam)) {
-            this._teamMgr.moveNext();
+        if (this._teamHasMoved(this._phaseMgr.priorityPhase.priorityTeam)) {
+            this._phaseMgr.priorityPhase.nextTeam();
         }
         this._highlightTeam();
     }

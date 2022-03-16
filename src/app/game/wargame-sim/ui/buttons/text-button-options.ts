@@ -1,3 +1,5 @@
+import { ButtonStyle } from "./button-style";
+
 export interface TextButtonOptions {
     scene?: Phaser.Scene;
     x?: number;
@@ -5,9 +7,9 @@ export interface TextButtonOptions {
     width?: number;
     height?: number;
     text?: string;
-    textStyle?: Phaser.Types.GameObjects.Text.TextStyle;
+    textSize?: number;
+    buttonStyle?: ButtonStyle;
     cornerRadius?: number;
-    background?: Phaser.Types.GameObjects.Graphics.FillStyle;
     interactive?: boolean;
     padding?: number;
     debug?: boolean;

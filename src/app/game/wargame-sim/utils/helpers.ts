@@ -78,6 +78,19 @@ export module Helpers {
             debugText.setVisible(false);
         }, object);
     }
+
+    export function isDarkColor(color: string): boolean {
+        let isDark: number = 0;
+        for (var i=0; i<color.length; i++) {
+            let c: string = color[i];
+            if (c !== '#') {
+                if (['0','1','2','3','4','5','6','7'].includes(c)) {
+                    isDark++;
+                }
+            }
+        }
+        return isDark > (color.length / 2);
+    }
 }
 
 export enum BetweenComparisonType {

@@ -1,4 +1,3 @@
-import { IPlayer } from "../players/i-player";
 import { TeamManager } from "../teams/team-manager";
 import { UIManager } from "../ui/ui-manager";
 import { BattleGroup } from "./battle-group";

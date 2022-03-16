@@ -6,9 +6,6 @@ import { InputController } from "../controllers/input-controller";
 import { KBMController } from "../controllers/kbm-controller";
 import { WarGame } from "../../war-game";
 import { HasGameObject } from "../../interfaces/has-game-object";
-import { Card } from "../card/card";
-import { IPhase } from "../../phases/i-phase";
-import { PhaseType } from "../../phases/phase-type";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: false,
@@ -17,13 +14,9 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 };
 
 export class GameplayScene extends Phaser.Scene {
-    private _width: number;
-    private _height: number;
     private _controller: InputController;
     private _highlightedTiles: Phaser.Tilemaps.Tile[] = [];
     private _downTime: number = 0;
-    private _gameMenu: Card;
-    private _gameMenuHiddenUntil: number;
     private _placedTeamsCount: number = 0;
     
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
@@ -42,15 +35,14 @@ export class GameplayScene extends Phaser.Scene {
     }
 
     create(): void {
-        this._width = this.game.canvas.width;
-        this._height = this.game.canvas.height;
-
-        WarGame.phaseMgr.reset().start();
-
         this._createMap();
         this._setupCamera();
         this._setupController();
-        this._showMenu();
+
+        WarGame.uiMgr.game.scene.start('overlay-scene');
+        WarGame.uiMgr.game.scene.bringToTop('overlay-scene');
+        
+        this._startHandlingTeamPlacement();
         
         this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
             let world: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
@@ -60,17 +52,6 @@ export class GameplayScene extends Phaser.Scene {
 
     update(time: number, delta: number): void {
         this._controller.update(time, delta);
-        const zoom: number = this.cameras.main.zoom;
-        this._gameMenu.setScale(1 / zoom);
-        const view: Phaser.Geom.Rectangle = this.cameras.main.worldView;
-        const x: number = view.left + (this._gameMenu.displayWidth / 2) + (10 * 1/zoom);
-        const y: number = view.top + (this._gameMenu.displayHeight / 2) + (10 * 1/zoom);
-        this._gameMenu.setPosition(x, y);
-
-        if (this._gameMenuHiddenUntil && time > this._gameMenuHiddenUntil) {
-            this._gameMenu.setVisible(true);
-            this._gameMenuHiddenUntil = undefined;
-        }
     }
 
     private _createMap(): void {
@@ -118,7 +99,7 @@ export class GameplayScene extends Phaser.Scene {
         let worldLoc: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
         let pointerTile: Phaser.Tilemaps.Tile = WarGame.map.obj.getTileAtWorldXY(worldLoc.x, worldLoc.y);
         if (pointerTile) {
-            let teamPlayers: IPlayer[] = WarGame.teamMgr.currentTeam.getPlayers();
+            let teamPlayers: IPlayer[] = WarGame.phaseMgr.priorityPhase.priorityTeam.getPlayers();
             let tiles: Phaser.Tilemaps.Tile[] = WarGame.map.getTilesInRange(pointerTile.x, pointerTile.y, (teamPlayers.length / 3) * 32)
                 .filter((tile: Phaser.Tilemaps.Tile) => !WarGame.map.isTileOccupied(tile.x, tile.y));
             if (teamPlayers.length <= tiles.length) {
@@ -133,7 +114,7 @@ export class GameplayScene extends Phaser.Scene {
     private _placeTeam(pointer: Phaser.Input.Pointer): void {
         if (this.time.now > this._downTime + WarGame.TIMING.CLICK_HANDLING_DELAY) {
             this._downTime = this.time.now;
-            let team: Team = WarGame.teamMgr.currentTeam;
+            let team: Team = WarGame.phaseMgr.priorityPhase.priorityTeam;
             const players: IPlayer[] = team.getPlayers();
             if (this._highlightedTiles.length >= players.length) {
                 for (var i=0; i<this._highlightedTiles.length; i++) {
@@ -148,198 +129,21 @@ export class GameplayScene extends Phaser.Scene {
                 }
                 this._placedTeamsCount++;
                 this._clearHighlightedTiles();
-                WarGame.teamMgr.moveNext();
+                WarGame.phaseMgr.priorityPhase.nextTeam();
             }
         }
         if (this._placedTeamsCount >= WarGame.teamMgr.teams.length) {
             this._stopHandlingTeamPlacement();
-            WarGame.phaseMgr.moveToNextPhase().start();
         }
     }
 
     private _setupCamera(): void {
         this.cameras.main.backgroundColor.setFromRGB({r: 0, g: 0, b: 0});
         this.cameras.main.setZoom(1);
-        let loc: Phaser.Math.Vector2 = new Phaser.Math.Vector2(WarGame.map.obj.width / 2, WarGame.map.obj.height / 2);
-        console.info(`placing camera at: ${loc.x}, ${loc.y}`);
-        this.cameras.main.centerOn(loc.x, loc.y);
+        this.cameras.main.centerOn(0, 0);
     }
 
     private _setupController(): void {
         this._controller = new KBMController(this);
-    }
-
-    private _showMenu(): void {
-        const menuWidth: number = this._width / 3;
-        this._gameMenu = new Card({
-            scene: this,
-            width: menuWidth,
-            header: {
-                text: "Let's begin!",
-                textStyle: {font: '20px Courier', color: '#ffffff'},
-                background: {color: 0x006000},
-                cornerRadius: 5
-            },
-            body: {
-                title: '--',
-                titleStyle: {font: '20px Courier', color: '#606060'},
-                description: 'Press location on the\nMap to place your team.',
-                descriptionStyle: {font: '10px Courier', color: '#606060'},
-                background: {color: 0xc0c0c0},
-                cornerRadius: 5,
-                buttons: [
-                    {
-                        text: 'Press "Go" to begin',
-                        background: {alpha: 0},
-                        padding: 5
-                    },
-                    {
-                        text: 'Go',
-                        background: {color: 0x00ff00},
-                        interactive: true,
-                        cornerRadius: 5,
-                        padding: 5
-                    }
-                ]
-            }
-        });
-        this.add.existing(this._gameMenu);
-        this._gameMenu.cardbody.buttons[1].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._gameMenu.removeBodyButtons(true);
-            this._startHandlingTeamPlacement();
-        }, this);
-        this._controller.on(WarGame.EVENTS.CAMERA_ZOOM, () => {
-            this._gameMenu.setVisible(false);
-            this._gameMenuHiddenUntil = this.time.now + 250;
-        }, this);
-        this._controller.on(WarGame.EVENTS.CAMERA_MOVE_START, () => {
-            this._gameMenu.setVisible(false);
-        }).on(WarGame.EVENTS.CAMERA_MOVE_END, () => {
-            this._gameMenu.setVisible(true);
-        });
-        this._gameMenu.setDepth(WarGame.DEPTH.MENU);
-
-        WarGame.phaseMgr
-        .on(WarGame.EVENTS.PHASE_START, this._handlePhaseStart, this)
-        .on(WarGame.EVENTS.PHASE_END, this._handlePhaseEnd, this);
-        WarGame.teamMgr
-        .on(WarGame.EVENTS.CURRENT_TEAM_CHANGED, this._handleTeamChange, this);
-    }
-
-    private _handleTeamChange(team: Team): void {
-        this._gameMenu.updateBodyTitle(`Current Team: [${team.name}]`);
-    }
-
-    private _handlePhaseStart(phase: IPhase): void {
-        this._gameMenu.updateHeaderText(`Current Phase: [${phase.getName()}]`);
-        switch (phase.getType()) {
-            case PhaseType.movement:
-                this._handleMovementPhase(phase);
-                break;
-            case PhaseType.shooting:
-                this._handleShootingPhase(phase);
-                break;
-            case PhaseType.fighting:
-                this._handleFightingPhase(phase);
-                break;
-        }
-    }
-
-    private _handlePhaseEnd(phase: IPhase): void {
-        switch (phase.getType()) {
-            case PhaseType.priority:
-                this._handlePriorityPhase(phase);
-                break;
-            default:
-                WarGame.phaseMgr.moveToNextPhase().start();
-                break;
-        }
-    }
-
-    private _handlePriorityPhase(phase: IPhase): void {
-        this._gameMenu.updateBodyDescription(`Team priority for this round is: [${WarGame.teamMgr.teams.map((t: Team) => t.name).join(', ')}]`);
-        this._gameMenu.addBodyButtons({
-            text: 'Start',
-            padding: 5,
-            background: {color: 0x00f000},
-            cornerRadius: 5,
-            interactive: true
-        });
-        this._gameMenu.cardbody.buttons[0].once(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._gameMenu.removeBodyButtons(true);
-            WarGame.phaseMgr.moveToNextPhase().start();
-        }, this);
-    }
-
-    private _handleMovementPhase(phase: IPhase): void {
-        this._gameMenu.removeBodyButtons(true);
-        this._gameMenu.updateBodyDescription('Tap each player and pick a\nlocation within their\nmovement range.');
-        this._gameMenu.addBodyButtons({
-            text: 'Continue',
-            padding: 5,
-            background: {color: 0x00f000},
-            cornerRadius: 5,
-            interactive: true
-        },{
-            text: 'to next Team',
-            padding: 5,
-            background: {alpha: 0},
-            interactive: true
-        });
-        this._gameMenu.cardbody.buttons[0].once(Phaser.Input.Events.POINTER_DOWN, () => {
-            phase.skipTeam();
-            this._gameMenu.removeBodyButtons(true);
-            if (phase.active) {
-                this._handleMovementPhase(phase);
-            }
-        }, this);
-    }
-
-    private _handleShootingPhase(phase: IPhase): void {
-        this._gameMenu.removeBodyButtons(true);
-        this._gameMenu.updateBodyDescription('Tap each player and pick an\nopponent in range\nto attempt to shoot them.');
-        this._gameMenu.addBodyButtons({
-            text: 'Continue',
-            padding: 5,
-            background: {color: 0x00f000},
-            cornerRadius: 5,
-            interactive: true
-        },{
-            text: 'to next Team',
-            padding: 5,
-            background: {alpha: 0},
-            interactive: true
-        });
-        this._gameMenu.cardbody.buttons[0].once(Phaser.Input.Events.POINTER_DOWN, () => {
-            phase.skipTeam();
-            this._gameMenu.removeBodyButtons(true);
-            if (phase.active) {
-                this._handleShootingPhase(phase);
-            }
-        }, this);
-    }
-
-    private _handleFightingPhase(phase: IPhase): void {
-        this._gameMenu.removeBodyButtons(true);
-        this._gameMenu.updateBodyDescription('Tap each player and pick an\nopponent in range\nto battle them.');
-        this._gameMenu.addBodyButtons({
-            text: 'Continue',
-            padding: 5,
-            background: {color: 0x00f000},
-            cornerRadius: 5,
-            interactive: true
-        },{
-            text: 'to next Team',
-            padding: 5,
-            background: {alpha: 0},
-            interactive: true
-        });
-        this._gameMenu.cardbody.buttons[0].once(Phaser.Input.Events.POINTER_DOWN, () => {
-            phase.skipTeam();
-            this._gameMenu.removeBodyButtons(true);
-            if (phase.active) {
-                this._handleFightingPhase(phase);
-            }
-        }, this);
     }
 }
