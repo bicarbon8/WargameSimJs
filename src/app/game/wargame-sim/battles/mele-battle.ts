@@ -1,6 +1,6 @@
+import { Colors } from "phaser-ui-components";
 import { IPlayer } from "../players/i-player";
-import { ButtonStyle } from "../ui/buttons/button-style";
-import { Helpers } from "../utils/helpers";
+import { BetweenComparisonType, Helpers } from "../utils/helpers";
 import { Rand } from "../utils/rand";
 import { WarGame } from "../war-game";
 import { Battle } from "./battle";
@@ -47,14 +47,14 @@ export class MeleBattle extends Battle {
             winner = this.attackers;
             loser = this.defenders;
             attacks = attackerScores;
-            this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers succeeded in their attack!', ButtonStyle.info);
+            this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers succeeded in their attack!', Colors.info);
         } else {
             winner = this.defenders;
             loser = this.attackers;
             attacks = defenderScores;
-            this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers failed to attack defenders!', ButtonStyle.info);
+            this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers failed to attack defenders!', Colors.info);
         }
-        this.pushBackPlayers(loser);
+        this._pushBackPlayers(loser);
 
         for (var i=0; i<winner.length; i++) {
             var success = this.tryToWound(winner[i], loser[0]);
@@ -66,14 +66,40 @@ export class MeleBattle extends Battle {
                 if (lp.isDead()) {
                     loser.splice(index, 1);
                 }
-                this.battleManager.emit(WarGame.EVENTS.MESSAGE, `defender: ${lp.name} wounded!`, ButtonStyle.info);
+                this.battleManager.emit(WarGame.EVENTS.MESSAGE, `defender: ${lp.name} wounded!`, Colors.info);
             } else {
-                this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers caused no damage with attack!', ButtonStyle.info);
+                this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers caused no damage with attack!', Colors.info);
             }
         }
     }
 
-    pushBackPlayers(playerArray: IPlayer[]): void {
-        // TODO
+    private _pushBackPlayers(losers: IPlayer[]): void {
+        const loserTiles: Phaser.Tilemaps.Tile[] = losers
+        .map((p: IPlayer) => WarGame.mapMgr.map.obj.getTileAt(p.tileX, p.tileY))
+        .filter((t: Phaser.Tilemaps.Tile) => t != null);
+        const emptyTiles: Phaser.Tilemaps.Tile[] = WarGame.mapMgr.map.getUnoccupiedTiles()
+        .filter((t: Phaser.Tilemaps.Tile) => {
+            for (var i=0; i<loserTiles.length; i++) {
+                let loserTile: Phaser.Tilemaps.Tile = loserTiles[i];
+                if (Helpers.isBetween(t.x, loserTile.x - 1, loserTile.x + 1, BetweenComparisonType.inclusive)
+                && Helpers.isBetween(t.y, loserTile.y - 1, loserTile.y + 1, BetweenComparisonType.inclusive)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        if (emptyTiles.length >= losers.length) {
+            for (var i=0; i<emptyTiles.length; i++) {
+                // TODO: move player to closest tile
+                if (i >= losers.length) {
+                    break;
+                }
+                let empty: Phaser.Tilemaps.Tile = emptyTiles[i];
+                let loser: IPlayer = losers[i];
+                WarGame.mapMgr.map.movePlayer(loser.tileX, loser.tileY, empty.x, empty.y);
+            }
+        } else {
+            // TODO: mark losers as knocked down
+        }
     }
 }

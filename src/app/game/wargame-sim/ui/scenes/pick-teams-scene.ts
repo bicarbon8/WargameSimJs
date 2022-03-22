@@ -2,14 +2,9 @@ import { environment } from "src/environments/environment";
 import { PlayerSpritesheetMappings } from "../../players/player-spritesheet-mappings";
 import { Team } from "../../teams/team";
 import { WarGame } from "../../war-game";
-import { Card } from "../card/card";
-import { TextButton } from "../buttons/text-button";
 import { IPlayer } from "../../players/i-player";
-import { LayoutManager } from "../layout/layout-manager";
-import { GridLayout } from "../layout/grid-layout";
-import { LayoutContent } from "../layout/layout-content";
-import { ButtonStyle } from "../buttons/button-style";
 import { Rand } from "../../utils/rand";
+import { Card, Colors, GridCell, GridLayout, LayoutContent, LinearLayout, TextButton } from "phaser-ui-components";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: true,
@@ -19,11 +14,11 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 
 export class PickTeamsScene extends Phaser.Scene {
     private _teamRemainingPointsText: Phaser.GameObjects.Text;
-    private _layout: LayoutManager;
+    private _layout: LinearLayout;
     private _startButton: TextButton;
     private _removeTeamCard: Card;
     private _addTeamCard: Card;
-    private _playerCardsLayout: LayoutManager;
+    private _playerCardsLayout: LinearLayout;
     private _currentTeamIndex: number;
     
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
@@ -48,7 +43,7 @@ export class PickTeamsScene extends Phaser.Scene {
     create(): void {
         this.cameras.main.centerOn(0, 0);
 
-        this._createLayoutManager();
+        this._createLinearLayout();
         this._createTitleText();
         this._createTeamPickerButtons();
         this._createStartButton();
@@ -127,8 +122,8 @@ export class PickTeamsScene extends Phaser.Scene {
             && WarGame.teamMgr.teams.every((t: Team) => t.getPlayers().length >= WarGame.CONSTANTS.MIN_PLAYERS);
     }
 
-    private _createLayoutManager(): void {
-        this._layout = new LayoutManager({scene: this, orientation: 'vertical', padding: 10});
+    private _createLinearLayout(): void {
+        this._layout = new LinearLayout(this, {orientation: 'vertical', padding: 10});
         this._layout.setDepth(WarGame.DEPTH.MENU);
         this.add.existing(this._layout);
     }
@@ -139,10 +134,10 @@ export class PickTeamsScene extends Phaser.Scene {
     }
 
     private _createTeamPickerButtons(): void {
-        const chooseTeamText = new TextButton({
-            scene: this,
+        const chooseTeamText = new TextButton(this, {
             text: '~~~~~ Choose your Teams ~~~~~',
-            buttonStyle: ButtonStyle.secondary,
+            textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+            background: {fillStyle: {color: Colors.secondary}},
             padding: 10,
             cornerRadius: 5
         });
@@ -156,8 +151,7 @@ export class PickTeamsScene extends Phaser.Scene {
 
         this._layout.addContents(chooseTeamText, this._teamRemainingPointsText);
 
-        this._playerCardsLayout = new LayoutManager({
-            scene: this,
+        this._playerCardsLayout = new LinearLayout(this, {
             orientation: 'horizontal',
             padding: 5
         });
@@ -165,41 +159,47 @@ export class PickTeamsScene extends Phaser.Scene {
         
         const cardWidth: number = (this.game.canvas.width - (5 * 5)) / 4;
 
-        const basicPlayerCard = new Card({
-            scene: this,
+        const basicPlayerCard = new Card(this, {
             width: cardWidth,
             header: {
                 text: 'Basic',
-                background: {color: 0x808080},
+                textStyle: { font: '20px Courier', color: (Colors.isDark(0x808080)) ? '#ffffff' : '#000000' },
+                background: {fillStyle: {color: 0x808080}},
                 cornerRadius: 5
             },
             image: {
                 spriteKey: 'players',
                 spriteIndex: PlayerSpritesheetMappings.basic.front,
-                backgroundColor: 0xc0c0c0
+                height: cardWidth,
+                background: {fillStyle: {color: 0xc0c0c0}}
             },
             body: {
                 title: `Cost: ${WarGame.PLAYERS.BASIC.stats.cost}`,
-                background: {color: 0x808080},
+                titleStyle: { font: '20px Courier', color: (Colors.isDark(0x808080)) ? '#ffffff' : '#000000' },
+                background: {fillStyle: {color: 0x808080}},
                 cornerRadius: 5,
+                padding: 5,
                 buttons: [
                     {
                         text: ' - ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 10,
                         interactive: true
                     },
@@ -221,42 +221,47 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         }, this);
 
-        const heroPlayerCard = new Card({
-            scene: this,
+        const heroPlayerCard = new Card(this, {
             width: cardWidth,
             header: {
-                scene: this,
                 text: 'Hero',
-                background: {color: 0x808080},
+                textStyle: { font: '20px Courier', color: (Colors.isDark(0x808080)) ? '#ffffff' : '#000000' },
+                background: {fillStyle: {color: 0x808080}},
                 cornerRadius: 5
             },
             image: {
                 spriteKey: 'players',
                 spriteIndex: PlayerSpritesheetMappings.hero.front,
-                backgroundColor: 0xc0c0c0,
+                height: cardWidth,
+                background: {fillStyle: {color: 0xc0c0c0}},
             },
             body: {
                 title: `Cost: ${WarGame.PLAYERS.HERO.stats.cost}`,
-                background: {color: 0x808080},
+                titleStyle: { font: '20px Courier', color: (Colors.isDark(0x808080)) ? '#ffffff' : '#000000' },
+                background: {fillStyle: {color: 0x808080}},
                 cornerRadius: 5,
+                padding: 5,
                 buttons: [
                     {
                         text: ' - ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 10,
                         interactive: true
                     },
@@ -278,42 +283,47 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         }, this);
 
-        const lightPlayerCard = new Card({
-            scene: this,
+        const lightPlayerCard = new Card(this, {
             width: cardWidth,
             header: {
-                scene: this,
                 text: 'Light',
-                background: {color: 0x808080},
+                textStyle: { font: '20px Courier', color: (Colors.isDark(0x808080)) ? '#ffffff' : '#000000' },
+                background: {fillStyle: {color: 0x808080}},
                 cornerRadius: 5
             },
             image: {
                 spriteKey: 'players',
                 spriteIndex: PlayerSpritesheetMappings.light.front,
-                backgroundColor: 0xc0c0c0,
+                height: cardWidth,
+                background: {fillStyle: {color: 0xc0c0c0}},
             },
             body: {
                 title: `Cost: ${WarGame.PLAYERS.LIGHT.stats.cost}`,
-                background: {color: 0x808080},
+                titleStyle: { font: '20px Courier', color: (Colors.isDark(0x808080)) ? '#ffffff' : '#000000' },
+                background: {fillStyle: {color: 0x808080}},
                 cornerRadius: 5,
+                padding: 5,
                 buttons: [
                     {
                         text: ' - ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 10,
                         interactive: true
                     },
@@ -334,42 +344,47 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         }, this);
 
-        const heavyPlayerCard = new Card({
-            scene: this,
+        const heavyPlayerCard = new Card(this, {
             width: cardWidth,
             header: {
-                scene: this,
                 text: 'Heavy',
-                background: {color: 0x808080},
+                textStyle: { font: '20px Courier', color: (Colors.isDark(0x808080)) ? '#ffffff' : '#000000' },
+                background: {fillStyle: {color: 0x808080}},
                 cornerRadius: 5
             },
             image: {
                 spriteKey: 'players',
                 spriteIndex: PlayerSpritesheetMappings.heavy.front,
-                backgroundColor: 0xc0c0c0,
+                height: cardWidth,
+                background: {fillStyle: {color: 0xc0c0c0}},
             },
             body: {
                 title: `Cost: ${WarGame.PLAYERS.HEAVY.stats.cost}`,
-                background: {color: 0x808080},
+                titleStyle: { font: '20px Courier', color: (Colors.isDark(0x808080)) ? '#ffffff' : '#000000' },
+                background: {fillStyle: {color: 0x808080}},
                 cornerRadius: 5,
+                padding: 5,
                 buttons: [
                     {
                         text: ' - ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 10,
                         interactive: true
                     },
                     {
                         text: ' 0 ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 5
                     },
                     {
                         text: ' + ',
                         padding: 5,
-                        buttonStyle: ButtonStyle.secondary,
+                        textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000' },
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 10,
                         interactive: true
                     },
@@ -395,32 +410,28 @@ export class PickTeamsScene extends Phaser.Scene {
 
     private _createStartButton(): void {
         const gridWidth: number = WarGame.uiMgr.width / 3;
-        const startAreaGrid: GridLayout = new GridLayout({
-            scene: this,
+        const startAreaGrid: GridLayout = new GridLayout(this, {
             rows: 1,
             columns: 3,
             height: gridWidth
         });
 
-        this._removeTeamCard = new Card({
-            scene: this,
+        this._removeTeamCard = new Card(this, {
             width: gridWidth,
             header: {
                 text: 'Remove Team',
                 textStyle: {
                     font: '20px Courier',
                     color: '#000000'
-                },
-                background: {alpha: 0}
+                }
             },
             body: {
-                background: {alpha: 0},
                 buttons: [
                     {
                         text: ' << ',
-                        textSize: 40,
+                        textStyle: {fontSize: '40px', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000'},
                         padding: 10,
-                        buttonStyle: ButtonStyle.secondary,
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 20,
                         interactive: true
                     }
@@ -435,7 +446,7 @@ export class PickTeamsScene extends Phaser.Scene {
                     x: this._playerCardsLayout.width,
                     ease: 'Sine.easeOut',
                     duration: 100,
-                    onComplete: (tween: Phaser.Tweens.Tween, targets: LayoutManager) => {
+                    onComplete: (tween: Phaser.Tweens.Tween, targets: LinearLayout) => {
                         this._currentTeamIndex--;
                         WarGame.teamMgr.removeTeam(this._currentTeamIndex + 1, true);
                         this._playerCardsLayout.setX(-this._playerCardsLayout.width);
@@ -451,13 +462,12 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         }, this);
 
-        this._startButton = new TextButton({
-            scene: this,
+        this._startButton = new TextButton(this, {
             width: gridWidth,
             text: 'Start',
-            textSize: 60,
+            textStyle: {fontSize: '60px'},
             padding: 20,
-            buttonStyle: ButtonStyle.primary,
+            background: {fillStyle: {color: Colors.primary}},
             cornerRadius: 20,
             interactive: true
         });
@@ -470,25 +480,22 @@ export class PickTeamsScene extends Phaser.Scene {
             }
         });
 
-        this._addTeamCard = new Card({
-            scene: this,
+        this._addTeamCard = new Card(this, {
             width: WarGame.uiMgr.width / 3,
             header: {
                 text: 'Add Team',
                 textStyle: {
                     font: '20px Courier',
                     color: '#000000'
-                },
-                background: {alpha: 0}
+                }
             },
             body: {
-                background: {alpha: 0},
                 buttons: [
                     {
                         text: ' >> ',
-                        textSize: 40,
+                        textStyle: {fontSize: '40px', color: (Colors.isDark(Colors.secondary)) ? '#ffffff' : '#000000'},
                         padding: 10,
-                        buttonStyle: ButtonStyle.secondary,
+                        background: {fillStyle: {color: Colors.secondary}},
                         cornerRadius: 20,
                         interactive: true
                     }
@@ -504,7 +511,7 @@ export class PickTeamsScene extends Phaser.Scene {
                     x: -(this._playerCardsLayout.width),
                     ease: 'Sine.easeOut',
                     duration: 100,
-                    onComplete: (tween: Phaser.Tweens.Tween, targets: LayoutManager) => {
+                    onComplete: (tween: Phaser.Tweens.Tween, targets: LinearLayout) => {
                         this._currentTeamIndex++;
                         WarGame.teamMgr.addTeam({
                             name: `Team ${WarGame.teamMgr.teams.length}`,

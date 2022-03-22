@@ -1,4 +1,3 @@
-import { GameMap } from "./map/game-map";
 import { PhaseManager } from "./phases/phase-manager";
 import { PlayerManager } from "./players/player-manager";
 import { PlayerOptions } from "./players/player-options";
@@ -8,23 +7,25 @@ import { UIManager } from "./ui/ui-manager";
 import { DiceManager } from "./utils/dice-manager";
 import { BattleManager } from "./battles/battle-manager";
 import { WarGameOptions } from "./war-game-options";
+import { MapManager } from "./map/map-manager";
 
 export module WarGame {
-    export var map: GameMap;
     export var playerMgr: PlayerManager;
     export var teamMgr: TeamManager;
     export var phaseMgr: PhaseManager;
     export var uiMgr: UIManager;
     export var dice: DiceManager;
     export var battleMgr: BattleManager;
+    export var mapMgr: MapManager;
 
     export function start(options?: WarGameOptions): void {
         dice = new DiceManager();
         playerMgr = new PlayerManager();
         teamMgr = new TeamManager(playerMgr);
+        mapMgr = new MapManager(teamMgr);
         uiMgr = new UIManager(options?.uiMgrOpts);
         battleMgr = new BattleManager(teamMgr, uiMgr);
-        phaseMgr = new PhaseManager(teamMgr, uiMgr, battleMgr);
+        phaseMgr = new PhaseManager(mapMgr, battleMgr);
         uiMgr.start();
     }
 
@@ -32,6 +33,7 @@ export module WarGame {
         uiMgr.destroy();
         uiMgr = null;
         phaseMgr = null;
+        mapMgr = null;
         playerMgr = null;
         teamMgr = null;
         dice = null;
@@ -46,10 +48,11 @@ export module WarGame {
     }
 
     export function removeAllListeners(): void {
-        playerMgr.removeAllListeners();
-        teamMgr.removeAllListeners();
-        phaseMgr.removeAllListeners();
-        battleMgr.removeAllListeners();
+        playerMgr?.removeAllListeners();
+        teamMgr?.removeAllListeners();
+        phaseMgr?.removeAllListeners();
+        battleMgr?.removeAllListeners();
+        mapMgr?.removeAllListeners();
     }
 
     export module TIMING {

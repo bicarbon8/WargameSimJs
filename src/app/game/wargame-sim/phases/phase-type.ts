@@ -1,6 +1,7 @@
 export enum PhaseType {
     priority = 0,
-    movement = 1,
-    shooting = 2,
-    fighting = 3
+    placement = 1,
+    movement = 2,
+    shooting = 3,
+    fighting = 4
 }

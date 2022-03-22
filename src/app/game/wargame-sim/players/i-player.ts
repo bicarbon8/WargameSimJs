@@ -16,5 +16,7 @@ export interface IPlayer extends HasGameObject<Phaser.GameObjects.Container> {
     setEffects(...effects: PlayerStatusEffect[]): this;
     removeEffects(...effects: PlayerStatusEffect[]): this;
     isDead(): boolean;
+    isAlly(player: IPlayer): boolean;
+    isEnemy(player: IPlayer): boolean;
     destroy(): void;
 }

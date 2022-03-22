@@ -6,26 +6,22 @@ import TILE_MAPPING from "./tile-mapping";
 import { WarGame } from "../war-game";
 import { HasGameObject } from "../interfaces/has-game-object";
 import { AStarFinder } from "astar-typescript";
-import { PlayerManager } from "../players/player-manager";
+import { HasLocation } from "../ui/types/has-location";
+import { MapManager } from "./map-manager";
 
-export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
+export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     private readonly _options: GameMapOptions;
-    private readonly _playerMgr: PlayerManager;
     private readonly _tileWidth: number;
     private readonly _tileHeight: number;
     private readonly _grid: number[][];
     private readonly _pathFinder: AStarFinder;
 
-    private _scene: Phaser.Scene;
     private _layer: Phaser.Tilemaps.TilemapLayer;
     private _tileMap: Phaser.Tilemaps.Tilemap;
     
     constructor(options: GameMapOptions) {
-        super();
         this._setDefaultOptions(options);
         this._options = options;
-        this._scene = options.scene;
-        this._playerMgr = options.playerManager;
         this._tileWidth = 32;
         this._tileHeight = this._tileWidth;
         this._grid = this._createGrid();
@@ -34,6 +30,10 @@ export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject
             diagonalAllowed: false,
             includeStartNode: false
         });
+    }
+
+    get mapManager(): MapManager {
+        return this._options.mapManager;
     }
 
     get obj(): Phaser.Tilemaps.TilemapLayer {
@@ -47,6 +47,12 @@ export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject
         return this.obj.getTilesWithin(0, 0, this.obj.width, this.obj.height);
     }
 
+    getTileUnderPointer(location: HasLocation): Phaser.Tilemaps.Tile {
+        const world: Phaser.Math.Vector2 = this._options.scene.cameras.main.getWorldPoint(location.x, location.y);
+        const tile: Phaser.Tilemaps.Tile = this.obj.getTileAtWorldXY(world.x, world.y);
+        return tile;
+    }
+
     getUnoccupiedTiles(): Phaser.Tilemaps.Tile[] {
         let locations: Phaser.Tilemaps.Tile[] = this.getTiles().filter((tile: Phaser.Tilemaps.Tile) => {
             return !this.isTileOccupied(tile.x, tile.y);
@@ -56,19 +62,20 @@ export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject
 
     addPlayer(player: IPlayer, tileX: number, tileY: number): void {
         if (player && this.isValidLocation(tileX, tileY)) {
+            player.setScene(this._options.scene);
             if (!this.isTileOccupied(tileX, tileY)) {
                 player.setTile(tileX, tileY, this.getTileWorldCentre(tileX, tileY));
-                this.emit(WarGame.EVENTS.PLAYER_ADDED, player);
+                this.mapManager.emit(WarGame.EVENTS.PLAYER_ADDED, player);
             }
         }
     }
 
     movePlayer(startX: number, startY: number, endX: number, endY: number): void {
-        const player: IPlayer = this._playerMgr.getPlayerAt(startX, startY);
+        const player: IPlayer = this.mapManager.teamManager.playerManager.getPlayerAt(startX, startY);
         if (player && this.isValidLocation(endX, endY)) {
             if (!this.isTileOccupied(endX, endY)) {
                 const tile: Phaser.Tilemaps.Tile = this.obj.getTileAt(endX, endY);
-                WarGame.uiMgr.scene.tweens.add({
+                WarGame.uiMgr.gameplayScene.tweens.add({
                     targets: player.obj,
                     x: tile.getCenterX(),
                     y: tile.getCenterY(),
@@ -76,7 +83,7 @@ export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject
                     duration: 500,
                     onComplete: () => {
                         player.setTile(endX, endY, this.getTileWorldCentre(endX, endY));
-                        this.emit(WarGame.EVENTS.PLAYER_MOVED, player);
+                        this.mapManager.emit(WarGame.EVENTS.PLAYER_MOVED, player);
                     },
                     onCompleteScope: this
                 });
@@ -100,17 +107,44 @@ export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject
         return this.obj.getTilesWithinShape(circle, {isNotEmpty: true});
     }
 
+    getTilesAround(tileX: number, tileY: number, count: number): Phaser.Tilemaps.Tile[] {
+        const tiles: Phaser.Tilemaps.Tile[] = [];
+        let xOffset = 0;
+        let yOffset = 0;
+        while (tiles.length < count) {
+            for (var y=tileY-yOffset; y<=tileY+yOffset; y++) {
+                for (var x=tileX-xOffset; x<=tileX+xOffset; x++) {
+                    if (this.isValidLocation(x, y)) {
+                        let t: Phaser.Tilemaps.Tile = this.obj.getTileAt(x, y);
+                        if (!tiles.includes(t)) {
+                            tiles.push(t);
+                        }
+                    }
+                    if (tiles.length >= count) {
+                        break;
+                    }
+                }
+                if (tiles.length >= count) {
+                    break;
+                }
+            }
+            xOffset++;
+            yOffset++;
+        }
+        return tiles;
+    }
+
     getPlayersInRange(tileX: number, tileY: number, range: number): IPlayer[] {
         return this.getTilesInRange(tileX, tileY, range)
         .map((tile: Phaser.Tilemaps.Tile) => {
-            return this._playerMgr.getPlayerAt(tile.x, tile.y);
+            return this.mapManager.teamManager.playerManager.getPlayerAt(tile.x, tile.y);
         }).filter((val: IPlayer) => {
             if (val) { return true; }
         });
     }
 
     isTileOccupied(tileX: number, tileY: number): boolean {
-        let player: IPlayer = this._playerMgr.getPlayerAt(tileX, tileY);
+        let player: IPlayer = this.mapManager.teamManager.playerManager.getPlayerAt(tileX, tileY);
         if (player) {
             return true;
         }
@@ -133,7 +167,7 @@ export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject
         if (scene) {
             this.obj.destroy();
             this._layer = null;
-            this._scene = scene;
+            this._options.scene = scene;
         }
     }
 
@@ -172,7 +206,7 @@ export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject
     }
 
     private _createGameObj(): void {
-        this._tileMap = this._scene.make.tilemap({
+        this._tileMap = this._options.scene.make.tilemap({
             tileWidth: this._tileWidth,
             tileHeight: this._tileHeight,
             width: this._options.width,
@@ -190,10 +224,10 @@ export class GameMap extends Phaser.Events.EventEmitter implements HasGameObject
         }
         this._layer.setCollisionByExclusion([0, 1, 2, 3, 4, 5, 6, 7]);
         this._layer.setPosition(-(this._layer.width / 2), -(this._layer.height / 2));
+        this._layer.setInteractive();
     }
 
     private _setDefaultOptions(options: GameMapOptions): void {
-        options.scene = options.scene || options.scene || WarGame.uiMgr?.game?.scene?.getScenes(true)?.shift();
         options.seed = options.seed || `${Rand.getInt(0, 10000)}`;
         options.width = options.width || 500;
         options.height = options.height || 500;

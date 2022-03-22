@@ -31,6 +31,10 @@ export class PriorityPhase implements IPhase {
         return this._currentPriority;
     }
 
+    get orderedTeams(): Team[] {
+        return this._orderedTeams;
+    }
+
     start(): IPhase {
         this.reset();
         this._active = true;

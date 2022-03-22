@@ -7,8 +7,7 @@ import { PlayerStatusEffect } from "./player-status-effect";
 import { PlayerSpritesheetMapping } from "./player-spritesheet-mappings";
 import { PlayerManager } from "./player-manager";
 import { Team } from "../teams/team";
-import { Helpers } from "../utils/helpers";
-import { LayoutManager } from "../ui/layout/layout-manager";
+import { LinearLayout } from "phaser-ui-components";
 
 export class Player implements IPlayer {
     readonly id: string;
@@ -23,11 +22,11 @@ export class Player implements IPlayer {
     private _remainingWounds: number;
     private _effects: Set<PlayerStatusEffect>;
     private _obj: Phaser.GameObjects.Container;
-    private _woundsIndicator: LayoutManager;
+    private _woundsIndicator: LinearLayout;
 
     constructor(options: PlayerOptions) {
         this.id = Rand.guid();
-        this._scene = options.scene || WarGame.uiMgr.scene;
+        this._scene = options.scene || WarGame.uiMgr.gameplayScene;
         this._playerMgr = options.playerManager;
         this._name = options.name;
         this._stats = options.stats;
@@ -128,8 +127,16 @@ export class Player implements IPlayer {
         return this._remainingWounds <= 0;
     }
 
+    isAlly(player: IPlayer): boolean {
+        return this.teamId === player?.teamId;
+    }
+
+    isEnemy(player: IPlayer): boolean {
+        return !this.isAlly(player);
+    }
+
     isBattling(): boolean {
-        return WarGame.map.getPlayersInRange(this._tileX, this._tileY, 1).filter((player: IPlayer) => {
+        return WarGame.mapMgr.map.getPlayersInRange(this._tileX, this._tileY, 1).filter((player: IPlayer) => {
             if (player.id !== this.id && WarGame.playerMgr.areEnemies(this, player)) { return true; }
         }).length > 0;
     }
@@ -177,8 +184,7 @@ export class Player implements IPlayer {
     }
 
     private _createRemainingWoundsIndicator(): void {
-        this._woundsIndicator = new LayoutManager({
-            scene: this._scene,
+        this._woundsIndicator = new LinearLayout(this._scene, {
             y: -20,
             orientation: 'horizontal',
             padding: 2

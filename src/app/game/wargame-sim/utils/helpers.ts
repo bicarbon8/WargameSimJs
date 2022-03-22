@@ -1,4 +1,4 @@
-import { LayoutContent } from "../ui/layout/layout-content";
+import { LayoutContent } from 'phaser-ui-components';
 
 export module Helpers {
     /**
@@ -81,15 +81,14 @@ export module Helpers {
 
     export function isDarkColor(color: string): boolean {
         let isDark: number = 0;
+        color = (color.startsWith('#')) ? color.slice(1) : color;
         for (var i=0; i<color.length; i++) {
             let c: string = color[i];
-            if (c !== '#') {
-                if (['0','1','2','3','4','5','6','7'].includes(c)) {
-                    isDark++;
-                }
+            if (['0','1','2','3','4','5','6','7'].includes(c)) {
+                isDark++;
             }
         }
-        return isDark > (color.length / 2);
+        return isDark >= Math.ceil(color.length / 2);
     }
 }
 

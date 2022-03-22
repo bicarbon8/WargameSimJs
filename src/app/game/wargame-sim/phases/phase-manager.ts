@@ -1,26 +1,28 @@
 import * as Phaser from "phaser";
 import { BattleManager } from "../battles/battle-manager";
-import { PlayerManager } from "../players/player-manager";
-import { TeamManager } from "../teams/team-manager";
-import { UIManager } from "../ui/ui-manager";
+import { MapManager } from "../map/map-manager";
 import { FightingPhase } from "./fighting-phase";
 import { IPhase } from "./i-phase";
 import { MovementPhase } from "./movement-phase";
 import { PhaseType } from "./phase-type";
+import { PlacementPhase } from "./placement-phase";
 import { PriorityPhase } from "./priority-phase";
 import { ShootingPhase } from "./shooting-phase";
 
 export class PhaseManager extends Phaser.Events.EventEmitter {
     private readonly _phases: IPhase[];
     private _phaseIndex: number = 0;
+    private _completedPlacement: boolean;
 
-    constructor(teamManager: TeamManager, uiManager: UIManager, battleManager: BattleManager) {
+    constructor(mapManager: MapManager, battleManager: BattleManager) {
         super();
+        this._completedPlacement = false;
         this._phases = [
-            new PriorityPhase(this, teamManager), 
-            new MovementPhase(this, teamManager, uiManager), 
-            new ShootingPhase(this, battleManager), 
-            new FightingPhase(this, battleManager)
+            new PriorityPhase(this, mapManager.teamManager),
+            new PlacementPhase(this, mapManager),
+            new MovementPhase(this, mapManager), 
+            new ShootingPhase(this, battleManager, mapManager), 
+            new FightingPhase(this, battleManager, mapManager)
         ];
     }
 
@@ -34,6 +36,10 @@ export class PhaseManager extends Phaser.Events.EventEmitter {
 
     get priorityPhase(): PriorityPhase {
         return this._phases[PhaseType.priority] as PriorityPhase;
+    }
+
+    get placementPhase(): PlacementPhase {
+        return this._phases[PhaseType.placement] as PlacementPhase;
     }
 
     get movementPhase(): MovementPhase {
@@ -53,15 +59,22 @@ export class PhaseManager extends Phaser.Events.EventEmitter {
     }
 
     moveToNextPhase(): IPhase {
+        if (this._phaseIndex === PhaseType.placement) {
+            this._completedPlacement = true;
+        }
         this._phaseIndex++;
+        if (this._phaseIndex === PhaseType.placement && this._completedPlacement) {
+            this._phaseIndex++; // skip placement since it only happens once per game
+        }
         if (this._phaseIndex >= this._phases.length) {
-            this._phaseIndex = 0;
+            this._phaseIndex = 0; // wrap back around to the beginning
         }
         return this.currentPhase;
     }
 
     reset(): IPhase {
         this._phaseIndex = 0;
+        this._completedPlacement = false;
         this._phases.forEach((p: IPhase) => p.reset());
         return this.currentPhase;
     }
