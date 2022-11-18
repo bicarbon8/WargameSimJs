@@ -1,4 +1,4 @@
-import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { WarGame } from './wargame-sim/war-game';
 
 @Component({
@@ -7,11 +7,12 @@ import { WarGame } from './wargame-sim/war-game';
   styleUrls: ['./game.component.css']
 })
 export class GameComponent implements OnInit, OnDestroy {
-  private _zone: NgZone;
-  
-  constructor(zone: NgZone) {
-      this._zone = zone;
+  @HostListener('window:resize', ['$event'])
+  onResize(event) {
+    WarGame.resize();
   }
+  
+  constructor(private _zone: NgZone) { }
 
   ngOnInit(): void {
       this._zone.runOutsideAngular(() => {

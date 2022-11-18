@@ -39,6 +39,10 @@ export module WarGame {
         dice = null;
     }
 
+    export function resize(): void {
+        uiMgr?.resize();
+    }
+
     export function width(): number {
         return uiMgr?.width || 0;
     }
