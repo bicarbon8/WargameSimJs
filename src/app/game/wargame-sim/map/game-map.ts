@@ -5,7 +5,6 @@ import { GameMapOptions } from "./game-map-options";
 import TILE_MAPPING from "./tile-mapping";
 import { WarGame } from "../war-game";
 import { HasGameObject } from "../interfaces/has-game-object";
-import { AStarFinder } from "astar-typescript";
 import { HasLocation } from "../ui/types/has-location";
 import { MapManager } from "./map-manager";
 
@@ -14,7 +13,6 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     private readonly _tileWidth: number;
     private readonly _tileHeight: number;
     private readonly _grid: number[][];
-    private readonly _pathFinder: AStarFinder;
 
     private _layer: Phaser.Tilemaps.TilemapLayer;
     private _tileMap: Phaser.Tilemaps.Tilemap;
@@ -25,11 +23,6 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         this._tileWidth = 32;
         this._tileHeight = this._tileWidth;
         this._grid = this._createGrid();
-        this._pathFinder = new AStarFinder({
-            grid: {matrix: this._grid},
-            diagonalAllowed: false,
-            includeStartNode: false
-        });
     }
 
     get mapManager(): MapManager {
@@ -92,13 +85,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
     }
 
     getDistanceBetween(startX: number, startY: number, endX: number, endY: number): number {
-        return this.getPathTo(startX, startY, endX, endY).length;
-    }
-
-    getPathTo(startX: number, startY: number, endX: number, endY: number): Phaser.Tilemaps.Tile[] {
-        let path: Phaser.Tilemaps.Tile[] = [];
-        let p: number[][] = this._pathFinder.findPath([startX, startY], [endX, endY]);
-        return path;
+        return Phaser.Math.Distance.Between(startX, startY, endX, endY);
     }
 
     getTilesInRange(tileX: number, tileY: number, range: number): Phaser.Tilemaps.Tile[] {

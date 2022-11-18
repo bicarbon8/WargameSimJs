@@ -62,7 +62,8 @@ export module Helpers {
     }
 
     export function displayDebug(scene: Phaser.Scene, object: LayoutContent, name?: string): void {
-        const debugText = scene.add.text(0, 0, `${name}\nx:${object.x.toFixed(1)},y:${object.y.toFixed(1)}\nw:${object.displayWidth.toFixed(1)};h:${object.displayHeight.toFixed(1)}`, { 
+        const content: any = object;
+        const debugText = scene.add.text(0, 0, `${name}\nx:${content.x.toFixed(1)},y:${content.y.toFixed(1)}\nw:${object.displayWidth.toFixed(1)};h:${object.displayHeight.toFixed(1)}`, { 
             font: '40px Courier', 
             color: '#fc03e8',
             align: 'center'

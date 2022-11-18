@@ -23,9 +23,8 @@
     "@angular/platform-browser-dynamic": "13.2.0",
     "@angular/router": "13.2.0",
     "@mikewesthad/dungeon": "^2.0.1",
-    "astar-typescript": "^0.0.442",
     "phaser": "^3.55.2",
-    "phaser-ui-components": "0.0.8",
+    "phaser-ui-components": "^2.0.0",
     "rxjs": "^6.6.7",
     "tslib": "^2.3.1",
     "zone.js": "~0.11.4"

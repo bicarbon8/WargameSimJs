@@ -1,9 +1,15 @@
-import { Card, Colors, GridCell, GridLayout, LinearLayout, TextButton } from "phaser-ui-components";
+import { Card, Colors, GridLayout, LayoutContainer, LayoutContent, LinearLayout, TextButton } from "phaser-ui-components";
 import { IPhase } from "../../phases/i-phase";
 import { PhaseType } from "../../phases/phase-type";
 import { IPlayer } from "../../players/i-player";
 import { Team } from "../../teams/team";
 import { WarGame } from "../../war-game";
+
+module Constants {
+    export var CARD_BODY_BUTTONS = 'card-body-buttons';
+    export var CARD_BODY_TITLE = 'card-body-title';
+    export var CARD_BODY_DESCRIPTION = 'card-body-description';
+};
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: false,
@@ -93,9 +99,11 @@ export class OverlayScene extends Phaser.Scene {
     private _displayMessage(text: string, color: number): void {
         const view: Phaser.Geom.Rectangle = this.cameras.main.worldView;
         const message: TextButton = new TextButton(this, {
-            width: view.width * 0.9,
-            text: text,
-            textStyle: {fontSize: '20px',fontFamily: 'Courier'},
+            desiredWidth: view.width * 0.9,
+            text: {
+                text: text,
+                style: {fontSize: '20px',fontFamily: 'Courier'}
+            },
             background: {fillStyle: {color: color}},
             cornerRadius: 5,
             padding: 10
@@ -142,44 +150,53 @@ export class OverlayScene extends Phaser.Scene {
             x: 0,
             y: 0,
             rows: 3,
-            columns: 3,
-            margins: 10
+            columns: 3
         });
         this.add.existing(this._menuGrid);
-        const cells: GridCell[] = this._menuGrid.cells;
+
         const teams: Team[] = WarGame.teamMgr.teams;
+        let row = 0;
+        let col = 0;
         for (var i = 0; i < teams.length; i++) {
-            let cell: GridCell = cells[i];
             let team: Team = teams[i];
             let teamMenu: Card = new Card(this, {
-                width: cell.width,
+                desiredWidth: Math.floor(WarGame.uiMgr.width / 3),
                 header: {
-                    text: `${team?.name} - ${team?.color}`,
-                    textStyle: { font: '20px Courier', color: (Colors.isDark(team.color)) ? '#ffffff' : '#000000' },
+                    text: {
+                        text: `${team?.name} - ${team?.color}`,
+                        style: { font: '20px Courier', color: (Colors.isDark(team.color)) ? '#ffffff' : '#000000' }
+                    },
                     background: { fillStyle: {color: Colors.toHexNumber(team.color) }},
                     cornerRadius: 5
                 },
                 body: {
-                    title: ' -- ',
-                    titleStyle: { font: '20px Courier', color: '#606060' },
-                    description: ' -- ',
-                    descriptionStyle: { font: '15px Courier', color: '#606060' },
                     background: { fillStyle: {color: 0xc0c0c0 }},
                     cornerRadius: 5,
-                    buttons: [
-                        {
+                    contents: [
+                        this.make.text({
                             text: ' -- ',
-                            textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.success)) ? '#ffffff' : '#000000' },
-                            background: {fillStyle: {color: Colors.success}},
-                            interactive: true,
-                            cornerRadius: 5,
-                            padding: 5
-                        }
+                            style: { font: '20px Courier', color: '#606060' }
+                        }, false).setName(Constants.CARD_BODY_TITLE),
+                        this.make.text({
+                            text: ' -- ',
+                            style: { font: '15px Courier', color: '#606060' }
+                        }).setName(Constants.CARD_BODY_DESCRIPTION),
+                        new LinearLayout(this, {
+                            padding: 10
+                        }).setName(Constants.CARD_BODY_BUTTONS)
                     ]
                 }
             });
             teamMenu.setVisible(false);
-            cell.setContent(teamMenu);
+            this._menuGrid.addContentAt(row, col, teamMenu);
+            col++;
+            if (col >= this._menuGrid.columns) {
+                col = 0;
+                row++;
+            }
+            if (row >= this._menuGrid.rows) {
+                row = 0;
+            }
         }
     }
 
@@ -191,8 +208,8 @@ export class OverlayScene extends Phaser.Scene {
         const priorityTeam: Team = WarGame.phaseMgr.priorityPhase.getTeam(previousPriority);
         const teamIndex: number = WarGame.teamMgr.teams.findIndex((t: Team) => t.id === priorityTeam?.id);
         if (teamIndex >= 0) {
-            const cell: GridCell = this._menuGrid?.cells[teamIndex];
-            return cell?.contentAs<Card>();
+            const content: LayoutContainer = this._menuGrid?.contents[teamIndex] as LayoutContainer;
+            return content?.contentAs<Card>(); 
         }
         return null;
     }
@@ -201,8 +218,8 @@ export class OverlayScene extends Phaser.Scene {
         const priorityTeam: Team = WarGame.phaseMgr.priorityPhase.priorityTeam;
         const teamIndex: number = WarGame.teamMgr.teams.findIndex((t: Team) => t.id === priorityTeam?.id);
         if (teamIndex >= 0) {
-            const cell: GridCell = this._menuGrid?.cells[teamIndex];
-            return cell?.contentAs<Card>();
+            const content: LayoutContainer = this._menuGrid?.contents[teamIndex] as LayoutContainer;
+            return content?.contentAs<Card>();
         }
         return null;
     }
@@ -213,11 +230,11 @@ export class OverlayScene extends Phaser.Scene {
     }
 
     private _handlePhaseStart(phase: IPhase): void {
-        this._menuGrid?.cells
-            .map((c: GridCell) => c?.contentAs<Card>())
+        this._menuGrid?.contents
+            .map((c: LayoutContainer) => c.contentAs<Card>())
             .filter((c: Card) => c != null)
             .forEach((c: Card) => {
-                c.updateBodyTitle(`Current Phase: [${phase.getName()}]`);
+                this._setCardBodyTitleText(`Current Phase: [${phase.getName()}]`, c);
                 switch (phase.getType()) {
                     case PhaseType.priority:
                         /* wait for end */
@@ -241,8 +258,8 @@ export class OverlayScene extends Phaser.Scene {
     private _handlePhaseEnd(phase: IPhase): void {
         switch (phase.getType()) {
             case PhaseType.priority:
-                this._menuGrid?.cells
-                    .map((c: GridCell) => c?.contentAs<Card>())
+                this._menuGrid?.contents
+                    .map((c: LayoutContainer) => c.contentAs<Card>())
                     .filter((c: Card) => c != null)
                     .forEach((c: Card) => {
                         this._updateCardForPriorityPhase(c);
@@ -255,104 +272,101 @@ export class OverlayScene extends Phaser.Scene {
     }
 
     private _updateCardForPriorityPhase(card: Card): void {
-        card.removeBodyButtons(true);
-        card.updateBodyTitle('Current Phase: [priority]');
+        this._removeButtonsAndLayoutsFromCardBody(card);
+        this._setCardBodyTitleText('Current Phase: [priority]', card);
         const ordered: string[] = WarGame.phaseMgr.priorityPhase.orderedTeams.map((t: Team) => t?.name) || [];
-        card.updateBodyDescription(`Priority order for this round is:\n${ordered.join(', ')}`);
-        card.addBodyButtons({
-            text: 'Continue',
+        this._setCardBodyDescriptionText(`Priority order for this round is:\n${ordered.join(', ')}`, card);
+        const b = new TextButton(this, {
+            text: {
+                text: 'OK',
+                style: { font: '20px Courier', color: (Colors.isDark(Colors.primary)) ? '#ffffff' : '#000000' }
+            },
             padding: 5,
-            textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.primary)) ? '#ffffff' : '#000000' },
             background: {fillStyle: {color: Colors.primary}},
             cornerRadius: 5,
             interactive: true
-        });
-        card.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._pointerDownOver = card.cardbody.buttons[0];
+        }).on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this._pointerDownOver = b;
         }, this).on(Phaser.Input.Events.POINTER_UP, () => {
-            if (this._pointerDownOver && this._pointerDownOver === card.cardbody.buttons[0]) {
+            if (this._pointerDownOver && this._pointerDownOver === b) {
+                this._pointerDownOver = null;
                 WarGame.phaseMgr.moveToNextPhase().start();
             }
         }, this);
+        card.cardbody.addContents(new LinearLayout(this, {
+            padding: 10,
+            contents: [b]
+        }).setName(Constants.CARD_BODY_BUTTONS));
     }
 
     private _updateCardForPlacementPhase(card: Card): void {
-        card.removeBodyButtons();
-        card.updateBodyDescription('Click on the map to place your team');
+        this._removeButtonsAndLayoutsFromCardBody(card);
+        this._setCardBodyDescriptionText('Click on the map to place your team', card);
     }
 
     private _updateCardForMovementPhase(card: Card): void {
-        card.removeBodyButtons(true);
-        card.updateBodyDescription('Tap each player and pick a\nlocation within their\nmovement range.');
-        card.addBodyButtons({
-            text: 'Continue',
-            padding: 5,
-            textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.primary)) ? '#ffffff' : '#000000' },
-            background: {fillStyle: {color: Colors.primary}},
-            cornerRadius: 5,
-            interactive: true
-        }, {
-            text: 'to next Team',
-            padding: 5,
-            interactive: true
-        });
-        card.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._pointerDownOver = card.cardbody.buttons[0];
-        }, this).on(Phaser.Input.Events.POINTER_UP, () => {
-            if (this._pointerDownOver && this._pointerDownOver === card.cardbody.buttons[0]) {
-                this._pointerDownOver = null;
-                WarGame.phaseMgr.currentPhase.nextTeam();
-            }
-        }, this);
+        this._removeButtonsAndLayoutsFromCardBody(card);
+        this._setCardBodyDescriptionText('Tap each player and pick a\nlocation within their\nmovement range.', card);
+        
     }
 
     private _updateCardForShootingPhase(card: Card): void {
-        card.removeBodyButtons(true);
-        card.updateBodyDescription('Tap each player and pick an\nopponent in range\nto attempt to shoot them.');
-        card.addBodyButtons({
-            text: 'Continue',
-            padding: 5,
-            textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.primary)) ? '#ffffff' : '#000000' },
-            background: {fillStyle: {color: Colors.primary}},
-            cornerRadius: 5,
-            interactive: true
-        }, {
-            text: 'to next Team',
-            padding: 5,
-            interactive: true
-        });
-        card.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._pointerDownOver = card.cardbody.buttons[0];
-        }, this).on(Phaser.Input.Events.POINTER_UP, () => {
-            if (this._pointerDownOver && this._pointerDownOver === card.cardbody.buttons[0]) {
-                this._pointerDownOver = null;
-                WarGame.phaseMgr.currentPhase.nextTeam();
-            }
-        }, this);
+        this._removeButtonsAndLayoutsFromCardBody(card);
+        this._setCardBodyDescriptionText('Tap each player and pick an\nopponent in range\nto attempt to shoot them.', card);
+        card.cardbody.addContents(this._continueToNextTeamButtonLayout());
     }
 
     private _updateCardForFightingPhase(card: Card): void {
-        card.removeBodyButtons(true);
-        card.updateBodyDescription('Tap each player and pick an\nopponent in range\nto battle them.');
-        card.addBodyButtons({
-            text: 'Continue',
+        this._removeButtonsAndLayoutsFromCardBody(card);
+        this._setCardBodyDescriptionText('Tap each player and pick an\nopponent in range\nto battle them.', card);
+        card.addContents(this._continueToNextTeamButtonLayout());
+    }
+
+    private _setCardBodyTitleText(text: string, card: Card): void {
+        (card.cardbody.getByName(Constants.CARD_BODY_TITLE) as Phaser.GameObjects.Text)?.setText(text);
+        card.cardbody.refreshLayout();
+    }
+
+    private _setCardBodyDescriptionText(text: string, card: Card): void {
+        (card.cardbody.getByName(Constants.CARD_BODY_DESCRIPTION) as Phaser.GameObjects.Text)?.setText(text);
+        card.cardbody.refreshLayout();
+    }
+
+    private _removeButtonsAndLayoutsFromCardBody(card: Card): void {
+        let b: Phaser.GameObjects.GameObject;
+        while ((b = card.cardbody.getByName(Constants.CARD_BODY_BUTTONS)) != null) {
+            card.cardbody.removeContent(b, true);
+        };
+    }
+
+    private _continueToNextTeamButtonLayout(): LinearLayout {
+        const b = new TextButton(this, {
+            text: {
+                text: 'Continue',
+                style: { font: '20px Courier', color: (Colors.isDark(Colors.primary)) ? '#ffffff' : '#000000' }
+            },
             padding: 5,
-            textStyle: { font: '20px Courier', color: (Colors.isDark(Colors.primary)) ? '#ffffff' : '#000000' },
             background: {fillStyle: {color: Colors.primary}},
             cornerRadius: 5,
             interactive: true
-        }, {
-            text: 'to next Team',
-            padding: 5,
-            interactive: true
-        });
-        card.cardbody.buttons[0].on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._pointerDownOver = card.cardbody.buttons[0];
+        }).on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this._pointerDownOver = b;
         }, this).on(Phaser.Input.Events.POINTER_UP, () => {
-            if (this._pointerDownOver && this._pointerDownOver === card.cardbody.buttons[0]) {
+            if (this._pointerDownOver && this._pointerDownOver === b) {
                 this._pointerDownOver = null;
                 WarGame.phaseMgr.currentPhase.nextTeam();
             }
         }, this);
+        
+        const layout = new LinearLayout(this, {
+            padding: 10,
+            desiredHeight: b.height,
+            contents: [
+                b,
+                this.make.text({text: 'to next Team'})
+            ]
+        }).setName(Constants.CARD_BODY_BUTTONS);
+
+        return layout;
     }
 }
