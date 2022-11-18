@@ -97,7 +97,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
 
     getPathTo(startX: number, startY: number, endX: number, endY: number): Phaser.Tilemaps.Tile[] {
         let path: Phaser.Tilemaps.Tile[] = [];
-        let p: number[][] = this._pathFinder.findPath({x: startX, y: startY}, {x: endX, y: endY});
+        let p: number[][] = this._pathFinder.findPath([startX, startY], [endX, endY]);
         return path;
     }
 
