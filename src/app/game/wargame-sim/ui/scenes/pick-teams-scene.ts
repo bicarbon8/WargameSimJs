@@ -273,7 +273,8 @@ export class PickTeamsScene extends Phaser.Scene {
         const startAreaGrid: GridLayout = new GridLayout(this, {
             rows: 1,
             columns: 3,
-            height: gridWidth
+            height: gridWidth,
+            alignment: {vertical: 'bottom'}
         });
 
         this._removeTeamCard = new Card(this, {

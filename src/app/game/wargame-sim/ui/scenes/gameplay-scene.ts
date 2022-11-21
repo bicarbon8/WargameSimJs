@@ -46,7 +46,7 @@ export class GameplayScene extends Phaser.Scene {
     }
 
     private _setupCamera(): void {
-        this.cameras.main.backgroundColor.setFromRGB({r: 0, g: 0, b: 0});
+        this.cameras.main.setBackgroundColor(0x0066ff);
         this.cameras.main.setZoom(1);
         this.cameras.main.centerOn(0, 0);
     }
