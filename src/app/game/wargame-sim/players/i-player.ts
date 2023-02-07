@@ -1,16 +1,16 @@
 import { HasGameObject } from "../interfaces/has-game-object";
+import { XY } from "../ui/types/xy";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
 
 export interface IPlayer extends HasGameObject<Phaser.GameObjects.Container> {
     readonly id: string;
-    readonly tileX: number;
-    readonly tileY: number;
+    readonly tileXY: XY
     readonly name: string;
     readonly teamId: string;
     readonly stats: PlayerStats;
     readonly statusEffects: PlayerStatusEffect[];
-    setTile(x: number, y: number, worldLocation: Phaser.Math.Vector2): this;
+    setTile(tileXY: XY): this;
     setTeamId(id: string): this;
     wound(): this;
     setEffects(...effects: PlayerStatusEffect[]): this;

@@ -8,6 +8,7 @@ import { PlayerSpritesheetMapping } from "./player-spritesheet-mappings";
 import { PlayerManager } from "./player-manager";
 import { Team } from "../teams/team";
 import { LinearLayout } from "phaser-ui-components";
+import { XY } from "../ui/types/xy";
 
 export class Player implements IPlayer {
     readonly id: string;
@@ -16,8 +17,7 @@ export class Player implements IPlayer {
     private readonly _stats: PlayerStats;
     private readonly _spriteMapping: PlayerSpritesheetMapping;
     private _scene: Phaser.Scene;
-    private _tileX: number;
-    private _tileY: number;
+    private _tileXY: XY;
     private _teamId: string;
     private _remainingWounds: number;
     private _effects: Set<PlayerStatusEffect>;
@@ -39,12 +39,8 @@ export class Player implements IPlayer {
         return this._name;
     }
 
-    get tileX(): number {
-        return this._tileX;
-    }
-
-    get tileY(): number {
-        return this._tileY;
+    get tileXY(): XY {
+        return this._tileXY;
     }
 
     get obj(): Phaser.GameObjects.Container {
@@ -54,11 +50,11 @@ export class Player implements IPlayer {
         return this._obj;
     }
 
-    setTile(x: number, y: number, worldLocation: Phaser.Math.Vector2): this {
+    setTile(tileXY: XY): this {
+        const worldLocation = WarGame.mapMgr.map.getTileWorldCentre(tileXY);
         if (worldLocation) {
-            this._tileX = x;
-            this._tileY = y;
-            console.info(`adding player ${this.id} to map at: ${x},${y} - world: ${worldLocation.x},${worldLocation.y}`);
+            this._tileXY = tileXY;
+            console.info(`adding player ${this.id} to map at: ${tileXY.x},${tileXY.y} - world: ${worldLocation.x},${worldLocation.y}`);
             this.obj.setPosition(worldLocation.x, worldLocation.y);
             this.obj.setVisible(true);
             WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_MOVED, this);
@@ -136,7 +132,7 @@ export class Player implements IPlayer {
     }
 
     isBattling(): boolean {
-        return WarGame.mapMgr.map.getPlayersInRange(this._tileX, this._tileY, 1).filter((player: IPlayer) => {
+        return WarGame.mapMgr.map.getPlayersInRange(this._tileXY, 1).filter((player: IPlayer) => {
             if (player.id !== this.id && WarGame.playerMgr.areEnemies(this, player)) { return true; }
         }).length > 0;
     }
@@ -200,10 +196,8 @@ export class Player implements IPlayer {
             this._woundsIndicator.addContents(squareContainer);
         }
 
-        this.obj.on(Phaser.Input.Events.POINTER_OVER, () => {
-            this._woundsIndicator.setVisible(true);
-        }, this).on(Phaser.Input.Events.POINTER_OUT, () => {
-            this._woundsIndicator.setVisible(false);
-        });
+        WarGame.evtMgr
+            .subscribe(this.id, WarGame.EVENTS.POINTER_OVER, () => this._woundsIndicator.setVisible(true))
+            .subscribe(this.id, WarGame.EVENTS.POINTER_OUT, () => this._woundsIndicator.setVisible(false));
     }
 }

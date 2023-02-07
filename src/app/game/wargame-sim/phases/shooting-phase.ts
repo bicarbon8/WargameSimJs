@@ -2,6 +2,7 @@ import { BattleManager } from "../battles/battle-manager";
 import { MapManager } from "../map/map-manager";
 import { IPlayer } from "../players/i-player";
 import { Team } from "../teams/team";
+import { XY } from "../ui/types/xy";
 import { WarGame } from "../war-game";
 import { IPhase } from "./i-phase";
 import { PhaseManager } from "./phase-manager";
@@ -105,7 +106,7 @@ export class ShootingPhase implements IPhase {
 
     isAbleToShoot(player: IPlayer): boolean {
         const enemiesInRange: IPlayer[] = this._mapMgr.map
-        .getPlayersInRange(player.tileX, player.tileY, 32)
+        .getPlayersInRange(player.tileXY, 1)
         .filter((p: IPlayer) => !p.isDead() && p.isEnemy(player));
         return enemiesInRange.length > 0;
     }
@@ -116,21 +117,24 @@ export class ShootingPhase implements IPhase {
 
     getEnemiesInRange(player: IPlayer): IPlayer[] {
         const enemiesInRange: IPlayer[] = this._mapMgr.map
-            .getPlayersInRange(player.tileX, player.tileY, player.stats.shoot * 32)
+            .getPlayersInRange(player.tileXY, player.stats.shoot)
             .filter((p: IPlayer) => !p.isDead() && p.isEnemy(player));
         return enemiesInRange;
     }
 
     private _startEventHandling(): void {
+        const owner = 'shooting-phase';
         const condition = () => this.active;
-        WarGame.evtMgr.subscribe('shooting-phase', WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this.handleTeamChange(t), condition);
+        WarGame.evtMgr
+            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this.handleTeamChange(t), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this.handlePlayerDown(tileXY), condition);
     }
 
     highlightTeam(): void {
         const players: IPlayer[] = this._phaseMgr.priorityPhase.priorityTeam.getPlayers()
             .filter((p: IPlayer) => !this._shootTracker.has(p.id))
             .filter((p: IPlayer) => this.isAbleToShoot(p))
-            .filter((p: IPlayer) => this._mapMgr.map.getPlayersInRange(p.tileX, p.tileY, p.stats.shoot * 32)
+            .filter((p: IPlayer) => this._mapMgr.map.getPlayersInRange(p.tileXY, p.stats.shoot)
             .filter((o: IPlayer) => p.isEnemy(o)).length > 0);
         if (players.length > 0) {
             WarGame.uiMgr.gameplayScene.tweens.add({
@@ -146,11 +150,10 @@ export class ShootingPhase implements IPhase {
         }
     }
 
-    handlePlayerDown(pointer: Phaser.Input.Pointer): void {
-        const world: Phaser.Math.Vector2 = this._battleMgr.uiManager.pointerToWorld(pointer);
-        const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.obj.getTileAtWorldXY(world.x, world.y);
+    handlePlayerDown(tileXY: XY): void {
+        const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
         if (tile) {
-            const player: IPlayer = this._battleMgr.teamManager.playerManager.getPlayerAt(tile.x, tile.y);
+            const player: IPlayer = this._battleMgr.teamManager.playerManager.getPlayerAt(tile);
 
             if (this._activeShooter) {
                 // already have active shooter so selecting target now
@@ -183,7 +186,7 @@ export class ShootingPhase implements IPhase {
         this.removeTileHighlighting();
         const shooter: IPlayer = this._activeShooter;
         if (shooter) {
-            const tilesInRange: Phaser.Tilemaps.Tile[] = this._mapMgr.map.getTilesInRange(shooter.tileX, shooter.tileY, (shooter.stats.shoot) * 32);
+            const tilesInRange: Phaser.Tilemaps.Tile[] = this._mapMgr.map.getTilesInRange(shooter.tileXY, shooter.stats.shoot);
             if (tilesInRange.length > 0) {
                 this._highlightedTiles = this._highlightedTiles.concat(tilesInRange);
             }

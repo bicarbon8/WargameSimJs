@@ -8,8 +8,9 @@ export class MapManager {
     private readonly _teamMgr: TeamManager;
     private _map: GameMap;
 
-    constructor(teamMgr: TeamManager) {
+    constructor(teamMgr: TeamManager, map?: GameMap) {
         this._teamMgr = teamMgr;
+        this._map = map;
     }
     
     get map(): GameMap {
@@ -20,9 +21,9 @@ export class MapManager {
         return this._teamMgr;
     }
 
-    createMap(scene: Phaser.Scene): GameMap {
+    createMap(scene: Phaser.Scene, options?: GameMapOptions): GameMap {
         const mult: number = this.teamManager.teams.length;
-        const options: GameMapOptions = {
+        const defaultOpts = {
             mapManager: this,
             scene: scene,
             width: mult * 20,
@@ -33,9 +34,10 @@ export class MapManager {
             roomMinHeight: 10,
             maxRooms: mult,
             seed: Rand.getStringFrom(),
-            layerDepth: WarGame.DEPTH.PLAYER
+            layerDepth: WarGame.DEPTH.PLAYER, 
+            ...options
         };
-        this._map = new GameMap(options);
+        this._map = new GameMap(defaultOpts);
         return this._map;
     }
 

@@ -67,7 +67,7 @@ export class FightingPhase implements IPhase {
         for (var i=0; i<players.length; i++) {
             let attacker: IPlayer = players[i];
             
-            let nearbyPlayers: IPlayer[] = this._mapMgr.map.getPlayersInRange(attacker.tileX, attacker.tileY, 32);
+            let nearbyPlayers: IPlayer[] = this._mapMgr.map.getPlayersInRange(attacker.tileXY, 1);
             let nearbyAllies: IPlayer[] = nearbyPlayers
             .filter((p: IPlayer) => p.isAlly(attacker));
             let nearbyEnemies: IPlayer[] = nearbyPlayers

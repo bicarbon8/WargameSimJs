@@ -1,6 +1,7 @@
 import { MapManager } from "../map/map-manager";
 import { IPlayer } from "../players/i-player";
 import { Team } from "../teams/team";
+import { XY } from "../ui/types/xy";
 import { WarGame } from "../war-game";
 import { IPhase } from "./i-phase";
 import { PhaseManager } from "./phase-manager";
@@ -19,6 +20,7 @@ export class PlacementPhase implements IPhase {
         this._mapMgr = mapManager;
         this._highlightedTiles = [];
         this._placedTeamsCount = 0;
+        this._setupEventHandling();
     }
 
     get active(): boolean {
@@ -56,20 +58,20 @@ export class PlacementPhase implements IPhase {
         WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
     }
 
-    clearHighlightedTiles(pointer?: Phaser.Input.Pointer): void {
+    clearHighlightedTiles(): void {
         while (this._highlightedTiles?.length) {
             let tile: Phaser.Tilemaps.Tile = this._highlightedTiles.shift();
             tile?.clearAlpha();
         }
     }
 
-    highlightTiles(pointer: Phaser.Input.Pointer): void {
+    highlightTiles(tileXY: XY): void {
         this.clearHighlightedTiles();
-        const pointerTile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileUnderPointer(pointer);
+        const pointerTile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
         if (pointerTile) {
             let teamPlayers: IPlayer[] = this._phaseMgr.priorityPhase.priorityTeam.getPlayers();
-            let tiles: Phaser.Tilemaps.Tile[] = this._mapMgr.map.getTilesAround(pointerTile.x, pointerTile.y, teamPlayers.length)
-                .filter((tile: Phaser.Tilemaps.Tile) => !this._mapMgr.map.isTileOccupied(tile.x, tile.y));
+            let tiles: Phaser.Tilemaps.Tile[] = this._mapMgr.map.getTilesAround(pointerTile, teamPlayers.length)
+                .filter((tile: Phaser.Tilemaps.Tile) => !this._mapMgr.map.isTileOccupied(tile));
             if (teamPlayers.length <= tiles.length) {
                 this._highlightedTiles = this._highlightedTiles.concat(tiles);
                 for (var i=0; i<this._highlightedTiles.length; i++) {
@@ -79,8 +81,8 @@ export class PlacementPhase implements IPhase {
         }
     }
 
-    placeTeam(pointer: Phaser.Input.Pointer): void {
-        const pointerTile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileUnderPointer(pointer);
+    placeTeam(tileXY: XY): void {
+        const pointerTile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
         const highlightedTiles: Phaser.Tilemaps.Tile[] = this._highlightedTiles;
         if (highlightedTiles.includes(pointerTile)) {
             let team: Team = this._phaseMgr.priorityPhase.priorityTeam;
@@ -92,7 +94,7 @@ export class PlacementPhase implements IPhase {
                     let t: Phaser.Tilemaps.Tile = highlightedTiles[i];
                     let p: IPlayer = players[i];
                     if (p) {
-                        this._mapMgr.map.addPlayer(p, t.x, t.y);
+                        this._mapMgr.map.addPlayer(p, t);
                     }
                 }
                 this._placedTeamsCount++;
@@ -103,5 +105,14 @@ export class PlacementPhase implements IPhase {
         if (this._placedTeamsCount >= this._mapMgr.teamManager.teams.length) {
             this.complete();
         }
+    }
+
+    private _setupEventHandling(): void {
+        const owner = 'placement-phase';
+        const condition = () => WarGame.phaseMgr.placementPhase.active;
+        WarGame.evtMgr
+            .subscribe(owner, WarGame.EVENTS.POINTER_MOVE, (tileXY: XY) => WarGame.phaseMgr.placementPhase.highlightTiles(tileXY), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_OUT, () => WarGame.phaseMgr.placementPhase.clearHighlightedTiles(), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => WarGame.phaseMgr.placementPhase.placeTeam(tileXY), condition);
     }
 }

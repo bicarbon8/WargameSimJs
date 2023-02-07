@@ -2,7 +2,6 @@ import { environment } from "src/environments/environment";
 import { InputController } from "../controllers/input-controller";
 import { KBMController } from "../controllers/kbm-controller";
 import { WarGame } from "../../war-game";
-import { IPlayer } from "../../players/i-player";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: false,
@@ -32,15 +31,9 @@ export class GameplayScene extends Phaser.Scene {
         WarGame.mapMgr.createMap(this).obj;
         this._setupCamera();
         this._setupController();
-        this._setupPointerHandling();
 
         WarGame.uiMgr.game.scene.start('overlay-scene');
         WarGame.uiMgr.game.scene.bringToTop('overlay-scene');
-        
-        this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
-            let world: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-            console.info(`screen: ${pointer.x.toFixed(0)},${pointer.y.toFixed(0)}; world: ${world.x.toFixed(0)},${world.y.toFixed(0)}; zoom: ${this.cameras.main.zoom.toFixed(1)}`);
-        });
     }
 
     update(time: number, delta: number): void {
@@ -55,41 +48,5 @@ export class GameplayScene extends Phaser.Scene {
 
     private _setupController(): void {
         this._controller = new KBMController(this);
-    }
-
-    private _setupPointerHandling(): void {
-        const placementPhaserActive = () => WarGame.phaseMgr.placementPhase.active;
-        WarGame.mapMgr.map.obj
-            .on(Phaser.Input.Events.POINTER_MOVE, (p: Phaser.Input.Pointer) => {
-                if (placementPhaserActive()) {
-                    WarGame.phaseMgr.placementPhase.highlightTiles(p);
-                }
-            }).on(Phaser.Input.Events.POINTER_OUT, (p: Phaser.Input.Pointer) => {
-                if (placementPhaserActive()) {
-                    WarGame.phaseMgr.placementPhase.clearHighlightedTiles(p);
-                }
-            }).on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
-                if (placementPhaserActive()) {
-                    WarGame.phaseMgr.placementPhase.placeTeam(p);
-                }
-            });
-        const movementPhaseActive = () => WarGame.phaseMgr.movementPhase.active;
-        WarGame.mapMgr.map.obj
-            .on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {
-                if (movementPhaseActive()) {
-                    WarGame.phaseMgr.movementPhase.handleMapUp(p);
-                }
-            });
-        const shootingPhaseActive = () => WarGame.phaseMgr.shootingPhase.active;
-        WarGame.teamMgr.playerManager.players.forEach((p: IPlayer) => {
-            p?.obj.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
-                if (movementPhaseActive()) {
-                    WarGame.phaseMgr.movementPhase.handlePlayerDown(p);
-                }
-                if (shootingPhaseActive()) {
-                    WarGame.phaseMgr.shootingPhase.handlePlayerDown(p);
-                }
-            });
-        });
     }
 }

@@ -1,6 +1,7 @@
 import { MapManager } from "../map/map-manager";
 import { IPlayer } from "../players/i-player";
 import { Team } from "../teams/team";
+import { XY } from "../ui/types/xy";
 import { WarGame } from "../war-game";
 import { IPhase } from "./i-phase";
 import { PhaseManager } from "./phase-manager";
@@ -98,7 +99,7 @@ export class MovementPhase implements IPhase {
 
     getEnemiesBlockingMovement(player: IPlayer): IPlayer[] {
         const enemiesInRange: IPlayer[] = this._mapMgr.map
-        .getPlayersInRange(player.tileX, player.tileY, 32)
+        .getPlayersInRange(player.tileXY, 1)
         .filter((p: IPlayer) => !p.isDead() && p.isEnemy(player));
         return enemiesInRange;
     }
@@ -108,13 +109,15 @@ export class MovementPhase implements IPhase {
         const condition = () => this.active;
         WarGame.evtMgr
             .subscribe(owner, WarGame.EVENTS.PLAYER_MOVED, (p: IPlayer) => this._handlePlayerMoved(p), condition)
-            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition);
+            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this.handlePlayerDown(tileXY), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_UP, (tileXY: XY) => this.handleMapUp(tileXY), condition);
     }
 
     private _highlightTeam(team: Team): void {
         const players: IPlayer[] = team.getPlayers()
             .filter((p: IPlayer) => !this._moveTracker.has(p.id))
-            .filter((p: IPlayer) => this._mapMgr.map.getPlayersInRange(p.tileX, p.tileY, 32)
+            .filter((p: IPlayer) => this._mapMgr.map.getPlayersInRange(p.tileXY, 1)
             .filter((o: IPlayer) => p.isEnemy(o)).length === 0);
         if (players.length > 0) {
             WarGame.uiMgr.gameplayScene.tweens.add({
@@ -135,8 +138,8 @@ export class MovementPhase implements IPhase {
         const mover: IPlayer = player;
         if (mover) {
             const tilesInRange: Phaser.Tilemaps.Tile[] = this._mapMgr.map
-            .getTilesInRange(mover.tileX, mover.tileY, mover.stats.move * 32)
-            .filter((t: Phaser.Tilemaps.Tile) => !this._mapMgr.map.isTileOccupied(t.x, t.y));
+            .getTilesInRange(mover.tileXY, mover.stats.move)
+            .filter((t: Phaser.Tilemaps.Tile) => !this._mapMgr.map.isTileOccupied(t));
             if (tilesInRange.length > 0) {
                 this._highlightedTiles = this._highlightedTiles.concat(tilesInRange);
             }
@@ -146,11 +149,11 @@ export class MovementPhase implements IPhase {
         }
     }
 
-    handlePlayerDown(pointer: Phaser.Input.Pointer): void {
+    handlePlayerDown(tileXY: XY): void {
         this._activePlayer = null;
-        const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileUnderPointer(pointer);
+        const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.obj.getTileAt(tileXY.x, tileXY.y);
         if (tile) {
-            const player: IPlayer = this._mapMgr.teamManager.playerManager.getPlayerAt(tile.x, tile.y);
+            const player: IPlayer = this._mapMgr.teamManager.playerManager.getPlayerAt(tile);
             if (this._moveTracker.has(player.id)) return; // player has already moved so don't move again
             if (player?.teamId === this._phaseMgr.priorityPhase.priorityTeam.id) {
                 if (!this.hasEnemiesBlockingMovement(player)) {
@@ -161,13 +164,13 @@ export class MovementPhase implements IPhase {
         this._highlightTiles(this._activePlayer);
     }
 
-    handleMapUp(pointer: Phaser.Input.Pointer): void {
+    handleMapUp(tileXY: XY): void {
         const mover: IPlayer = this._activePlayer;
         if (mover) {
-            const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileUnderPointer(pointer);
+            const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.obj.getTileAt(tileXY.x, tileXY.y);
             if (tile && this._highlightedTiles.includes(tile)) {
                 this._removeTileHighlighting();
-                this._mapMgr.map.movePlayer(mover.tileX, mover.tileY, tile.x, tile.y);
+                this._mapMgr.map.movePlayer(mover.tileXY, tile);
             }
         }
     }

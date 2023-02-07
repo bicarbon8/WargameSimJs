@@ -1,10 +1,9 @@
-export abstract class InputController extends Phaser.Events.EventEmitter {
+export abstract class InputController {
     private _scene: Phaser.Scene;
     
     active: boolean;
 
     constructor(scene: Phaser.Scene) {
-        super();
         this._scene = scene;
         this.active = true;
     }

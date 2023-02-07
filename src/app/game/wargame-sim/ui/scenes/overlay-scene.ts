@@ -1,4 +1,4 @@
-import { Card, Colors, GridLayout, LayoutContainer, LayoutContent, LinearLayout, TextButton } from "phaser-ui-components";
+import { Card, Colors, GridLayout, LayoutContainer, LinearLayout, TextButton } from "phaser-ui-components";
 import { IPhase } from "../../phases/i-phase";
 import { PhaseType } from "../../phases/phase-type";
 import { IPlayer } from "../../players/i-player";

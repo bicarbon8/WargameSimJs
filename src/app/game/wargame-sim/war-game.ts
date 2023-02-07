@@ -96,6 +96,11 @@ export module WarGame {
         export const PLAYER_HIT_SHOT = 'player-hit-shot';
         export const PLAYER_MISSED_SHOT = 'player-missed-shot';
         export const MESSAGE = 'wargame-message';
+        export const POINTER_DOWN = 'pointer-down';
+        export const POINTER_UP = 'pointer-up';
+        export const POINTER_OUT = 'pointer-out';
+        export const POINTER_MOVE = 'pointer-move';
+        export const POINTER_OVER = 'pointer-over';
     }
     export module PLAYERS {
         export const BASIC: PlayerOptions = {

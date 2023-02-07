@@ -1,3 +1,4 @@
+import { XY } from "../ui/types/xy";
 import { WarGame } from "../war-game";
 import { IPlayer } from "./i-player";
 import { Player } from "./player";
@@ -61,9 +62,9 @@ export class PlayerManager {
         return this._players.get(id);
     }
 
-    getPlayerAt(tileX: number, tileY: number): IPlayer {
+    getPlayerAt(tileXY: XY): IPlayer {
         let players: IPlayer[] = this.players.filter((player: IPlayer) => {
-            if (player.tileX === tileX && player.tileY === tileY) return true;
+            if (player.tileXY.x === tileXY.x && player.tileXY.y === tileXY.y) return true;
         });
         return (players?.length) ? players[0] : null;
     }

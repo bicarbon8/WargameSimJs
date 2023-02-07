@@ -1,1 +1,0 @@
-export type HasLocation = {x: number, y: number};

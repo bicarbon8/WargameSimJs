@@ -75,7 +75,7 @@ export class MeleBattle extends Battle {
 
     private _pushBackPlayers(losers: IPlayer[]): void {
         const loserTiles: Phaser.Tilemaps.Tile[] = losers
-        .map((p: IPlayer) => WarGame.mapMgr.map.obj.getTileAt(p.tileX, p.tileY))
+        .map((p: IPlayer) => WarGame.mapMgr.map.getTileAt(p.tileXY))
         .filter((t: Phaser.Tilemaps.Tile) => t != null);
         const emptyTiles: Phaser.Tilemaps.Tile[] = WarGame.mapMgr.map.getUnoccupiedTiles()
         .filter((t: Phaser.Tilemaps.Tile) => {
@@ -96,7 +96,7 @@ export class MeleBattle extends Battle {
                 }
                 let empty: Phaser.Tilemaps.Tile = emptyTiles[i];
                 let loser: IPlayer = losers[i];
-                WarGame.mapMgr.map.movePlayer(loser.tileX, loser.tileY, empty.x, empty.y);
+                WarGame.mapMgr.map.movePlayer(loser.tileXY, empty);
             }
         } else {
             // TODO: mark losers as knocked down

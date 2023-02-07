@@ -4,7 +4,7 @@ import { GameOverScene } from "./scenes/game-over-scene";
 import { GameplayScene } from './scenes/gameplay-scene';
 import { OverlayScene } from "./scenes/overlay-scene";
 import { PickTeamsScene } from "./scenes/pick-teams-scene";
-import { HasLocation } from "./types/has-location";
+import { XY } from "./types/xy";
 import { UIManagerOptions } from './ui-manager-options';
 
 export class UIManager {
@@ -105,7 +105,7 @@ export class UIManager {
         this.game?.destroy(true, true);
     }
 
-    pointerToWorld(location: HasLocation): Phaser.Math.Vector2 {
+    pointerToWorld(location: XY): Phaser.Math.Vector2 {
         return this.gameplayScene?.cameras.main.getWorldPoint(location.x, location.y) || new Phaser.Math.Vector2(location.x, location.y);
     }
 

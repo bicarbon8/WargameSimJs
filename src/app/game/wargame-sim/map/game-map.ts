@@ -6,7 +6,7 @@ import { GameMapOptions } from "./game-map-options";
 import TILE_MAPPING from "./tile-mapping";
 import { WarGame } from "../war-game";
 import { HasGameObject } from "../interfaces/has-game-object";
-import { HasLocation } from "../ui/types/has-location";
+import { XY } from "../ui/types/xy";
 import { MapManager } from "./map-manager";
 
 export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
@@ -41,34 +41,43 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         return this.obj.getTilesWithin(0, 0, this.obj.width, this.obj.height);
     }
 
-    getTileUnderPointer(location: HasLocation): Phaser.Tilemaps.Tile {
-        const world: Phaser.Math.Vector2 = this._options.scene.cameras.main.getWorldPoint(location.x, location.y);
-        const tile: Phaser.Tilemaps.Tile = this.obj.getTileAtWorldXY(world.x, world.y);
+    getTileAt(tileXY: XY): Phaser.Tilemaps.Tile {
+        const tile = this.obj.getTileAt(tileXY.x, tileXY.y, true);
+        return tile;
+    }
+
+    getTileAtCameraXY(cameraXY: XY): Phaser.Tilemaps.Tile {
+        const world: Phaser.Math.Vector2 = this._options.scene.cameras.main.getWorldPoint(cameraXY.x, cameraXY.y);
+        const tile = this.getTileAtWorldXY(world);
+        return tile;
+    }
+
+    getTileAtWorldXY(worldXY: XY): Phaser.Tilemaps.Tile {
+        const tile = this.obj.getTileAtWorldXY(worldXY.x, worldXY.y, true, this._options.scene.cameras.main);
         return tile;
     }
 
     getUnoccupiedTiles(): Phaser.Tilemaps.Tile[] {
-        let locations: Phaser.Tilemaps.Tile[] = this.getTiles().filter((tile: Phaser.Tilemaps.Tile) => {
-            return !this.isTileOccupied(tile.x, tile.y);
-        });
+        let locations: Phaser.Tilemaps.Tile[] = this.getTiles()
+            .filter((tile: Phaser.Tilemaps.Tile) => this.isTileOccupied(tile) === false);
         return locations;
     }
 
-    addPlayer(player: IPlayer, tileX: number, tileY: number): void {
-        if (player && this.isValidLocation(tileX, tileY)) {
+    addPlayer(player: IPlayer, tileXY: XY): void {
+        if (player && this.isValidLocation(tileXY)) {
             player.setScene(this._options.scene);
-            if (!this.isTileOccupied(tileX, tileY)) {
-                player.setTile(tileX, tileY, this.getTileWorldCentre(tileX, tileY));
+            if (!this.isTileOccupied(tileXY)) {
+                player.setTile(tileXY);
                 WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_ADDED, player);
             }
         }
     }
 
-    movePlayer(startX: number, startY: number, endX: number, endY: number): void {
-        const player: IPlayer = this.mapManager.teamManager.playerManager.getPlayerAt(startX, startY);
-        if (player && this.isValidLocation(endX, endY)) {
-            if (!this.isTileOccupied(endX, endY)) {
-                const tile: Phaser.Tilemaps.Tile = this.obj.getTileAt(endX, endY);
+    movePlayer(start: XY, end: XY): void {
+        const player: IPlayer = this.mapManager.teamManager.playerManager.getPlayerAt(start);
+        if (player && this.isValidLocation(end)) {
+            if (!this.isTileOccupied(end)) {
+                const tile: Phaser.Tilemaps.Tile = this.obj.getTileAt(end.x, end.y);
                 WarGame.uiMgr.gameplayScene.tweens.add({
                     targets: player.obj,
                     x: tile.getCenterX(),
@@ -76,7 +85,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
                     ease: 'Sine.easeOut',
                     duration: 500,
                     onComplete: () => {
-                        player.setTile(endX, endY, this.getTileWorldCentre(endX, endY));
+                        player.setTile(end);
                         WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_MOVED, player);
                     },
                     onCompleteScope: this
@@ -85,24 +94,30 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         }
     }
 
-    getDistanceBetween(startX: number, startY: number, endX: number, endY: number): number {
-        return Phaser.Math.Distance.Between(startX, startY, endX, endY);
+    getDistanceBetween(start: XY, end: XY): number {
+        return Phaser.Math.Distance.Between(start.x, start.y, end.x, end.y);
     }
 
-    getTilesInRange(tileX: number, tileY: number, range: number): Phaser.Tilemaps.Tile[] {
-        let worldLoc: Phaser.Math.Vector2 = this.getTileWorldCentre(tileX, tileY);
-        let circle = new Phaser.Geom.Circle(worldLoc.x, worldLoc.y, range);
+    /**
+     * finds valid tiles within the range (in tiles) from the centre `tileXY`
+     * @param tileXY the centre point to search from
+     * @param range the radius to search within in number of tiles
+     * @returns an array of `Phaser.Tilemaps.Tile` objects within the range
+     */
+    getTilesInRange(tileXY: XY, range: number): Phaser.Tilemaps.Tile[] {
+        let worldLoc: Phaser.Math.Vector2 = this.getTileWorldCentre(tileXY);
+        let circle = new Phaser.Geom.Circle(worldLoc.x, worldLoc.y, range * (this._tileWidth / 2));
         return this.obj.getTilesWithinShape(circle, {isNotEmpty: true});
     }
 
-    getTilesAround(tileX: number, tileY: number, count: number): Phaser.Tilemaps.Tile[] {
+    getTilesAround(tileXY: XY, count: number): Phaser.Tilemaps.Tile[] {
         const tiles: Phaser.Tilemaps.Tile[] = [];
         let xOffset = 0;
         let yOffset = 0;
         while (tiles.length < count) {
-            for (var y=tileY-yOffset; y<=tileY+yOffset; y++) {
-                for (var x=tileX-xOffset; x<=tileX+xOffset; x++) {
-                    if (this.isValidLocation(x, y)) {
+            for (var y=tileXY.y-yOffset; y<=tileXY.y+yOffset; y++) {
+                for (var x=tileXY.x-xOffset; x<=tileXY.x+xOffset; x++) {
+                    if (this.isValidLocation({x, y})) {
                         let t: Phaser.Tilemaps.Tile = this.obj.getTileAt(x, y);
                         if (!tiles.includes(t)) {
                             tiles.push(t);
@@ -122,33 +137,33 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         return tiles;
     }
 
-    getPlayersInRange(tileX: number, tileY: number, range: number): IPlayer[] {
-        return this.getTilesInRange(tileX, tileY, range)
-        .map((tile: Phaser.Tilemaps.Tile) => {
-            return this.mapManager.teamManager.playerManager.getPlayerAt(tile.x, tile.y);
-        }).filter((val: IPlayer) => {
-            if (val) { return true; }
-        });
+    /**
+     * searches for players within the range (number of tiles) specified from 
+     * the centre point `tileXY`
+     * @param tileXY the centre point to search from
+     * @param range the radius outwards in number of tiles to search within
+     * @returns an array of `IPlayer` objects found within the range
+     */
+    getPlayersInRange(tileXY: XY, range: number): IPlayer[] {
+        return this.getTilesInRange(tileXY, range)
+        .map((tile: Phaser.Tilemaps.Tile) => this.mapManager.teamManager.playerManager.getPlayerAt(tile))
+        .filter((val: IPlayer) => val != null);
     }
 
-    isTileOccupied(tileX: number, tileY: number): boolean {
-        let player: IPlayer = this.mapManager.teamManager.playerManager.getPlayerAt(tileX, tileY);
+    isTileOccupied(tileXY: XY): boolean {
+        let player: IPlayer = this.mapManager.teamManager.playerManager.getPlayerAt(tileXY);
         if (player) {
             return true;
         }
         return false;
     }
 
-    getTileWorldCentre(tileX: number, tileY: number): Phaser.Math.Vector2 {
-        if (this.isValidLocation(tileX, tileY)) {
-            const tile: Phaser.Tilemaps.Tile = this.obj.getTileAt(tileX, tileY);
-            return new Phaser.Math.Vector2(tile.getCenterX(), tile.getCenterY());
-        }
-        return null;
+    getTileWorldCentre(tileXY: XY): Phaser.Math.Vector2 {
+        return this.obj.tileToWorldXY(tileXY.x, tileXY.y);
     }
 
-    isValidLocation(tileX: number, tileY: number): boolean {
-        return this.obj.getTileAt(tileX, tileY) !== null;
+    isValidLocation(tileXY: XY): boolean {
+        return this.obj.getTileAt(tileXY.x, tileXY.y) !== null;
     }
 
     setScene(scene: Phaser.Scene): void {
