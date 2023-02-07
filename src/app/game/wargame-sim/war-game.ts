@@ -78,23 +78,25 @@ export module WarGame {
         export const MENU: number = 3;
     }
     export module EVENTS {
-        export const CAMERA_MOVE_START: string = 'camera-move-start';
-        export const CAMERA_MOVE_END: string = 'camera-move-end';
-        export const CAMERA_ZOOM: string = 'camera-zoom';
-        export const PHASE_START: string = 'phase-start';
-        export const PHASE_END: string = 'phase-end';
-        export const TEAM_ADDED: string = 'team-added';
-        export const TEAM_REMOVED: string = 'team-removed';
-        export const TEAM_CHANGED: string = 'team-changed';
-        export const PLAYER_ADDED: string = 'player-added';
-        export const PLAYER_REMOVED: string = 'player-removed';
-        export const PLAYER_DIED: string = 'player-died';
-        export const PLAYER_MOVED: string = 'player-moved';
-        export const PLAYER_FIRED_SHOT: string = 'player-fired-shot';
-        export const PLAYER_MISFIRED_SHOT: string = 'player-misfired-shot';
-        export const PLAYER_HIT_SHOT: string = 'player-hit-shot';
-        export const PLAYER_MISSED_SHOT: string = 'player-missed-shot';
-        export const MESSAGE: string = 'wargame-message';
+        export const CAMERA_MOVE_START = 'camera-move-start';
+        export const CAMERA_MOVE_END = 'camera-move-end';
+        export const CAMERA_ZOOM = 'camera-zoom';
+        export const PHASE_START = 'phase-start';
+        export const PHASE_END = 'phase-end';
+        export const TEAM_START = 'team-start';
+        export const TEAM_END = 'team-end';
+        export const TEAM_ADDED = 'team-added';
+        export const TEAM_REMOVED = 'team-removed';
+        export const TEAM_CHANGED = 'team-changed';
+        export const PLAYER_ADDED = 'player-added';
+        export const PLAYER_REMOVED = 'player-removed';
+        export const PLAYER_DIED = 'player-died';
+        export const PLAYER_MOVED = 'player-moved';
+        export const PLAYER_FIRED_SHOT = 'player-fired-shot';
+        export const PLAYER_MISFIRED_SHOT = 'player-misfired-shot';
+        export const PLAYER_HIT_SHOT = 'player-hit-shot';
+        export const PLAYER_MISSED_SHOT = 'player-missed-shot';
+        export const MESSAGE = 'wargame-message';
     }
     export module PLAYERS {
         export const BASIC: PlayerOptions = {

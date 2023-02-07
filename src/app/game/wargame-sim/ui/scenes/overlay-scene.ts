@@ -99,12 +99,12 @@ export class OverlayScene extends Phaser.Scene {
     private _displayMessage(text: string, color: number): void {
         const view: Phaser.Geom.Rectangle = this.cameras.main.worldView;
         const message: TextButton = new TextButton(this, {
-            desiredWidth: view.width * 0.9,
-            text: {
+            width: view.width * 0.9,
+            textConfig: {
                 text: text,
                 style: {fontSize: '20px',fontFamily: 'Courier'}
             },
-            background: {fillStyle: {color: color}},
+            backgroundStyles: {fillStyle: {color: color}},
             cornerRadius: 5,
             padding: 10
         });
@@ -162,11 +162,11 @@ export class OverlayScene extends Phaser.Scene {
             let teamMenu: Card = new Card(this, {
                 desiredWidth: Math.floor(WarGame.uiMgr.width / 3),
                 header: {
-                    text: {
+                    textConfig: {
                         text: `${team?.name} - ${team?.color}`,
                         style: { font: '20px Courier', color: (Colors.isDark(team.color)) ? '#ffffff' : '#000000' }
                     },
-                    background: { fillStyle: {color: Colors.toHexNumber(team.color) }},
+                    backgroundStyles: { fillStyle: {color: Colors.toHexNumber(team.color) }},
                     cornerRadius: 5
                 },
                 body: {
@@ -277,22 +277,15 @@ export class OverlayScene extends Phaser.Scene {
         const ordered: string[] = WarGame.phaseMgr.priorityPhase.orderedTeams.map((t: Team) => t?.name) || [];
         this._setCardBodyDescriptionText(`Priority order for this round is:\n${ordered.join(', ')}`, card);
         const b = new TextButton(this, {
-            text: {
+            textConfig: {
                 text: 'OK',
                 style: { font: '20px Courier', color: (Colors.isDark(Colors.primary)) ? '#ffffff' : '#000000' }
             },
             padding: 5,
-            background: {fillStyle: {color: Colors.primary}},
+            backgroundStyles: {fillStyle: {color: Colors.primary}},
             cornerRadius: 5,
-            interactive: true
-        }).on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._pointerDownOver = b;
-        }, this).on(Phaser.Input.Events.POINTER_UP, () => {
-            if (this._pointerDownOver && this._pointerDownOver === b) {
-                this._pointerDownOver = null;
-                WarGame.phaseMgr.moveToNextPhase().start();
-            }
-        }, this);
+            onClick: () => WarGame.phaseMgr.moveToNextPhase().start()
+        });
         card.cardbody.addContents(new LinearLayout(this, {
             padding: 10,
             contents: [b]
@@ -341,22 +334,15 @@ export class OverlayScene extends Phaser.Scene {
 
     private _continueToNextTeamButtonLayout(): LinearLayout {
         const b = new TextButton(this, {
-            text: {
+            textConfig: {
                 text: 'Continue',
                 style: { font: '20px Courier', color: (Colors.isDark(Colors.primary)) ? '#ffffff' : '#000000' }
             },
             padding: 5,
-            background: {fillStyle: {color: Colors.primary}},
+            backgroundStyles: {fillStyle: {color: Colors.primary}},
             cornerRadius: 5,
-            interactive: true
-        }).on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this._pointerDownOver = b;
-        }, this).on(Phaser.Input.Events.POINTER_UP, () => {
-            if (this._pointerDownOver && this._pointerDownOver === b) {
-                this._pointerDownOver = null;
-                WarGame.phaseMgr.currentPhase.nextTeam();
-            }
-        }, this);
+            onClick: () => WarGame.phaseMgr.currentPhase.nextTeam()
+        });
         
         const layout = new LinearLayout(this, {
             padding: 10,
