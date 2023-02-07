@@ -1,5 +1,7 @@
+import { APP_BASE_HREF } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { environment } from 'src/environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { GameModule } from './game/game.module';
@@ -13,7 +15,7 @@ import { GameModule } from './game/game.module';
     AppRoutingModule,
     GameModule
   ],
-  providers: [],
+  providers: [{provide: APP_BASE_HREF, useValue : `${environment.baseHref}` }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
