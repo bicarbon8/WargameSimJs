@@ -61,7 +61,7 @@ export class Player implements IPlayer {
             console.info(`adding player ${this.id} to map at: ${x},${y} - world: ${worldLocation.x},${worldLocation.y}`);
             this.obj.setPosition(worldLocation.x, worldLocation.y);
             this.obj.setVisible(true);
-            this._playerMgr.emit(WarGame.EVENTS.PLAYER_MOVED, this);
+            WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_MOVED, this);
         }
         return this;
     }
@@ -85,7 +85,7 @@ export class Player implements IPlayer {
         this._remainingWounds--;
         this._woundsIndicator.removeContent(this._woundsIndicator.contents[0]);
         if (this.isDead()) {
-            this._playerMgr.emit(WarGame.EVENTS.PLAYER_DIED, this);
+            WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_DIED, this);
             this._scene.tweens.add({
                 targets: this.obj,
                 alpha: 0,

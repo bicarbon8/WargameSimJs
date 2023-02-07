@@ -23,6 +23,7 @@ export class ShootingPhase implements IPhase {
         this._mapMgr = mapManager;
         this._shootTracker = new Set<string>();
         this._highlightedTiles = [];
+        this._startEventHandling();
     }
 
     get active(): boolean {
@@ -32,8 +33,7 @@ export class ShootingPhase implements IPhase {
     start(): IPhase {
         this.reset();
         this._active = true;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_START, this);
-        this._startEventHandling();
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
         this._highlightTeam();
         return this;
     }
@@ -68,9 +68,8 @@ export class ShootingPhase implements IPhase {
     }
 
     private _complete(): void {
-        this._stopEventHandling();
         this._active = false;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_END, this);
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
     }
 
     activeTeam(): Team {
@@ -123,16 +122,12 @@ export class ShootingPhase implements IPhase {
     }
 
     private _startEventHandling(): void {
-        this._battleMgr.teamManager.on(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
+        const condition = () => this.active;
+        WarGame.evtMgr.subscribe('shooting-phase', WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition);
         this._battleMgr.teamManager.playerManager.players.forEach((p: IPlayer) => {
-            p?.obj.on(Phaser.Input.Events.POINTER_DOWN, this._handlePlayerDown, this);
-        });
-    }
-
-    private _stopEventHandling(): void {
-        this._battleMgr.teamManager.off(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
-        this._battleMgr.teamManager.playerManager.players.forEach((p: IPlayer) => {
-            p?.obj.off(Phaser.Input.Events.POINTER_DOWN, this._handlePlayerDown, this);
+            if (condition()) {
+                p?.obj.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => this._handlePlayerDown(p));
+            }
         });
     }
 

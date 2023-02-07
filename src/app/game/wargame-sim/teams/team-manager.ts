@@ -1,16 +1,14 @@
-import * as Phaser from "phaser";
 import { PlayerManager } from "../players/player-manager";
 import { WarGame } from "../war-game";
 import { Team } from "./team";
 import { TeamOptions } from "./team-options";
 
-export class TeamManager extends Phaser.Events.EventEmitter {
+export class TeamManager {
     private readonly _teams: Team[];
     private readonly _playerMgr: PlayerManager;
     private _currentTeamIndex: number;
 
     constructor(playerManager: PlayerManager) {
-        super();
         this._teams = [];
         this._playerMgr = playerManager;
         this._currentTeamIndex = 0;
@@ -31,7 +29,7 @@ export class TeamManager extends Phaser.Events.EventEmitter {
             options.playerManager = options.playerManager || this.playerManager;
             team = new Team(options);
             this._teams.push(team);
-            this.emit(WarGame.EVENTS.TEAM_ADDED, team);
+            WarGame.evtMgr.notify(WarGame.EVENTS.TEAM_ADDED, team);
         }
         return team;
     }
@@ -57,7 +55,7 @@ export class TeamManager extends Phaser.Events.EventEmitter {
                 if (destroy) {
                     removed.destroy();
                 }
-                this.emit(WarGame.EVENTS.TEAM_REMOVED, removed);
+                WarGame.evtMgr.notify(WarGame.EVENTS.TEAM_REMOVED, removed);
             }
         }
         return removed;

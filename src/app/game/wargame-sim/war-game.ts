@@ -8,6 +8,7 @@ import { DiceManager } from "./utils/dice-manager";
 import { BattleManager } from "./battles/battle-manager";
 import { WarGameOptions } from "./war-game-options";
 import { MapManager } from "./map/map-manager";
+import { GameEventManager } from "./utils/game-event-manager";
 
 export module WarGame {
     export var playerMgr: PlayerManager;
@@ -17,8 +18,10 @@ export module WarGame {
     export var dice: DiceManager;
     export var battleMgr: BattleManager;
     export var mapMgr: MapManager;
+    export var evtMgr: GameEventManager;
 
     export function start(options?: WarGameOptions): void {
+        evtMgr = new GameEventManager();
         dice = new DiceManager();
         playerMgr = new PlayerManager();
         teamMgr = new TeamManager(playerMgr);
@@ -52,11 +55,7 @@ export module WarGame {
     }
 
     export function removeAllListeners(): void {
-        playerMgr?.removeAllListeners();
-        teamMgr?.removeAllListeners();
-        phaseMgr?.removeAllListeners();
-        battleMgr?.removeAllListeners();
-        mapMgr?.removeAllListeners();
+        evtMgr?.unsubscribeAll();
     }
 
     export module TIMING {

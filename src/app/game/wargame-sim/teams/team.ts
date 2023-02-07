@@ -70,7 +70,7 @@ export class Team {
             this._remainingPoints -= options.stats.cost;
             const player: IPlayer = this._playerMgr.addPlayer(options);
             player.setTeamId(this.id);
-            this._teamMgr?.emit(WarGame.EVENTS.PLAYER_ADDED, player);
+            WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_ADDED, player);
         }
         return added;
     }
@@ -80,7 +80,7 @@ export class Team {
         if (player) {
             this._playerMgr.removePlayer(player, destroy);
             this._remainingPoints += player.stats.cost;
-            this._teamMgr?.emit(WarGame.EVENTS.PLAYER_REMOVED, player);
+            WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_REMOVED, player);
         }
         return removed;
     }

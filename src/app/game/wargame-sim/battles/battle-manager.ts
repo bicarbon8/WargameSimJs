@@ -4,14 +4,13 @@ import { BattleGroup } from "./battle-group";
 import { MeleBattle } from "./mele-battle";
 import { RangedBattle } from "./ranged-battle";
 
-export class BattleManager extends Phaser.Events.EventEmitter {
+export class BattleManager {
     private readonly _teamMgr: TeamManager;
     private readonly _uiMgr: UIManager;
     private readonly _rangedBattle: RangedBattle;
     private readonly _meleBattle: MeleBattle;
     
     constructor(teamManager: TeamManager, uiManager: UIManager) {
-        super();
         this._teamMgr = teamManager;
         this._uiMgr = uiManager;
         this._rangedBattle = new RangedBattle(this);

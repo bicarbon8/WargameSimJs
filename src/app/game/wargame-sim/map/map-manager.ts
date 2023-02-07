@@ -4,12 +4,11 @@ import { WarGame } from "../war-game";
 import { GameMap } from "./game-map";
 import { GameMapOptions } from "./game-map-options";
 
-export class MapManager extends Phaser.Events.EventEmitter {
+export class MapManager {
     private readonly _teamMgr: TeamManager;
     private _map: GameMap;
 
     constructor(teamMgr: TeamManager) {
-        super();
         this._teamMgr = teamMgr;
     }
     
@@ -42,6 +41,5 @@ export class MapManager extends Phaser.Events.EventEmitter {
 
     destroy(): void {
         this.map?.obj?.destroy(true);
-        super.destroy();
     }
 }

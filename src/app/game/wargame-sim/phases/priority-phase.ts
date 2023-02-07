@@ -38,12 +38,12 @@ export class PriorityPhase implements IPhase {
     start(): IPhase {
         this.reset();
         this._active = true;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_START, this);
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
         let teams: Team[] = this._teamMgr.teams;
         this._orderedTeams = this._rollForPriority(teams);
-        this._teamMgr.emit(WarGame.EVENTS.TEAM_CHANGED, this.priorityTeam);
+        WarGame.evtMgr.notify(WarGame.EVENTS.TEAM_CHANGED, this.priorityTeam);
         this._active = false;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_END, this);
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
         return this;
     }
 
@@ -59,7 +59,7 @@ export class PriorityPhase implements IPhase {
         if (this._currentPriority >= this._teamMgr.teams.length) {
             this._currentPriority = 0;
         }
-        this._teamMgr.emit(WarGame.EVENTS.TEAM_CHANGED, this.priorityTeam);
+        WarGame.evtMgr.notify(WarGame.EVENTS.TEAM_CHANGED, this.priorityTeam);
         return this;
     }
 

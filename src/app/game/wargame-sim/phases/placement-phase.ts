@@ -19,6 +19,7 @@ export class PlacementPhase implements IPhase {
         this._mapMgr = mapManager;
         this._highlightedTiles = [];
         this._placedTeamsCount = 0;
+        this._startHandlingTeamPlacement();
     }
 
     get active(): boolean {
@@ -28,8 +29,7 @@ export class PlacementPhase implements IPhase {
     start(): IPhase {
         this.reset();
         this._active = true;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_START, this);
-        this._startHandlingTeamPlacement();
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
         return this;
     }
 
@@ -53,9 +53,8 @@ export class PlacementPhase implements IPhase {
     }
 
     private _complete(): void {
-        this._stopHandlingTeamPlacement();
         this._active = false;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_END, this);
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
     }
 
     private _clearHighlightedTiles(pointer?: Phaser.Input.Pointer): void {
@@ -66,17 +65,21 @@ export class PlacementPhase implements IPhase {
     }
 
     private _startHandlingTeamPlacement(): void {
+        const condition = () => this.active;
         this._mapMgr.map.obj
-        .on(Phaser.Input.Events.POINTER_MOVE, this._highlightTiles, this)
-        .on(Phaser.Input.Events.POINTER_OUT, this._clearHighlightedTiles, this)
-        .on(Phaser.Input.Events.POINTER_DOWN, this._placeTeam, this);
-    }
-
-    private _stopHandlingTeamPlacement(): void {
-        this._mapMgr.map.obj
-        .off(Phaser.Input.Events.POINTER_MOVE, this._highlightTiles, this)
-        .off(Phaser.Input.Events.POINTER_OUT, this._clearHighlightedTiles, this)
-        .off(Phaser.Input.Events.POINTER_DOWN, this._placeTeam, this);
+            .on(Phaser.Input.Events.POINTER_MOVE, (p: Phaser.Input.Pointer) => {
+                if (condition()) {
+                    this._highlightTiles(p);
+                }
+            }).on(Phaser.Input.Events.POINTER_OUT, (p: Phaser.Input.Pointer) => {
+                if (condition()) {
+                    this._clearHighlightedTiles(p);
+                }
+            }).on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
+                if (condition()) {
+                    this._placeTeam(p);
+                }
+            });
     }
 
     private _highlightTiles(pointer: Phaser.Input.Pointer): void {

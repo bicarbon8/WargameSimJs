@@ -20,6 +20,7 @@ export class MovementPhase implements IPhase {
         this._mapMgr = mapManager;
         this._moveTracker = new Set<string>();
         this._highlightedTiles = [];
+        this._startEventHandling();
     }
 
     get active(): boolean {
@@ -29,8 +30,7 @@ export class MovementPhase implements IPhase {
     start(): IPhase {
         this.reset();
         this._active = true;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_START, this);
-        this._startEventHandling();
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
         this._highlightTeam(this._phaseMgr.priorityPhase.priorityTeam);
         return this;
     }
@@ -65,9 +65,8 @@ export class MovementPhase implements IPhase {
     }
 
     private _complete(): void {
-        this._stopEventHandling();
         this._active = false;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_END, this);
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
     }
 
     teamHasMoved(team: Team): boolean {
@@ -105,27 +104,27 @@ export class MovementPhase implements IPhase {
     }
 
     private _startEventHandling(): void {
-        this._mapMgr.teamManager.playerManager.on(WarGame.EVENTS.PLAYER_MOVED, this._handlePlayerMoved, this);
-        this._mapMgr.teamManager.on(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
+        const owner = 'movement-phase';
+        const condition = () => this.active;
+        WarGame.evtMgr
+            .subscribe(owner, WarGame.EVENTS.PLAYER_MOVED, (p: IPlayer) => this._handlePlayerMoved(p), condition)
+            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition);
         this._mapMgr.teamManager.playerManager.players.forEach((p: IPlayer) => {
-            p?.obj.on(Phaser.Input.Events.POINTER_DOWN, this._handlePlayerDown, this);
+            if (condition()) {
+                p?.obj.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => this._handlePlayerDown(p));
+            }
         });
-        this._mapMgr.map?.obj.on(Phaser.Input.Events.POINTER_UP, this._handleMapUp, this);
-    }
-
-    private _stopEventHandling(): void {
-        this._mapMgr.teamManager.playerManager.off(WarGame.EVENTS.PLAYER_MOVED, this._handlePlayerMoved, this);
-        this._mapMgr.teamManager.off(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
-        this._mapMgr.teamManager.playerManager.players.forEach((p: IPlayer) => {
-            p?.obj.off(Phaser.Input.Events.POINTER_DOWN, this._handlePlayerDown, this);
+        this._mapMgr.map?.obj.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {
+            if (condition()) {
+                this._handleMapUp(p);
+            }
         });
-        this._mapMgr.map?.obj.off(Phaser.Input.Events.POINTER_UP, this._handleMapUp, this);
     }
 
     private _highlightTeam(team: Team): void {
         const players: IPlayer[] = team.getPlayers()
-        .filter((p: IPlayer) => !this._moveTracker.has(p.id))
-        .filter((p: IPlayer) => this._mapMgr.map.getPlayersInRange(p.tileX, p.tileY, 32)
+            .filter((p: IPlayer) => !this._moveTracker.has(p.id))
+            .filter((p: IPlayer) => this._mapMgr.map.getPlayersInRange(p.tileX, p.tileY, 32)
             .filter((o: IPlayer) => p.isEnemy(o)).length === 0);
         if (players.length > 0) {
             WarGame.uiMgr.gameplayScene.tweens.add({

@@ -63,9 +63,12 @@ export class PickTeamsScene extends Phaser.Scene {
             this._layout.setScale(scaleY);
         }
 
+        const condition = () => this.game.scene.isActive(this);
         this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
-            let world: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-            console.info(`screen: ${pointer.x.toFixed(0)},${pointer.y.toFixed(0)}; world: ${world.x.toFixed(0)},${world.y.toFixed(0)}`);
+            if (condition()) {
+                let world: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+                console.info(`screen: ${pointer.x.toFixed(0)},${pointer.y.toFixed(0)}; world: ${world.x.toFixed(0)},${world.y.toFixed(0)}`);
+            }
         });
     }
 
@@ -398,26 +401,33 @@ export class PickTeamsScene extends Phaser.Scene {
         this._layout.addContents(startAreaGrid);
 
         this.updateStartButtonArea();
-        WarGame.teamMgr.on(WarGame.EVENTS.PLAYER_ADDED, (p: IPlayer) => {
-            this.updateCurrentTeamPointsRemainingDisplay();
-            this.updateCurrentTeamPlayerCounts();
-            this.updateStartButtonArea();
-        }, this).on(WarGame.EVENTS.PLAYER_REMOVED, (p: IPlayer) => {
-            this.updateCurrentTeamPointsRemainingDisplay();
-            this.updateCurrentTeamPlayerCounts();
-            this.updateStartButtonArea();
-        }, this).on(WarGame.EVENTS.TEAM_ADDED, (p: IPlayer) => {
-            this.updateCurrentTeamPointsRemainingDisplay();
-            this.updateCurrentTeamPlayerCounts();
-            this.updateStartButtonArea();
-        }, this).on(WarGame.EVENTS.TEAM_REMOVED, (p: IPlayer) => {
-            this.updateCurrentTeamPointsRemainingDisplay();
-            this.updateCurrentTeamPlayerCounts();
-            this.updateStartButtonArea();
-        }, this).on(WarGame.EVENTS.TEAM_CHANGED, (t: Team) => {
-            this.updateCurrentTeamPointsRemainingDisplay();
-            this.updateCurrentTeamPlayerCounts();
-            this.updateStartButtonArea();
-        }, this);
+        const owner = 'pick-teams-scene';
+        const condition = () => this.game.scene.isActive(this);
+        WarGame.evtMgr
+            .subscribe(owner, WarGame.EVENTS.PLAYER_ADDED, (p: IPlayer) => {
+                this.updateCurrentTeamPointsRemainingDisplay();
+                this.updateCurrentTeamPlayerCounts();
+                this.updateStartButtonArea();
+            }, condition)
+            .subscribe(owner, WarGame.EVENTS.PLAYER_REMOVED, (p: IPlayer) => {
+                this.updateCurrentTeamPointsRemainingDisplay();
+                this.updateCurrentTeamPlayerCounts();
+                this.updateStartButtonArea();
+            }, condition)
+            .subscribe(owner, WarGame.EVENTS.TEAM_ADDED, (p: IPlayer) => {
+                this.updateCurrentTeamPointsRemainingDisplay();
+                this.updateCurrentTeamPlayerCounts();
+                this.updateStartButtonArea();
+            }, condition)
+            .subscribe(owner, WarGame.EVENTS.TEAM_REMOVED, (p: IPlayer) => {
+                this.updateCurrentTeamPointsRemainingDisplay();
+                this.updateCurrentTeamPlayerCounts();
+                this.updateStartButtonArea();
+            }, condition)
+            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => {
+                this.updateCurrentTeamPointsRemainingDisplay();
+                this.updateCurrentTeamPlayerCounts();
+                this.updateStartButtonArea();
+            }, condition);
     }
 }

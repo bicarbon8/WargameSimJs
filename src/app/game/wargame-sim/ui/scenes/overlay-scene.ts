@@ -30,13 +30,8 @@ export class OverlayScene extends Phaser.Scene {
         this.cameras.main.centerOn(0, 0);
 
         this._createMessagesLayout();
-        this._startHandlingMessages();
-
         this._createMenus();
-
-        this._startHandlingPhases();
-        this._startHandlingTeamUpdates();
-        this._startHandlingPlayerDeath();
+        this._startHandlingEvents();
 
         WarGame.phaseMgr.reset().start();
     }
@@ -45,44 +40,17 @@ export class OverlayScene extends Phaser.Scene {
 
     }
 
-    private _startHandlingPlayerDeath(): void {
-        WarGame.playerMgr.on(WarGame.EVENTS.PLAYER_DIED, this._playerDied, this);
-    }
-
-    private _stopHandlingPlayerDeath(): void {
-        WarGame.playerMgr.off(WarGame.EVENTS.PLAYER_DIED, this._playerDied, this);
-    }
-
-    private _startHandlingPhases(): void {
-        WarGame.phaseMgr
-            .on(WarGame.EVENTS.PHASE_START, this._handlePhaseStart, this)
-            .on(WarGame.EVENTS.PHASE_END, this._handlePhaseEnd, this);
-    }
-
-    private _stopHandlingPhases(): void {
-        WarGame.phaseMgr
-            .off(WarGame.EVENTS.PHASE_START, this._handlePhaseStart, this)
-            .off(WarGame.EVENTS.PHASE_END, this._handlePhaseEnd, this);
-    }
-
-    private _startHandlingTeamUpdates(): void {
-        WarGame.teamMgr.on(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
-    }
-
-    private _stopHandlingTeamUpdates(): void {
-        WarGame.teamMgr.off(WarGame.EVENTS.TEAM_CHANGED, this._handleTeamChange, this);
-    }
-
-    private _startHandlingMessages(): void {
-        WarGame.playerMgr.on(WarGame.EVENTS.MESSAGE, this._displayMessage, this);
-        WarGame.phaseMgr.on(WarGame.EVENTS.MESSAGE, this._displayMessage, this);
-        WarGame.battleMgr.on(WarGame.EVENTS.MESSAGE, this._displayMessage, this);
-    }
-
-    private _stopHandlingMessages(): void {
-        WarGame.playerMgr.off(WarGame.EVENTS.MESSAGE, this._displayMessage, this);
-        WarGame.phaseMgr.off(WarGame.EVENTS.MESSAGE, this._displayMessage, this);
-        WarGame.battleMgr.off(WarGame.EVENTS.MESSAGE, this._displayMessage, this);
+    private _startHandlingEvents(): void {
+        const owner = 'overlay-scene';
+        const condition = () => this.game.scene.isActive(this);
+        WarGame.evtMgr
+            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition)
+            .subscribe(owner, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
+            .subscribe(owner, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
+            .subscribe(owner, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
+            .subscribe(owner, WarGame.EVENTS.PLAYER_DIED, (p: IPlayer) => this._playerDied(p), condition)
+            .subscribe(owner, WarGame.EVENTS.PHASE_START, (p: IPhase) => this._handlePhaseStart(p), condition)
+            .subscribe(owner, WarGame.EVENTS.PHASE_END, (p: IPhase) => this._handlePhaseEnd(p), condition);
     }
 
     private _playerDied(player: IPlayer): void {
@@ -91,8 +59,6 @@ export class OverlayScene extends Phaser.Scene {
             .filter((t: Team) => t.hasPlayers());
         if (teamsWithPlayersRemaining.length < WarGame.CONSTANTS.MIN_TEAMS) {
             this._displayMessage(`GAME OVER! ${teamsWithPlayersRemaining[0].name} WINS!`, Colors.success);
-            this._stopHandlingMessages();
-            WarGame.removeAllListeners();
         }
     }
 

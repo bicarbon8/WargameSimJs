@@ -4,11 +4,10 @@ import { Player } from "./player";
 import { PlayerOptions } from "./player-options";
 import { PlayerStatusEffect } from "./player-status-effect";
 
-export class PlayerManager extends Phaser.Events.EventEmitter {
+export class PlayerManager {
     private readonly _players: Map<string, IPlayer>
 
     constructor() {
-        super();
         this._players = new Map<string, IPlayer>();
     }
 
@@ -22,7 +21,7 @@ export class PlayerManager extends Phaser.Events.EventEmitter {
             options.playerManager = options.playerManager || this;
             player = new Player(options);
             this._players.set(player.id, player);
-            this.emit(WarGame.EVENTS.PLAYER_ADDED, player);
+            WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_ADDED, player);
         }
         return player;
     }
@@ -33,7 +32,7 @@ export class PlayerManager extends Phaser.Events.EventEmitter {
             removed = this.getPlayerById(player.id);
             if (removed) {
                 this._players.delete(removed.id);
-                this.emit(WarGame.EVENTS.PLAYER_REMOVED, removed);
+                WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_REMOVED, removed);
                 if (destroy) {
                     removed.destroy();
                 }

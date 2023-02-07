@@ -47,12 +47,12 @@ export class MeleBattle extends Battle {
             winner = this.attackers;
             loser = this.defenders;
             attacks = attackerScores;
-            this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers succeeded in their attack!', Colors.info);
+            WarGame.evtMgr.notify(WarGame.EVENTS.MESSAGE, 'attackers succeeded in their attack!', Colors.info);
         } else {
             winner = this.defenders;
             loser = this.attackers;
             attacks = defenderScores;
-            this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers failed to attack defenders!', Colors.info);
+            WarGame.evtMgr.notify(WarGame.EVENTS.MESSAGE, 'attackers failed to attack defenders!', Colors.info);
         }
         this._pushBackPlayers(loser);
 
@@ -66,9 +66,9 @@ export class MeleBattle extends Battle {
                 if (lp.isDead()) {
                     loser.splice(index, 1);
                 }
-                this.battleManager.emit(WarGame.EVENTS.MESSAGE, `defender: ${lp.name} wounded!`, Colors.info);
+                WarGame.evtMgr.notify(WarGame.EVENTS.MESSAGE, `defender: ${lp.name} wounded!`, Colors.info);
             } else {
-                this.battleManager.emit(WarGame.EVENTS.MESSAGE, 'attackers caused no damage with attack!', Colors.info);
+                WarGame.evtMgr.notify(WarGame.EVENTS.MESSAGE, 'attackers caused no damage with attack!', Colors.info);
             }
         }
     }

@@ -27,7 +27,7 @@ export class FightingPhase implements IPhase {
     start(): IPhase {
         this.reset();
         this._active = true;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_START, this);
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
         this._startBattles();
         return this;
     }
@@ -52,7 +52,7 @@ export class FightingPhase implements IPhase {
 
     private _complete(): void {
         this._active = false;
-        this._phaseMgr.emit(WarGame.EVENTS.PHASE_END, this);
+        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
     }
 
     private _startBattles(): void {

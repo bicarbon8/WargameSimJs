@@ -58,7 +58,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
             player.setScene(this._options.scene);
             if (!this.isTileOccupied(tileX, tileY)) {
                 player.setTile(tileX, tileY, this.getTileWorldCentre(tileX, tileY));
-                this.mapManager.emit(WarGame.EVENTS.PLAYER_ADDED, player);
+                WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_ADDED, player);
             }
         }
     }
@@ -76,7 +76,7 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
                     duration: 500,
                     onComplete: () => {
                         player.setTile(endX, endY, this.getTileWorldCentre(endX, endY));
-                        this.mapManager.emit(WarGame.EVENTS.PLAYER_MOVED, player);
+                        WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_MOVED, player);
                     },
                     onCompleteScope: this
                 });

@@ -1,4 +1,3 @@
-import * as Phaser from "phaser";
 import { BattleManager } from "../battles/battle-manager";
 import { MapManager } from "../map/map-manager";
 import { FightingPhase } from "./fighting-phase";
@@ -9,13 +8,12 @@ import { PlacementPhase } from "./placement-phase";
 import { PriorityPhase } from "./priority-phase";
 import { ShootingPhase } from "./shooting-phase";
 
-export class PhaseManager extends Phaser.Events.EventEmitter {
+export class PhaseManager {
     private readonly _phases: IPhase[];
     private _phaseIndex: number = 0;
     private _completedPlacement: boolean;
 
     constructor(mapManager: MapManager, battleManager: BattleManager) {
-        super();
         this._completedPlacement = false;
         this._phases = [
             new PriorityPhase(this, mapManager.teamManager),
