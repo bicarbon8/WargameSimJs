@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import Dungeon from "@mikewesthad/dungeon";
 import { IPlayer } from "../players/i-player";
 import { Rand } from "../utils/rand";

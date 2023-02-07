@@ -109,16 +109,6 @@ export class MovementPhase implements IPhase {
         WarGame.evtMgr
             .subscribe(owner, WarGame.EVENTS.PLAYER_MOVED, (p: IPlayer) => this._handlePlayerMoved(p), condition)
             .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition);
-        this._mapMgr.teamManager.playerManager.players.forEach((p: IPlayer) => {
-            if (condition()) {
-                p?.obj.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => this._handlePlayerDown(p));
-            }
-        });
-        this._mapMgr.map?.obj.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {
-            if (condition()) {
-                this._handleMapUp(p);
-            }
-        });
     }
 
     private _highlightTeam(team: Team): void {
@@ -156,7 +146,7 @@ export class MovementPhase implements IPhase {
         }
     }
 
-    private _handlePlayerDown(pointer: Phaser.Input.Pointer): void {
+    handlePlayerDown(pointer: Phaser.Input.Pointer): void {
         this._activePlayer = null;
         const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileUnderPointer(pointer);
         if (tile) {
@@ -171,7 +161,7 @@ export class MovementPhase implements IPhase {
         this._highlightTiles(this._activePlayer);
     }
 
-    private _handleMapUp(pointer: Phaser.Input.Pointer): void {
+    handleMapUp(pointer: Phaser.Input.Pointer): void {
         const mover: IPlayer = this._activePlayer;
         if (mover) {
             const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileUnderPointer(pointer);

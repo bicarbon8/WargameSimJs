@@ -1,6 +1,11 @@
 export class GameEventManager {
-    private _subscriptions: Map<string, (...args: Array<any>) => void>;
-    private _emitter: Phaser.Events.EventEmitter;
+    private readonly _subscriptions: Map<string, (...args: Array<any>) => void>;
+    private readonly _emitter: Phaser.Events.EventEmitter;
+
+    constructor() {
+        this._subscriptions = new Map<string, (...args: Array<any>) => void>();
+        this._emitter = new Phaser.Events.EventEmitter();
+    }
 
     /**
      * notifies all listeners of the specified event sending them the passed

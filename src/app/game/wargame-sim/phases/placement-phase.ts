@@ -19,7 +19,6 @@ export class PlacementPhase implements IPhase {
         this._mapMgr = mapManager;
         this._highlightedTiles = [];
         this._placedTeamsCount = 0;
-        this._startHandlingTeamPlacement();
     }
 
     get active(): boolean {
@@ -52,38 +51,20 @@ export class PlacementPhase implements IPhase {
         return PhaseType[this.getType()];
     }
 
-    private _complete(): void {
+    complete(): void {
         this._active = false;
         WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
     }
 
-    private _clearHighlightedTiles(pointer?: Phaser.Input.Pointer): void {
+    clearHighlightedTiles(pointer?: Phaser.Input.Pointer): void {
         while (this._highlightedTiles?.length) {
             let tile: Phaser.Tilemaps.Tile = this._highlightedTiles.shift();
             tile?.clearAlpha();
         }
     }
 
-    private _startHandlingTeamPlacement(): void {
-        const condition = () => this.active;
-        this._mapMgr.map.obj
-            .on(Phaser.Input.Events.POINTER_MOVE, (p: Phaser.Input.Pointer) => {
-                if (condition()) {
-                    this._highlightTiles(p);
-                }
-            }).on(Phaser.Input.Events.POINTER_OUT, (p: Phaser.Input.Pointer) => {
-                if (condition()) {
-                    this._clearHighlightedTiles(p);
-                }
-            }).on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
-                if (condition()) {
-                    this._placeTeam(p);
-                }
-            });
-    }
-
-    private _highlightTiles(pointer: Phaser.Input.Pointer): void {
-        this._clearHighlightedTiles();
+    highlightTiles(pointer: Phaser.Input.Pointer): void {
+        this.clearHighlightedTiles();
         const pointerTile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileUnderPointer(pointer);
         if (pointerTile) {
             let teamPlayers: IPlayer[] = this._phaseMgr.priorityPhase.priorityTeam.getPlayers();
@@ -98,7 +79,7 @@ export class PlacementPhase implements IPhase {
         }
     }
 
-    private _placeTeam(pointer: Phaser.Input.Pointer): void {
+    placeTeam(pointer: Phaser.Input.Pointer): void {
         const pointerTile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileUnderPointer(pointer);
         const highlightedTiles: Phaser.Tilemaps.Tile[] = this._highlightedTiles;
         if (highlightedTiles.includes(pointerTile)) {
@@ -115,12 +96,12 @@ export class PlacementPhase implements IPhase {
                     }
                 }
                 this._placedTeamsCount++;
-                this._clearHighlightedTiles();
+                this.clearHighlightedTiles();
                 this._phaseMgr.priorityPhase.nextTeam();
             }
         }
         if (this._placedTeamsCount >= this._mapMgr.teamManager.teams.length) {
-            this._complete();
+            this.complete();
         }
     }
 }
