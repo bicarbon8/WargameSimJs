@@ -2,18 +2,19 @@ import { environment } from "src/environments/environment";
 import { InputController } from "../controllers/input-controller";
 import { KBMController } from "../controllers/kbm-controller";
 import { WarGame } from "../../war-game";
+import { OverlaySceneConfig } from "./overlay-scene";
 
-const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
+export const GameplaySceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: false,
     visible: false,
     key: 'gameplay-scene'
-};
+} as const;
 
 export class GameplayScene extends Phaser.Scene {
     private _controller: InputController;
     
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
-        super(settingsConfig || sceneConfig);
+        super(settingsConfig || GameplaySceneConfig);
     }
 
     preload(): void {
@@ -32,8 +33,10 @@ export class GameplayScene extends Phaser.Scene {
         this._setupCamera();
         this._setupController();
 
-        WarGame.uiMgr.game.scene.start('overlay-scene');
-        WarGame.uiMgr.game.scene.bringToTop('overlay-scene');
+        WarGame.uiMgr.game.scene.start(OverlaySceneConfig.key);
+        WarGame.uiMgr.game.scene.bringToTop(OverlaySceneConfig.key);
+
+        WarGame.phaseMgr.startCurrentPhase();
     }
 
     update(time: number, delta: number): void {

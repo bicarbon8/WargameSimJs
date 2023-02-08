@@ -6,6 +6,7 @@ import { IPlayer } from "../../players/i-player";
 import { Rand } from "../../utils/rand";
 import { Card, Colors, GridLayout, LayoutContent, LinearLayout, TextButton } from "phaser-ui-components";
 import { PlayerOptions } from "../../players/player-options";
+import { GameplaySceneConfig } from "./gameplay-scene";
 
 module Constants {
     export var CARD_BODY_ADD_BUTTON = 'card-body-add-button';
@@ -16,11 +17,11 @@ module Constants {
     export var CARD_BODY_DESCRIPTION = 'card-body-description';
 };
 
-const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
+export const PickTeamsSceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: true,
     visible: true,
     key: 'pick-teams-scene'
-};
+} as const;
 
 export class PickTeamsScene extends Phaser.Scene {
     private _teamRemainingPointsText: Phaser.GameObjects.Text;
@@ -32,7 +33,7 @@ export class PickTeamsScene extends Phaser.Scene {
     private _currentTeamIndex: number;
     
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
-        super(settingsConfig || sceneConfig);
+        super(settingsConfig || PickTeamsSceneConfig);
         // create starting team
         WarGame.teamMgr.addTeam({
             name: `Team ${WarGame.teamMgr.teams.length}`,
@@ -337,8 +338,7 @@ export class PickTeamsScene extends Phaser.Scene {
             onClick: () => {
                 if (this.isReadyToPlay()) {
                     this.game.scene.stop(this);
-                    WarGame.removeAllListeners();
-                    this.game.scene.start('gameplay-scene');
+                    this.game.scene.start(GameplaySceneConfig.key);
                 }
             }
         });
@@ -401,30 +401,29 @@ export class PickTeamsScene extends Phaser.Scene {
         this._layout.addContents(startAreaGrid);
 
         this.updateStartButtonArea();
-        const owner = 'pick-teams-scene';
         const condition = () => this.game.scene.isActive(this);
         WarGame.evtMgr
-            .subscribe(owner, WarGame.EVENTS.PLAYER_ADDED, (p: IPlayer) => {
+            .subscribe(PickTeamsSceneConfig.key, WarGame.EVENTS.PLAYER_ADDED, (p: IPlayer) => {
                 this.updateCurrentTeamPointsRemainingDisplay();
                 this.updateCurrentTeamPlayerCounts();
                 this.updateStartButtonArea();
             }, condition)
-            .subscribe(owner, WarGame.EVENTS.PLAYER_REMOVED, (p: IPlayer) => {
+            .subscribe(PickTeamsSceneConfig.key, WarGame.EVENTS.PLAYER_REMOVED, (p: IPlayer) => {
                 this.updateCurrentTeamPointsRemainingDisplay();
                 this.updateCurrentTeamPlayerCounts();
                 this.updateStartButtonArea();
             }, condition)
-            .subscribe(owner, WarGame.EVENTS.TEAM_ADDED, (p: IPlayer) => {
+            .subscribe(PickTeamsSceneConfig.key, WarGame.EVENTS.TEAM_ADDED, (p: IPlayer) => {
                 this.updateCurrentTeamPointsRemainingDisplay();
                 this.updateCurrentTeamPlayerCounts();
                 this.updateStartButtonArea();
             }, condition)
-            .subscribe(owner, WarGame.EVENTS.TEAM_REMOVED, (p: IPlayer) => {
+            .subscribe(PickTeamsSceneConfig.key, WarGame.EVENTS.TEAM_REMOVED, (p: IPlayer) => {
                 this.updateCurrentTeamPointsRemainingDisplay();
                 this.updateCurrentTeamPlayerCounts();
                 this.updateStartButtonArea();
             }, condition)
-            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => {
+            .subscribe(PickTeamsSceneConfig.key, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => {
                 this.updateCurrentTeamPointsRemainingDisplay();
                 this.updateCurrentTeamPlayerCounts();
                 this.updateStartButtonArea();

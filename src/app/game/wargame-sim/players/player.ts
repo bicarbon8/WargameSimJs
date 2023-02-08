@@ -55,7 +55,7 @@ export class Player implements IPlayer {
         if (worldLocation) {
             this._tileXY = tileXY;
             console.info(`adding player ${this.id} to map at: ${tileXY.x},${tileXY.y} - world: ${worldLocation.x},${worldLocation.y}`);
-            this.obj.setPosition(worldLocation.x, worldLocation.y);
+            this.obj.setPosition(worldLocation.x + (this.obj.width / 2), worldLocation.y + (this.obj.height / 2));
             this.obj.setVisible(true);
             WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_MOVED, this);
         }

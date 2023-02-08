@@ -1,14 +1,14 @@
 import { environment } from "src/environments/environment";
 
-const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
+export const GameOverSceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: false,
     visible: false,
     key: 'game-over-scene'
-};
+} as const;
 
 export class GameOverScene extends Phaser.Scene {
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
-        super(settingsConfig || sceneConfig);
+        super(settingsConfig || GameOverSceneConfig);
     }
 
     preload(): void {

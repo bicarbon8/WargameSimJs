@@ -63,14 +63,15 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
         return locations;
     }
 
-    addPlayer(player: IPlayer, tileXY: XY): void {
+    setPlayerTile(player: IPlayer, tileXY: XY): boolean {
         if (player && this.isValidLocation(tileXY)) {
             player.setScene(this._options.scene);
             if (!this.isTileOccupied(tileXY)) {
                 player.setTile(tileXY);
-                WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_ADDED, player);
+                return true;
             }
         }
+        return false;
     }
 
     movePlayer(start: XY, end: XY): void {
@@ -80,8 +81,8 @@ export class GameMap implements HasGameObject<Phaser.Tilemaps.TilemapLayer> {
                 const tile: Phaser.Tilemaps.Tile = this.obj.getTileAt(end.x, end.y);
                 WarGame.uiMgr.gameplayScene.tweens.add({
                     targets: player.obj,
-                    x: tile.getCenterX(),
-                    y: tile.getCenterY(),
+                    x: player.obj.x,
+                    y: player.obj.y,
                     ease: 'Sine.easeOut',
                     duration: 500,
                     onComplete: () => {

@@ -37,9 +37,9 @@ export class GameEventManager {
                 func(...args);
             }
         });
-        this._emitter.on(event, (args: Array<any>) => {
+        this._emitter.on(event, (...args: Array<any>) => {
             if (this._subscriptions.has(key)) {
-                this._subscriptions.get(key)();
+                this._subscriptions.get(key)(...args);
             }
         });
         return this;

@@ -40,6 +40,7 @@ export module WarGame {
         playerMgr = null;
         teamMgr = null;
         dice = null;
+        evtMgr = null;
     }
 
     export function resize(): void {

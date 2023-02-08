@@ -138,10 +138,10 @@ export class MovementPhase implements IPhase {
         const mover: IPlayer = player;
         if (mover) {
             const tilesInRange: Phaser.Tilemaps.Tile[] = this._mapMgr.map
-            .getTilesInRange(mover.tileXY, mover.stats.move)
-            .filter((t: Phaser.Tilemaps.Tile) => !this._mapMgr.map.isTileOccupied(t));
+                .getTilesInRange(mover.tileXY, mover.stats.move)
+                .filter((t: Phaser.Tilemaps.Tile) => !this._mapMgr.map.isTileOccupied(t));
             if (tilesInRange.length > 0) {
-                this._highlightedTiles = this._highlightedTiles.concat(tilesInRange);
+                this._highlightedTiles = tilesInRange;
             }
             for (var i=0; i<this._highlightedTiles.length; i++) {
                 this._highlightedTiles[i].alpha = 0.5;
@@ -150,24 +150,24 @@ export class MovementPhase implements IPhase {
     }
 
     handlePlayerDown(tileXY: XY): void {
-        this._activePlayer = null;
-        const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.obj.getTileAt(tileXY.x, tileXY.y);
+        const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
         if (tile) {
             const player: IPlayer = this._mapMgr.teamManager.playerManager.getPlayerAt(tile);
+            if (!player) return; // no player selected
             if (this._moveTracker.has(player.id)) return; // player has already moved so don't move again
             if (player?.teamId === this._phaseMgr.priorityPhase.priorityTeam.id) {
                 if (!this.hasEnemiesBlockingMovement(player)) {
                     this._activePlayer = player;
+                    this._highlightTiles(this._activePlayer);
                 }
             }
         }
-        this._highlightTiles(this._activePlayer);
     }
 
     handleMapUp(tileXY: XY): void {
         const mover: IPlayer = this._activePlayer;
         if (mover) {
-            const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.obj.getTileAt(tileXY.x, tileXY.y);
+            const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
             if (tile && this._highlightedTiles.includes(tile)) {
                 this._removeTileHighlighting();
                 this._mapMgr.map.movePlayer(mover.tileXY, tile);

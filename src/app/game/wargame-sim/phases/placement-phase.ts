@@ -94,7 +94,7 @@ export class PlacementPhase implements IPhase {
                     let t: Phaser.Tilemaps.Tile = highlightedTiles[i];
                     let p: IPlayer = players[i];
                     if (p) {
-                        this._mapMgr.map.addPlayer(p, t);
+                        this._mapMgr.map.setPlayerTile(p, t);
                     }
                 }
                 this._placedTeamsCount++;

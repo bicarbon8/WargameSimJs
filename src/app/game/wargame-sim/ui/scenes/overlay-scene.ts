@@ -11,11 +11,11 @@ module Constants {
     export var CARD_BODY_DESCRIPTION = 'card-body-description';
 };
 
-const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
+export const OverlaySceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: false,
     visible: false,
     key: 'overlay-scene'
-};
+} as const;
 
 export class OverlayScene extends Phaser.Scene {
     private _menuGrid: GridLayout;
@@ -23,7 +23,7 @@ export class OverlayScene extends Phaser.Scene {
     private _pointerDownOver: Phaser.GameObjects.GameObject;
 
     constructor(settingsConfig?: Phaser.Types.Scenes.SettingsConfig) {
-        super(settingsConfig || sceneConfig);
+        super(settingsConfig || OverlaySceneConfig);
     }
 
     create(): void {
@@ -41,16 +41,15 @@ export class OverlayScene extends Phaser.Scene {
     }
 
     private _startHandlingEvents(): void {
-        const owner = 'overlay-scene';
         const condition = () => this.game.scene.isActive(this);
         WarGame.evtMgr
-            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition)
-            .subscribe(owner, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
-            .subscribe(owner, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
-            .subscribe(owner, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
-            .subscribe(owner, WarGame.EVENTS.PLAYER_DIED, (p: IPlayer) => this._playerDied(p), condition)
-            .subscribe(owner, WarGame.EVENTS.PHASE_START, (p: IPhase) => this._handlePhaseStart(p), condition)
-            .subscribe(owner, WarGame.EVENTS.PHASE_END, (p: IPhase) => this._handlePhaseEnd(p), condition);
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition)
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.PLAYER_DIED, (p: IPlayer) => this._playerDied(p), condition)
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.PHASE_START, (p: IPhase) => this._handlePhaseStart(p), condition)
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.PHASE_END, (p: IPhase) => this._handlePhaseEnd(p), condition);
     }
 
     private _playerDied(player: IPlayer): void {
@@ -126,6 +125,7 @@ export class OverlayScene extends Phaser.Scene {
         for (var i = 0; i < teams.length; i++) {
             let team: Team = teams[i];
             let teamMenu: Card = new Card(this, {
+                padding: 10,
                 desiredWidth: Math.floor(WarGame.uiMgr.width / 3),
                 header: {
                     textConfig: {
@@ -141,12 +141,26 @@ export class OverlayScene extends Phaser.Scene {
                     contents: [
                         this.make.text({
                             text: ' -- ',
-                            style: { font: '20px Courier', color: '#606060' }
-                        }, false).setName(Constants.CARD_BODY_TITLE),
+                            style: { 
+                                font: '20px Courier', 
+                                color: '#606060',
+                                fixedWidth: Math.floor(WarGame.uiMgr.width / 3) - 10, 
+                                wordWrap: {
+                                    width: Math.floor(WarGame.uiMgr.width / 3) - 10
+                                }
+                            }
+                        }).setName(Constants.CARD_BODY_TITLE),
                         this.make.text({
                             text: ' -- ',
-                            style: { font: '15px Courier', color: '#606060' }
-                        }).setName(Constants.CARD_BODY_DESCRIPTION),
+                            style: { 
+                                font: '15px Courier', 
+                                color: '#606060', 
+                                fixedWidth: Math.floor(WarGame.uiMgr.width / 3) - 10, 
+                                wordWrap: {
+                                    width: Math.floor(WarGame.uiMgr.width / 3) - 10
+                                } 
+                            }
+                        }, false).setName(Constants.CARD_BODY_DESCRIPTION),
                         new LinearLayout(this, {
                             padding: 10
                         }).setName(Constants.CARD_BODY_BUTTONS)
@@ -283,12 +297,12 @@ export class OverlayScene extends Phaser.Scene {
 
     private _setCardBodyTitleText(text: string, card: Card): void {
         (card.cardbody.getByName(Constants.CARD_BODY_TITLE) as Phaser.GameObjects.Text)?.setText(text);
-        card.cardbody.refreshLayout();
+        card.refreshLayout();
     }
 
     private _setCardBodyDescriptionText(text: string, card: Card): void {
         (card.cardbody.getByName(Constants.CARD_BODY_DESCRIPTION) as Phaser.GameObjects.Text)?.setText(text);
-        card.cardbody.refreshLayout();
+        card.refreshLayout();
     }
 
     private _removeButtonsAndLayoutsFromCardBody(card: Card): void {

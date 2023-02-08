@@ -63,8 +63,8 @@ export class PlayerManager {
     }
 
     getPlayerAt(tileXY: XY): IPlayer {
-        let players: IPlayer[] = this.players.filter((player: IPlayer) => {
-            if (player.tileXY.x === tileXY.x && player.tileXY.y === tileXY.y) return true;
+        const players: IPlayer[] = this.players.filter((player: IPlayer) => {
+            return (player.tileXY?.x === tileXY.x && player.tileXY?.y === tileXY.y);
         });
         return (players?.length) ? players[0] : null;
     }
