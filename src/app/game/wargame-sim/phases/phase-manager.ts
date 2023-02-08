@@ -61,11 +61,11 @@ export class PhaseManager {
             this._completedPlacement = true;
         }
         this._phaseIndex++;
-        if (this._phaseIndex === PhaseType.placement && this._completedPlacement) {
-            this._phaseIndex++; // skip placement since it only happens once per game
-        }
         if (this._phaseIndex >= this._phases.length) {
             this._phaseIndex = 0; // wrap back around to the beginning
+        }
+        if (this._phaseIndex === PhaseType.placement && this._completedPlacement) {
+            this._phaseIndex++; // skip placement since it only happens once per game
         }
         return this.currentPhase;
     }

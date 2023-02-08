@@ -35,7 +35,7 @@ export class ShootingPhase implements IPhase {
         this.reset();
         this._active = true;
         WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
-        this.highlightTeam();
+        this._highlightTeam();
         return this;
     }
 
@@ -47,7 +47,7 @@ export class ShootingPhase implements IPhase {
             if (this.allTeamsHaveShot()) {
                 this._complete();
             } else {
-                this.highlightTeam();
+                this._highlightTeam();
             }
         }
         return this;
@@ -81,11 +81,11 @@ export class ShootingPhase implements IPhase {
         let teamHasShot: boolean = false;
 
         const playersWhoCanShoot: string[] = team.getPlayers()
-        .filter((p: IPlayer) => this.hasEnemiesInShootingRange(p))
-        .map((p: IPlayer) => p.id);
+            .filter((p: IPlayer) => this.hasEnemiesInShootingRange(p))
+            .map((p: IPlayer) => p.id);
 
         const playerShotCount: string[] = Array.from(this._shootTracker.values())
-        .filter((id: string) => playersWhoCanShoot.includes(id));
+            .filter((id: string) => playersWhoCanShoot.includes(id));
 
         if (playerShotCount.length >= playersWhoCanShoot.length) {
             teamHasShot = true;
@@ -95,13 +95,7 @@ export class ShootingPhase implements IPhase {
     }
 
     allTeamsHaveShot(): boolean {
-        let shot: boolean = true;
-
-        this._battleMgr.teamManager.teams.forEach((t: Team) => {
-            shot = shot && this.allPlayersInTeamHaveShot(t);
-        });
-
-        return shot;
+        return this._battleMgr.teamManager.teams.every(t => this.allPlayersInTeamHaveShot(t));
     }
 
     isAbleToShoot(player: IPlayer): boolean {
@@ -126,11 +120,11 @@ export class ShootingPhase implements IPhase {
         const owner = 'shooting-phase';
         const condition = () => this.active;
         WarGame.evtMgr
-            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this.handleTeamChange(t), condition)
-            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this.handlePlayerDown(tileXY), condition);
+            .subscribe(owner, WarGame.EVENTS.SWITCH_TEAMS, (t: Team) => this._handleTeamChange(t), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this._handlePlayerDown(tileXY), condition);
     }
 
-    highlightTeam(): void {
+    private _highlightTeam(): void {
         const players: IPlayer[] = this._phaseMgr.priorityPhase.priorityTeam.getPlayers()
             .filter((p: IPlayer) => !this._shootTracker.has(p.id))
             .filter((p: IPlayer) => this.isAbleToShoot(p))
@@ -150,7 +144,7 @@ export class ShootingPhase implements IPhase {
         }
     }
 
-    handlePlayerDown(tileXY: XY): void {
+    private _handlePlayerDown(tileXY: XY): void {
         const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
         if (tile) {
             const player: IPlayer = this._battleMgr.teamManager.playerManager.getPlayerAt(tile);
@@ -160,30 +154,30 @@ export class ShootingPhase implements IPhase {
                 if (player?.id === this._activeShooter.id) {
                     // selected same player for shooter and target so reset
                     this._activeShooter = null;
-                    this.highlightTiles();
-                    this.highlightTeam();
+                    this._highlightTiles();
+                    this._highlightTeam();
                 } else {
                     if (this.getEnemiesInRange(this._activeShooter).includes(player)) {
                         // fire at target
                         this._battleMgr.runRangedBattle({attackers: [this._activeShooter], defenders: [player]})
                         this._shootTracker.add(this._activeShooter.id);
                         this._activeShooter = null;
-                        this.highlightTiles();
-                        this.highlightTeam();
+                        this._highlightTiles();
+                        this._highlightTeam();
                     }
                 }
             } else {
                 // if no shooter selected yet
                 if (player?.teamId === this.activeTeam()?.id && !this._shootTracker.has(player.id)) {
                     this._activeShooter = player;
-                    this.highlightTiles();
+                    this._highlightTiles();
                 }
             }
         }
     }
 
-    highlightTiles(): void {
-        this.removeTileHighlighting();
+    private _highlightTiles(): void {
+        this._removeTileHighlighting();
         const shooter: IPlayer = this._activeShooter;
         if (shooter) {
             const tilesInRange: Phaser.Tilemaps.Tile[] = this._mapMgr.map.getTilesInRange(shooter.tileXY, shooter.stats.shoot);
@@ -196,18 +190,18 @@ export class ShootingPhase implements IPhase {
         }
     }
 
-    removeTileHighlighting(): void {
+    private _removeTileHighlighting(): void {
         while (this._highlightedTiles.length) {
             let tile: Phaser.Tilemaps.Tile = this._highlightedTiles.shift();
             tile?.clearAlpha();
         }
     }
 
-    handleTeamChange(team?: Team): void {
+    private _handleTeamChange(team?: Team): void {
         if (this.allTeamsHaveShot()) {
             this._complete();
         } else {
-            this.highlightTeam();
+            this._highlightTeam();
         }
     }
 }

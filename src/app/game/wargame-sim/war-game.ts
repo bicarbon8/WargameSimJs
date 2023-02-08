@@ -9,6 +9,7 @@ import { BattleManager } from "./battles/battle-manager";
 import { WarGameOptions } from "./war-game-options";
 import { MapManager } from "./map/map-manager";
 import { GameEventManager } from "./utils/game-event-manager";
+import { Logging } from "./utils/logging";
 
 export module WarGame {
     export var playerMgr: PlayerManager;
@@ -21,6 +22,7 @@ export module WarGame {
     export var evtMgr: GameEventManager;
 
     export function start(options?: WarGameOptions): void {
+        Logging.loglevel = options?.loglevel ?? 'info';
         evtMgr = new GameEventManager();
         dice = new DiceManager();
         playerMgr = new PlayerManager();
@@ -87,7 +89,8 @@ export module WarGame {
         export const TEAM_END = 'team-end';
         export const TEAM_ADDED = 'team-added';
         export const TEAM_REMOVED = 'team-removed';
-        export const TEAM_CHANGED = 'team-changed';
+        export const TEAM_MODIFIED = 'team-modified';
+        export const SWITCH_TEAMS = 'switch-teams';
         export const PLAYER_ADDED = 'player-added';
         export const PLAYER_REMOVED = 'player-removed';
         export const PLAYER_DIED = 'player-died';

@@ -9,6 +9,7 @@ import { PlayerManager } from "./player-manager";
 import { Team } from "../teams/team";
 import { LinearLayout } from "phaser-ui-components";
 import { XY } from "../ui/types/xy";
+import { Logging } from "../utils/logging";
 
 export class Player implements IPlayer {
     readonly id: string;
@@ -54,7 +55,7 @@ export class Player implements IPlayer {
         const worldLocation = WarGame.mapMgr.map.getTileWorldCentre(tileXY);
         if (worldLocation) {
             this._tileXY = tileXY;
-            console.info(`adding player ${this.id} to map at: ${tileXY.x},${tileXY.y} - world: ${worldLocation.x},${worldLocation.y}`);
+            Logging.log('info', 'adding player', this.id, 'to map at:', tileXY, '- world:', worldLocation);
             this.obj.setPosition(worldLocation.x + (this.obj.width / 2), worldLocation.y + (this.obj.height / 2));
             this.obj.setVisible(true);
             WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_MOVED, this);

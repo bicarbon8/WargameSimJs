@@ -109,9 +109,9 @@ export class MovementPhase implements IPhase {
         const condition = () => this.active;
         WarGame.evtMgr
             .subscribe(owner, WarGame.EVENTS.PLAYER_MOVED, (p: IPlayer) => this._handlePlayerMoved(p), condition)
-            .subscribe(owner, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition)
-            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this.handlePlayerDown(tileXY), condition)
-            .subscribe(owner, WarGame.EVENTS.POINTER_UP, (tileXY: XY) => this.handleMapUp(tileXY), condition);
+            .subscribe(owner, WarGame.EVENTS.SWITCH_TEAMS, (t: Team) => this._handleTeamChange(t), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this._handlePlayerDown(tileXY), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_UP, (tileXY: XY) => this._handleMapUp(tileXY), condition);
     }
 
     private _highlightTeam(team: Team): void {
@@ -149,7 +149,7 @@ export class MovementPhase implements IPhase {
         }
     }
 
-    handlePlayerDown(tileXY: XY): void {
+    private _handlePlayerDown(tileXY: XY): void {
         const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
         if (tile) {
             const player: IPlayer = this._mapMgr.teamManager.playerManager.getPlayerAt(tile);
@@ -164,7 +164,7 @@ export class MovementPhase implements IPhase {
         }
     }
 
-    handleMapUp(tileXY: XY): void {
+    private _handleMapUp(tileXY: XY): void {
         const mover: IPlayer = this._activePlayer;
         if (mover) {
             const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);

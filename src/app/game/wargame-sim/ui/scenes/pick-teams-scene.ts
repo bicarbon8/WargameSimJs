@@ -63,14 +63,6 @@ export class PickTeamsScene extends Phaser.Scene {
             const scaleY: number = WarGame.uiMgr.height / this._layout.height;
             this._layout.setScale(scaleY);
         }
-
-        const condition = () => this.game.scene.isActive(this);
-        this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
-            if (condition()) {
-                let world: Phaser.Math.Vector2 = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-                console.info(`screen: ${pointer.x.toFixed(0)},${pointer.y.toFixed(0)}; world: ${world.x.toFixed(0)},${world.y.toFixed(0)}`);
-            }
-        });
     }
 
     update(time: number, delta: number): void {
@@ -423,7 +415,12 @@ export class PickTeamsScene extends Phaser.Scene {
                 this.updateCurrentTeamPlayerCounts();
                 this.updateStartButtonArea();
             }, condition)
-            .subscribe(PickTeamsSceneConfig.key, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => {
+            .subscribe(PickTeamsSceneConfig.key, WarGame.EVENTS.SWITCH_TEAMS, (t: Team) => {
+                this.updateCurrentTeamPointsRemainingDisplay();
+                this.updateCurrentTeamPlayerCounts();
+                this.updateStartButtonArea();
+            }, condition)
+            .subscribe(PickTeamsSceneConfig.key, WarGame.EVENTS.TEAM_MODIFIED, (t: Team) => {
                 this.updateCurrentTeamPointsRemainingDisplay();
                 this.updateCurrentTeamPlayerCounts();
                 this.updateStartButtonArea();

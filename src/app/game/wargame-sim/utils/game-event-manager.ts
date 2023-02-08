@@ -1,3 +1,6 @@
+import { WarGame } from "../war-game";
+import { Logging } from "./logging";
+
 export class GameEventManager {
     private readonly _subscriptions: Map<string, (...args: Array<any>) => void>;
     private readonly _emitter: Phaser.Events.EventEmitter;
@@ -15,6 +18,11 @@ export class GameEventManager {
      * @returns `this`
      */
     notify(event: string, ...args: Array<any>): this {
+        if ([WarGame.EVENTS.POINTER_MOVE].includes(event)) {
+            Logging.log('debug', 'notifying of', {event}, 'with', {args});
+        } else {
+            Logging.log('info', 'notifying of', {event}, 'with', {args});
+        }
         this._emitter.emit(event, ...args);
         return this;
     }

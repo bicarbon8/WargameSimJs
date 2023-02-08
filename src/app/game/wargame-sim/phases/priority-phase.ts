@@ -41,7 +41,7 @@ export class PriorityPhase implements IPhase {
         WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
         let teams: Team[] = this._teamMgr.teams;
         this._orderedTeams = this._rollForPriority(teams);
-        WarGame.evtMgr.notify(WarGame.EVENTS.TEAM_CHANGED, this.priorityTeam);
+        WarGame.evtMgr.notify(WarGame.EVENTS.SWITCH_TEAMS, this.priorityTeam);
         this._active = false;
         WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
         return this;
@@ -59,7 +59,7 @@ export class PriorityPhase implements IPhase {
         if (this._currentPriority >= this._teamMgr.teams.length) {
             this._currentPriority = 0;
         }
-        WarGame.evtMgr.notify(WarGame.EVENTS.TEAM_CHANGED, this.priorityTeam);
+        WarGame.evtMgr.notify(WarGame.EVENTS.SWITCH_TEAMS, this.priorityTeam);
         return this;
     }
 

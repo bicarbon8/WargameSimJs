@@ -33,7 +33,6 @@ export class KBMController extends InputController {
 
         this.scene.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
             const tileXY = WarGame.mapMgr.map.getTileAtCameraXY(pointer);
-            console.info(`clicked tile: ${tileXY.x.toFixed(0)},${tileXY.y.toFixed(0)}; zoom: ${this.scene.cameras.main.zoom.toFixed(1)}`);
             WarGame.evtMgr.notify(WarGame.EVENTS.POINTER_DOWN, tileXY);
         }).on(Phaser.Input.Events.POINTER_UP, (pointer: Phaser.Input.Pointer) => {
             const tileXY = WarGame.mapMgr.map.getTileAtCameraXY(pointer);

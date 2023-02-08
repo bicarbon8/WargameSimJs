@@ -43,7 +43,7 @@ export class OverlayScene extends Phaser.Scene {
     private _startHandlingEvents(): void {
         const condition = () => this.game.scene.isActive(this);
         WarGame.evtMgr
-            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.TEAM_CHANGED, (t: Team) => this._handleTeamChange(t), condition)
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.SWITCH_TEAMS, (t: Team) => this._handleTeamChange(t), condition)
             .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
             .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
             .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
