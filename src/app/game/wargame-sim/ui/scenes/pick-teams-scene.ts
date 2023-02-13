@@ -1,12 +1,12 @@
 import { environment } from "src/environments/environment";
-import { PlayerSpritesheetMappings } from "../../players/player-spritesheet-mappings";
 import { Team } from "../../teams/team";
 import { WarGame } from "../../war-game";
 import { IPlayer } from "../../players/i-player";
 import { Rand } from "../../utils/rand";
 import { Card, Colors, GridLayout, LayoutContent, LinearLayout, TextButton } from "phaser-ui-components";
-import { PlayerOptions } from "../../players/player-options";
 import { GameplaySceneConfig } from "./gameplay-scene";
+import { PlayerOptions } from "../../players/player";
+import { PlayerSpritesheetMapping } from "../players/player-spritesheet-mappings";
 
 module Constants {
     export var CARD_BODY_ADD_BUTTON = 'card-body-add-button';
@@ -196,7 +196,7 @@ export class PickTeamsScene extends Phaser.Scene {
             image: {
                 image: {
                     key: 'players',
-                    index: PlayerSpritesheetMappings[opts.name.toLowerCase()].front
+                    index: PlayerSpritesheetMapping[opts.name.toLowerCase()].front
                 },
                 desiredHeight: width,
                 background: {fillStyle: {color: 0xc0c0c0}}
@@ -221,7 +221,7 @@ export class PickTeamsScene extends Phaser.Scene {
                                 onClick: () => {
                                     const players: IPlayer[] = this.currentTeam?.getPlayersByName(opts.name);
                                     if (players.length > 0) {
-                                        this.currentTeam?.removePlayer(players[0], true);
+                                        this.currentTeam?.removePlayer(players[0]);
                                     }
                                 }
                             }),

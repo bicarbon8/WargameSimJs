@@ -1,118 +1,99 @@
-import { MapManager } from "../map/map-manager";
+import { TerrainTileManager } from "../terrain/terrain-tile-manager";
 import { IPlayer } from "../players/i-player";
 import { Team } from "../teams/team";
 import { XY } from "../ui/types/xy";
 import { WarGame } from "../war-game";
-import { IPhase } from "./i-phase";
+import { AbstractPhase } from "./abstract-phase";
 import { PhaseManager } from "./phase-manager";
 import { PhaseType } from "./phase-type";
+import { GameEventManager } from "../utils/game-event-manager";
+import { GameMapTile } from "../terrain/game-map-tile";
+import { TeamManager } from "../teams/team-manager";
 
-export class PlacementPhase implements IPhase {
-    private readonly _phaseMgr: PhaseManager;
-    private readonly _mapMgr: MapManager;
-    private _active: boolean;
+export class PlacementPhase extends AbstractPhase {
+    private readonly _terrainMgr: TerrainTileManager;
+    private readonly _teamMgr: TeamManager;
 
-    private _highlightedTiles: Phaser.Tilemaps.Tile[];
+    private _highlightedTiles: GameMapTile[];
     private _placedTeamsCount: number;
     
-    constructor(phaseManager: PhaseManager, mapManager: MapManager) {
-        this._phaseMgr = phaseManager;
-        this._mapMgr = mapManager;
+    constructor(evtMgr: GameEventManager, phaseMgr: PhaseManager, terrainMgr: TerrainTileManager, teamMgr: TeamManager) {
+        super(evtMgr, phaseMgr);
+        this._terrainMgr = terrainMgr;
+        this._teamMgr = teamMgr;
         this._highlightedTiles = [];
         this._placedTeamsCount = 0;
         this._setupEventHandling();
     }
-
-    get active(): boolean {
-        return this._active;
-    }
     
-    start(): IPhase {
-        this.reset();
-        this._active = true;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
-        return this;
-    }
-
-    nextTeam(team?: Team): IPhase {
-        /** does nothing */
-        return this;
-    }
-
-    reset(): IPhase {
-        this._active = false;
+    override start(): this {
         this._placedTeamsCount = 0;
-        return this;
+        return super.start();
     }
 
     getType(): PhaseType {
         return PhaseType.placement;
     }
 
-    getName(): string {
-        return PhaseType[this.getType()];
+    override end(): this {
+        this.eventManger.unsubscribe('placement-phase');
+        return super.end();
     }
 
-    complete(): void {
-        this._active = false;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
-    }
-
-    clearHighlightedTiles(): void {
-        while (this._highlightedTiles?.length) {
-            let tile: Phaser.Tilemaps.Tile = this._highlightedTiles.shift();
-            tile?.clearAlpha();
+    private clearHighlightedTiles(): void {
+        if (this._highlightedTiles.length) {
+            const tiles = this._highlightedTiles.splice(0, this._highlightedTiles.length);
+            this.eventManger.notify(WarGame.EVENTS.UNHIGHLIGHT_TILES, ...tiles);
         }
     }
 
-    highlightTiles(tileXY: XY): void {
+    private highlightTiles(tileXY: XY): void {
         this.clearHighlightedTiles();
-        const pointerTile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
+        const pointerTile = this._terrainMgr.getTileAt(tileXY);
         if (pointerTile) {
-            let teamPlayers: IPlayer[] = this._phaseMgr.priorityPhase.priorityTeam.getPlayers();
-            let tiles: Phaser.Tilemaps.Tile[] = this._mapMgr.map.getTilesAround(pointerTile, teamPlayers.length)
-                .filter((tile: Phaser.Tilemaps.Tile) => !this._mapMgr.map.isTileOccupied(tile));
+            let teamPlayers: IPlayer[] = this.phaseManager.priorityPhase.priorityTeam.getPlayers();
+            let tiles = this._terrainMgr.getTilesAround(pointerTile.xy, teamPlayers.length)
+                .filter(tile => !this._terrainMgr.isTileOccupied(tile.xy));
             if (teamPlayers.length <= tiles.length) {
                 this._highlightedTiles = this._highlightedTiles.concat(tiles);
-                for (var i=0; i<this._highlightedTiles.length; i++) {
-                    this._highlightedTiles[i].alpha = 0.5;
+                if (this._highlightedTiles.length) {
+                    this.eventManger.notify(WarGame.EVENTS.HIGHLIGHT_TILES, ...this._highlightedTiles);
                 }
             }
         }
     }
 
-    placeTeam(tileXY: XY): void {
-        const pointerTile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
-        const highlightedTiles: Phaser.Tilemaps.Tile[] = this._highlightedTiles;
-        if (highlightedTiles.includes(pointerTile)) {
-            let team: Team = this._phaseMgr.priorityPhase.priorityTeam;
+    private placeTeam(tileXY: XY): void {
+        const pointerTile = this._terrainMgr.getTileAt(tileXY);
+        if (this._highlightedTiles.includes(pointerTile)) {
+            let team: Team = this.phaseManager.priorityPhase.priorityTeam;
             const players: IPlayer[] = team.getPlayers();
-            if (highlightedTiles.length >= players.length) {
-                for (var i=0; i<highlightedTiles.length; i++) {
+            if (this._highlightedTiles.length >= players.length) {
+                for (var i=0; i<this._highlightedTiles.length; i++) {
                     if (i>players.length) { break; }
 
-                    let t: Phaser.Tilemaps.Tile = highlightedTiles[i];
+                    let t = this._highlightedTiles[i];
                     let p: IPlayer = players[i];
                     if (p) {
-                        this._mapMgr.map.setPlayerTile(p, t);
+                        this._terrainMgr.setPlayerTile(p, t.xy);
                     }
                 }
                 this._placedTeamsCount++;
                 this.clearHighlightedTiles();
-                this._phaseMgr.priorityPhase.nextTeam();
+                this.phaseManager.priorityPhase.nextTeam();
             }
         }
-        if (this._placedTeamsCount >= this._mapMgr.teamManager.teams.length) {
-            this.complete();
+        if (this._placedTeamsCount >= this._teamMgr.teams.length) {
+            this.end();
         }
     }
 
     private _setupEventHandling(): void {
         const owner = 'placement-phase';
-        const condition = () => WarGame.phaseMgr.placementPhase.active;
-        WarGame.evtMgr
-            .subscribe(owner, WarGame.EVENTS.POINTER_MOVE, (tileXY: XY) => WarGame.phaseMgr.placementPhase.highlightTiles(tileXY), condition)
-            .subscribe(owner, WarGame.EVENTS.POINTER_OUT, () => WarGame.phaseMgr.placementPhase.clearHighlightedTiles(), condition)
-            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => WarGame.phaseMgr.placementPhase.placeTeam(tileXY), condition);
+        const condition = () => this.active;
+        this.eventManger
+            .subscribe(owner, WarGame.EVENTS.POINTER_MOVE, (tileXY: XY) => this.highlightTiles(tileXY), condition)
+            // .subscribe(owner, WarGame.EVENTS.POINTER_OUT, () => this.clearHighlightedTiles(), condition)
+            .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this.placeTeam(tileXY), condition);
     }
 }

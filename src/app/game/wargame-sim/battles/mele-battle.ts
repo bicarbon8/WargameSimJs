@@ -74,29 +74,29 @@ export class MeleBattle extends Battle {
     }
 
     private _pushBackPlayers(losers: IPlayer[]): void {
-        const loserTiles: Phaser.Tilemaps.Tile[] = losers
-        .map((p: IPlayer) => WarGame.mapMgr.map.getTileAt(p.tileXY))
-        .filter((t: Phaser.Tilemaps.Tile) => t != null);
-        const emptyTiles: Phaser.Tilemaps.Tile[] = WarGame.mapMgr.map.getUnoccupiedTiles()
-        .filter((t: Phaser.Tilemaps.Tile) => {
-            for (var i=0; i<loserTiles.length; i++) {
-                let loserTile: Phaser.Tilemaps.Tile = loserTiles[i];
-                if (Helpers.isBetween(t.x, loserTile.x - 1, loserTile.x + 1, BetweenComparisonType.inclusive)
-                && Helpers.isBetween(t.y, loserTile.y - 1, loserTile.y + 1, BetweenComparisonType.inclusive)) {
-                    return true;
+        const loserTiles = losers
+            .map((p: IPlayer) => this.battleManager.terrainManager.getTileAt(p.tileXY))
+            .filter(t => t != null);
+        const emptyTiles = this.battleManager.terrainManager.getUnoccupiedTiles()
+            .filter(t => {
+                for (var i=0; i<loserTiles.length; i++) {
+                    let loserTile = loserTiles[i];
+                    if (Helpers.isBetween(t.xy.x, loserTile.xy.x - 1, loserTile.xy.x + 1, BetweenComparisonType.inclusive)
+                        && Helpers.isBetween(t.xy.y, loserTile.xy.y - 1, loserTile.xy.y + 1, BetweenComparisonType.inclusive)) {
+                        return true;
+                    }
                 }
-            }
-            return false;
-        });
+                return false;
+            });
         if (emptyTiles.length >= losers.length) {
             for (var i=0; i<emptyTiles.length; i++) {
                 // TODO: move player to closest tile
                 if (i >= losers.length) {
                     break;
                 }
-                let empty: Phaser.Tilemaps.Tile = emptyTiles[i];
+                let empty = emptyTiles[i];
                 let loser: IPlayer = losers[i];
-                WarGame.mapMgr.map.movePlayer(loser.tileXY, empty);
+                WarGame.terrainMgr.setPlayerTile(loser, empty.xy);
             }
         } else {
             // TODO: mark losers as knocked down

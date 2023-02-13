@@ -1,51 +1,49 @@
 import { BattleManager } from "../battles/battle-manager";
-import { MapManager } from "../map/map-manager";
+import { TerrainTileManager } from "../terrain/terrain-tile-manager";
 import { IPlayer } from "../players/i-player";
 import { Team } from "../teams/team";
 import { XY } from "../ui/types/xy";
+import { GameEventManager } from "../utils/game-event-manager";
 import { WarGame } from "../war-game";
-import { IPhase } from "./i-phase";
+import { AbstractPhase } from "./abstract-phase";
 import { PhaseManager } from "./phase-manager";
 import { PhaseType } from "./phase-type";
+import { GameMapTile } from "../terrain/game-map-tile";
 
-export class ShootingPhase implements IPhase {
+export class ShootingPhase extends AbstractPhase {
     private readonly _phaseMgr: PhaseManager;
     private readonly _battleMgr: BattleManager;
-    private readonly _mapMgr: MapManager;
+    private readonly _terrainMgr: TerrainTileManager;
     private readonly _shootTracker: Set<string>;
-    private _active: boolean;
 
-    private _highlightedTiles: Phaser.Tilemaps.Tile[];
+    private _highlightedTiles: GameMapTile[];
     private _activeShooter: IPlayer;
     
-    constructor(phaseManager: PhaseManager, battleManager: BattleManager, mapManager: MapManager) {
+    constructor(evtMgr: GameEventManager, phaseManager: PhaseManager, battleManager: BattleManager, mapManager: TerrainTileManager) {
+        super(evtMgr, phaseManager);
         this._phaseMgr = phaseManager;
         this._battleMgr = battleManager;
-        this._mapMgr = mapManager;
+        this._terrainMgr = mapManager;
         this._shootTracker = new Set<string>();
         this._highlightedTiles = [];
         this._startEventHandling();
     }
 
-    get active(): boolean {
-        return this._active;
-    }
-    
-    start(): IPhase {
-        this.reset();
-        this._active = true;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
+    override start(): this {
+        this._activeShooter = null;
+        this._shootTracker.clear();
+        super.start();
         this._highlightTeam();
         return this;
     }
 
-    nextTeam(team?: Team): IPhase {
+    nextTeam(team?: Team): this {
         team = this.activeTeam();
         if (team) {
             team.getPlayers().forEach((p: IPlayer) => this._shootTracker.add(p.id));
             this._phaseMgr.priorityPhase.nextTeam();
             if (this.allTeamsHaveShot()) {
-                this._complete();
+                this.end();
             } else {
                 this._highlightTeam();
             }
@@ -53,24 +51,8 @@ export class ShootingPhase implements IPhase {
         return this;
     }
 
-    reset(): IPhase {
-        this._active = false;
-        this._activeShooter = null;
-        this._shootTracker.clear();
-        return this;
-    }
-
     getType(): PhaseType {
         return PhaseType.shooting;
-    }
-
-    getName(): string {
-        return PhaseType[this.getType()];
-    }
-
-    private _complete(): void {
-        this._active = false;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
     }
 
     activeTeam(): Team {
@@ -99,9 +81,9 @@ export class ShootingPhase implements IPhase {
     }
 
     isAbleToShoot(player: IPlayer): boolean {
-        const enemiesInRange: IPlayer[] = this._mapMgr.map
-        .getPlayersInRange(player.tileXY, 1)
-        .filter((p: IPlayer) => !p.isDead() && p.isEnemy(player));
+        const enemiesInRange: IPlayer[] = this._terrainMgr
+            .getPlayersInRange(player.tileXY, 1)
+            .filter((p: IPlayer) => !p.isDead() && p.isEnemy(player));
         return enemiesInRange.length > 0;
     }
 
@@ -110,7 +92,7 @@ export class ShootingPhase implements IPhase {
     }
 
     getEnemiesInRange(player: IPlayer): IPlayer[] {
-        const enemiesInRange: IPlayer[] = this._mapMgr.map
+        const enemiesInRange: IPlayer[] = this._terrainMgr
             .getPlayersInRange(player.tileXY, player.stats.shoot)
             .filter((p: IPlayer) => !p.isDead() && p.isEnemy(player));
         return enemiesInRange;
@@ -119,7 +101,7 @@ export class ShootingPhase implements IPhase {
     private _startEventHandling(): void {
         const owner = 'shooting-phase';
         const condition = () => this.active;
-        WarGame.evtMgr
+        this.eventManger
             .subscribe(owner, WarGame.EVENTS.SWITCH_TEAMS, (t: Team) => this._handleTeamChange(t), condition)
             .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this._handlePlayerDown(tileXY), condition);
     }
@@ -128,26 +110,19 @@ export class ShootingPhase implements IPhase {
         const players: IPlayer[] = this._phaseMgr.priorityPhase.priorityTeam.getPlayers()
             .filter((p: IPlayer) => !this._shootTracker.has(p.id))
             .filter((p: IPlayer) => this.isAbleToShoot(p))
-            .filter((p: IPlayer) => this._mapMgr.map.getPlayersInRange(p.tileXY, p.stats.shoot)
+            .filter((p: IPlayer) => this._terrainMgr.getPlayersInRange(p.tileXY, p.stats.shoot)
             .filter((o: IPlayer) => p.isEnemy(o)).length > 0);
         if (players.length > 0) {
-            WarGame.uiMgr.gameplayScene.tweens.add({
-                targets: players.map((p: IPlayer) => p.obj),
-                alpha: 0.25,
-                ease: 'Sine.easeOut',
-                duration: 200,
-                yoyo: true,
-                loop: 1
-            });
+            this.eventManger.notify(WarGame.EVENTS.HIGHLIGHT_PLAYERS, ...players);
         } else {
             this.nextTeam();
         }
     }
 
     private _handlePlayerDown(tileXY: XY): void {
-        const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
+        const tile = this._terrainMgr.getTileAt(tileXY);
         if (tile) {
-            const player: IPlayer = this._battleMgr.teamManager.playerManager.getPlayerAt(tile);
+            const player: IPlayer = this._battleMgr.teamManager.playerManager.getPlayerAt(tile.xy);
 
             if (this._activeShooter) {
                 // already have active shooter so selecting target now
@@ -180,26 +155,26 @@ export class ShootingPhase implements IPhase {
         this._removeTileHighlighting();
         const shooter: IPlayer = this._activeShooter;
         if (shooter) {
-            const tilesInRange: Phaser.Tilemaps.Tile[] = this._mapMgr.map.getTilesInRange(shooter.tileXY, shooter.stats.shoot);
+            const tilesInRange = this._terrainMgr.getTilesInRange(shooter.tileXY, shooter.stats.shoot);
             if (tilesInRange.length > 0) {
                 this._highlightedTiles = this._highlightedTiles.concat(tilesInRange);
             }
-            for (var i=0; i<this._highlightedTiles.length; i++) {
-                this._highlightedTiles[i].alpha = 0.5;
+            if (this._highlightedTiles.length) {
+                this.eventManger.notify(WarGame.EVENTS.HIGHLIGHT_TILES, ...this._highlightedTiles);
             }
         }
     }
 
     private _removeTileHighlighting(): void {
-        while (this._highlightedTiles.length) {
-            let tile: Phaser.Tilemaps.Tile = this._highlightedTiles.shift();
-            tile?.clearAlpha();
+        if (this._highlightedTiles.length) {
+            const tiles = this._highlightedTiles.splice(0, this._highlightedTiles.length);
+            this.eventManger.notify(WarGame.EVENTS.UNHIGHLIGHT_TILES, ...tiles);
         }
     }
 
     private _handleTeamChange(team?: Team): void {
         if (this.allTeamsHaveShot()) {
-            this._complete();
+            this.end();
         } else {
             this._highlightTeam();
         }

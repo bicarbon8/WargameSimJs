@@ -1,4 +1,5 @@
 import { LayoutContent } from 'phaser-ui-components';
+import { XY } from '../ui/types/xy';
 
 export module Helpers {
     /**
@@ -90,6 +91,12 @@ export module Helpers {
             }
         }
         return isDark >= Math.ceil(color.length / 2);
+    }
+
+    export function distance(p1: XY, p2: XY): number {
+        const a = p1.x - p2.x;
+        const b = p1.y - p2.y;
+        return Math.hypot(a, b);
     }
 }
 

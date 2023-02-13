@@ -1,8 +1,4 @@
-import { MapManager } from "./map-manager";
-
-export interface GameMapOptions {
-    mapManager: MapManager;
-    scene: Phaser.Scene;
+export type GameMapOptions = {
     width?: number;
     height?: number;
     seed?: string;
@@ -12,5 +8,4 @@ export interface GameMapOptions {
     roomMaxHeight?: number;
     doorPadding?: number;
     maxRooms?: number;
-    layerDepth?: number;
-}
+};

@@ -1,12 +1,12 @@
-import { HasGameObject } from "../interfaces/has-game-object";
 import { XY } from "../ui/types/xy";
 import { PlayerStats } from "./player-stats";
 import { PlayerStatusEffect } from "./player-status-effect";
+import { PlayerType } from "./player-type";
 
-export interface IPlayer extends HasGameObject<Phaser.GameObjects.Container> {
+export interface IPlayer {
     readonly id: string;
     readonly tileXY: XY
-    readonly name: string;
+    readonly name: PlayerType;
     readonly teamId: string;
     readonly stats: PlayerStats;
     readonly statusEffects: PlayerStatusEffect[];
@@ -18,5 +18,4 @@ export interface IPlayer extends HasGameObject<Phaser.GameObjects.Container> {
     isDead(): boolean;
     isAlly(player: IPlayer): boolean;
     isEnemy(player: IPlayer): boolean;
-    destroy(): void;
 }

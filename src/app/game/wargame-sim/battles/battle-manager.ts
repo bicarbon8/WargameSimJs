@@ -1,28 +1,20 @@
 import { TeamManager } from "../teams/team-manager";
-import { UIManager } from "../ui/ui-manager";
+import { TerrainTileManager } from "../terrain/terrain-tile-manager";
 import { BattleGroup } from "./battle-group";
 import { MeleBattle } from "./mele-battle";
 import { RangedBattle } from "./ranged-battle";
 
 export class BattleManager {
-    private readonly _teamMgr: TeamManager;
-    private readonly _uiMgr: UIManager;
+    readonly teamManager: TeamManager;
+    readonly terrainManager: TerrainTileManager;
     private readonly _rangedBattle: RangedBattle;
     private readonly _meleBattle: MeleBattle;
     
-    constructor(teamManager: TeamManager, uiManager: UIManager) {
-        this._teamMgr = teamManager;
-        this._uiMgr = uiManager;
+    constructor(teamMgr: TeamManager, terrainMgr: TerrainTileManager) {
+        this.teamManager = teamMgr;
+        this.terrainManager = terrainMgr;
         this._rangedBattle = new RangedBattle(this);
         this._meleBattle = new MeleBattle(this);
-    }
-
-    get teamManager(): TeamManager {
-        return this._teamMgr;
-    }
-
-    get uiManager(): UIManager {
-        return this._uiMgr;
     }
     
     runRangedBattle(battleGroup: BattleGroup): void {

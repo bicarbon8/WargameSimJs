@@ -1,8 +1,7 @@
 import { XY } from "../ui/types/xy";
 import { WarGame } from "../war-game";
 import { IPlayer } from "./i-player";
-import { Player } from "./player";
-import { PlayerOptions } from "./player-options";
+import { Player, PlayerOptions } from "./player";
 import { PlayerStatusEffect } from "./player-status-effect";
 
 export class PlayerManager {
@@ -27,16 +26,13 @@ export class PlayerManager {
         return player;
     }
 
-    removePlayer(player: IPlayer, destroy?: boolean): IPlayer {
+    removePlayer(player: IPlayer): IPlayer {
         let removed: IPlayer;
         if (player) {
             removed = this.getPlayerById(player.id);
             if (removed) {
                 this._players.delete(removed.id);
                 WarGame.evtMgr.notify(WarGame.EVENTS.PLAYER_REMOVED, removed);
-                if (destroy) {
-                    removed.destroy();
-                }
             }
         }
         return removed;

@@ -1,8 +1,10 @@
 import * as Phaser from "phaser";
+import { HasGameObject } from "../interfaces/has-game-object";
 import { Size } from "../interfaces/size";
+import { GameBoard } from "./game-board/game-board";
 import { GameOverScene } from "./scenes/game-over-scene";
-import { GameplayScene } from './scenes/gameplay-scene';
-import { OverlayScene } from "./scenes/overlay-scene";
+import { GameplayScene, GameplaySceneConfig } from './scenes/gameplay-scene';
+import { OverlayScene, OverlaySceneConfig } from "./scenes/overlay-scene";
 import { PickTeamsScene } from "./scenes/pick-teams-scene";
 import { XY } from "./types/xy";
 import { UIManagerOptions } from './ui-manager-options';
@@ -52,11 +54,11 @@ export class UIManager {
     }
 
     get gameplayScene(): GameplayScene {
-        return this.game.scene.getScene('gameplay-scene') as GameplayScene;
+        return this.game.scene.getScene(GameplaySceneConfig.key) as GameplayScene;
     }
 
     get overlayScene(): OverlayScene {
-        return this.game.scene.getScene('overlay-scene') as OverlayScene;
+        return this.game.scene.getScene(OverlaySceneConfig.key) as OverlayScene;
     }
 
     start(): UIManager {
@@ -124,5 +126,42 @@ export class UIManager {
             size = {width: s.width, height: s.height};
         }
         return size;
+    }
+
+    /**
+     * causes the passed in `hasGameObjs` elements to flicker between 1 and 0.25 alpha
+     * for the `Math.ceil` of the duration divided by 200 milliseconds
+     * @param hasGameObjs an array of objects implementing `HasGameObject` interface
+     * @param duration the number of milliseconds to flicker @default 400
+     */
+    flicker(hasGameObjs: Array<HasGameObject<any>>, duration: number = 400): void {
+        const loops = Math.ceil(duration / 200) - 1;
+        const scenes = new Set<Phaser.Scene>(hasGameObjs.map(o => o.obj.scene));
+        for (let scene of scenes.values()) {
+            const sceneObjects = hasGameObjs.filter(o => o.obj.scene === scene);
+            scene.tweens.add({
+                targets: sceneObjects.map(o => o.obj),
+                alpha: 0.25,
+                ease: 'Sine.easeOut',
+                duration: 200,
+                yoyo: true,
+                loop: loops
+            });
+        }
+    }
+
+    moveTo(hasGameObjs: Array<HasGameObject<any>>, location: XY, duration: number = 500, onComplete: (tween?: Phaser.Tweens.Tween, targets?: Array<any>, ...params: Array<any>) => void = () => null): void {
+        const scenes = new Set<Phaser.Scene>(hasGameObjs.map(o => o.obj.scene));
+        for (let scene of scenes.values()) {
+            const sceneObjects = hasGameObjs.filter(o => o.obj.scene === scene);
+            scene.tweens.add({
+                targets: sceneObjects.map(o => o.obj),
+                x: location.x,
+                y: location.y,
+                ease: 'Sine.easeOut',
+                duration: duration,
+                onComplete: onComplete
+            });
+        }
     }
 }

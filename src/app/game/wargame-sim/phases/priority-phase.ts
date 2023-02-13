@@ -1,26 +1,21 @@
 import { Team } from "../teams/team";
 import { PhaseType } from "./phase-type";
-import { IPhase } from "./i-phase";
+import { AbstractPhase } from "./abstract-phase";
 import { WarGame } from "../war-game";
 import { TeamManager } from "../teams/team-manager";
 import { PhaseManager } from "./phase-manager";
+import { GameEventManager } from "../utils/game-event-manager";
 
-export class PriorityPhase implements IPhase {
-    private readonly _phaseMgr: PhaseManager
+export class PriorityPhase extends AbstractPhase {
     private readonly _teamMgr: TeamManager;
-    private _active: boolean;
     private _orderedTeams: Team[];
     private _currentPriority: number;
     
-    constructor(phaseManager: PhaseManager, teamManager: TeamManager) {
-        this._phaseMgr = phaseManager;
+    constructor(evtMgr: GameEventManager , phaseManager: PhaseManager, teamManager: TeamManager) {
+        super(evtMgr, phaseManager);
         this._teamMgr = teamManager;
         this._currentPriority = 0;
         this._orderedTeams = [];
-    }
-
-    get active(): boolean {
-        return this._active;
     }
 
     get priorityTeam(): Team {
@@ -35,16 +30,14 @@ export class PriorityPhase implements IPhase {
         return this._orderedTeams;
     }
 
-    start(): IPhase {
-        this.reset();
-        this._active = true;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
+    override start(): this {
+        this._currentPriority = 0;
+        this._orderedTeams = [];
+        super.start();
         let teams: Team[] = this._teamMgr.teams;
         this._orderedTeams = this._rollForPriority(teams);
-        WarGame.evtMgr.notify(WarGame.EVENTS.SWITCH_TEAMS, this.priorityTeam);
-        this._active = false;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
-        return this;
+        this.eventManger.notify(WarGame.EVENTS.SWITCH_TEAMS, this.priorityTeam);
+        return this.end();
     }
 
     getTeam(priority: number): Team {
@@ -54,28 +47,17 @@ export class PriorityPhase implements IPhase {
         return null;
     }
 
-    nextTeam(team?: Team): IPhase {
+    nextTeam(): this {
         this._currentPriority++;
         if (this._currentPriority >= this._teamMgr.teams.length) {
             this._currentPriority = 0;
         }
-        WarGame.evtMgr.notify(WarGame.EVENTS.SWITCH_TEAMS, this.priorityTeam);
-        return this;
-    }
-
-    reset(): IPhase {
-        this._active = false;
-        this._currentPriority = 0;
-        this._orderedTeams = [];
+        this.eventManger.notify(WarGame.EVENTS.SWITCH_TEAMS, this.priorityTeam);
         return this;
     }
 
     getType(): PhaseType {
         return PhaseType.priority;
-    }
-
-    getName(): string {
-        return PhaseType[this.getType()];
     }
 
     /**

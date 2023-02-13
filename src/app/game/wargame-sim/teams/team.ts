@@ -1,6 +1,6 @@
 import { IPlayer } from "../players/i-player";
+import { PlayerOptions } from "../players/player";
 import { PlayerManager } from "../players/player-manager";
-import { PlayerOptions } from "../players/player-options";
 import { PlayerStatusEffect } from "../players/player-status-effect";
 import { Rand } from "../utils/rand";
 import { WarGame } from "../war-game";
@@ -75,10 +75,10 @@ export class Team {
         return added;
     }
 
-    removePlayer(player: IPlayer, destroy?: boolean): IPlayer {
+    removePlayer(player: IPlayer): IPlayer {
         let removed: IPlayer;
         if (player) {
-            this._playerMgr.removePlayer(player, destroy);
+            this._playerMgr.removePlayer(player);
             this._remainingPoints += player.stats.cost;
             WarGame.evtMgr.notify(WarGame.EVENTS.TEAM_MODIFIED, this);
         }
@@ -91,7 +91,7 @@ export class Team {
 
     destroy(): void {
         this.getPlayers().forEach((p: IPlayer) => {
-            this.removePlayer(p, true);
+            this.removePlayer(p);
         });
         this._teamMgr = null;
     }

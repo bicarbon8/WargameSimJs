@@ -1,44 +1,25 @@
 import { BattleGroup } from "../battles/battle-group";
 import { BattleManager } from "../battles/battle-manager";
-import { MapManager } from "../map/map-manager";
+import { TerrainTileManager } from "../terrain/terrain-tile-manager";
 import { IPlayer } from "../players/i-player";
-import { Team } from "../teams/team";
-import { WarGame } from "../war-game";
-import { IPhase } from "./i-phase";
+import { AbstractPhase } from "./abstract-phase";
 import { PhaseManager } from "./phase-manager";
 import { PhaseType } from "./phase-type";
+import { GameEventManager } from "../utils/game-event-manager";
 
-export class FightingPhase implements IPhase {
-    private readonly _phaseMgr: PhaseManager;
-    private readonly _battleMgr: BattleManager;
-    private readonly _mapMgr: MapManager;
-    private _active: boolean;
+export class FightingPhase extends AbstractPhase {
+    readonly battleManager: BattleManager;
+    readonly terrainManager: TerrainTileManager;
     
-    constructor(phaseManager: PhaseManager, battleManager: BattleManager, mapManager: MapManager) {
-        this._phaseMgr = phaseManager;
-        this._battleMgr = battleManager;
-        this._mapMgr = mapManager;
-    }
-
-    get active(): boolean {
-        return this._active;
+    constructor(evtMgr: GameEventManager, phaseMgr: PhaseManager, bttlMgr: BattleManager, terrainMgr: TerrainTileManager) {
+        super(evtMgr, phaseMgr);
+        this.battleManager = bttlMgr;
+        this.terrainManager = terrainMgr;
     }
     
-    start(): IPhase {
-        this.reset();
-        this._active = true;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
+    override start(): this {
+        super.start();
         this._startBattles();
-        return this;
-    }
-
-    nextTeam(team?: Team): IPhase {
-        /* does nothing */
-        return this;
-    }
-
-    reset(): IPhase {
-        this._active = false;
         return this;
     }
 
@@ -46,28 +27,19 @@ export class FightingPhase implements IPhase {
         return PhaseType.shooting;
     }
 
-    getName(): string {
-        return PhaseType[this.getType()];
-    }
-
-    private _complete(): void {
-        this._active = false;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
-    }
-
     private _startBattles(): void {
         const groups: BattleGroup[] = this._getBattleGroups();
-        groups.forEach((g: BattleGroup) => this._battleMgr.runMeleBattle(g));
-        this._complete();
+        groups.forEach((g: BattleGroup) => this.battleManager.runMeleBattle(g));
+        this.end();
     }
 
     private _getBattleGroups(): BattleGroup[] {
         const groups: BattleGroup[] = [];
-        const players: IPlayer[] = this._battleMgr.teamManager.playerManager.getPlayers();
+        const players: IPlayer[] = this.battleManager.teamManager.playerManager.getPlayers();
         for (var i=0; i<players.length; i++) {
             let attacker: IPlayer = players[i];
             
-            let nearbyPlayers: IPlayer[] = this._mapMgr.map.getPlayersInRange(attacker.tileXY, 1);
+            let nearbyPlayers: IPlayer[] = this.terrainManager.getPlayersInRange(attacker.tileXY, 1);
             let nearbyAllies: IPlayer[] = nearbyPlayers
             .filter((p: IPlayer) => p.isAlly(attacker));
             let nearbyEnemies: IPlayer[] = nearbyPlayers

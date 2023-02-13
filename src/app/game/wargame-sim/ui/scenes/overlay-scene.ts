@@ -1,5 +1,5 @@
 import { Card, Colors, GridLayout, LayoutContainer, LinearLayout, TextButton } from "phaser-ui-components";
-import { IPhase } from "../../phases/i-phase";
+import { AbstractPhase } from "../../phases/abstract-phase";
 import { PhaseType } from "../../phases/phase-type";
 import { IPlayer } from "../../players/i-player";
 import { Team } from "../../teams/team";
@@ -48,8 +48,8 @@ export class OverlayScene extends Phaser.Scene {
             .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
             .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.MESSAGE, (text: string, color: number) => this._displayMessage(text, color), condition)
             .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.PLAYER_DIED, (p: IPlayer) => this._playerDied(p), condition)
-            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.PHASE_START, (p: IPhase) => this._handlePhaseStart(p), condition)
-            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.PHASE_END, (p: IPhase) => this._handlePhaseEnd(p), condition);
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.PHASE_START, (p: AbstractPhase) => this._handlePhaseStart(p), condition)
+            .subscribe(OverlaySceneConfig.key, WarGame.EVENTS.PHASE_END, (p: AbstractPhase) => this._handlePhaseEnd(p), condition);
     }
 
     private _playerDied(player: IPlayer): void {
@@ -209,7 +209,7 @@ export class OverlayScene extends Phaser.Scene {
         this._getCurrentTeamMenu()?.setVisible(true);
     }
 
-    private _handlePhaseStart(phase: IPhase): void {
+    private _handlePhaseStart(phase: AbstractPhase): void {
         this._menuGrid?.contents
             .map((c: LayoutContainer) => c.contentAs<Card>())
             .filter((c: Card) => c != null)
@@ -235,7 +235,7 @@ export class OverlayScene extends Phaser.Scene {
             });
     }
 
-    private _handlePhaseEnd(phase: IPhase): void {
+    private _handlePhaseEnd(phase: AbstractPhase): void {
         switch (phase.getType()) {
             case PhaseType.priority:
                 this._menuGrid?.contents
@@ -321,7 +321,7 @@ export class OverlayScene extends Phaser.Scene {
             padding: 5,
             backgroundStyles: {fillStyle: {color: Colors.primary}},
             cornerRadius: 5,
-            onClick: () => WarGame.phaseMgr.currentPhase.nextTeam()
+            onClick: () => WarGame.phaseMgr.priorityPhase.nextTeam()
         });
         
         const layout = new LinearLayout(this, {

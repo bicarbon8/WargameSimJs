@@ -1,14 +1,22 @@
 import { WarGame } from "../../war-game";
+import { GameBoard } from "../game-board/game-board";
 import { InputController } from "./input-controller";
+
+export type KBMControllerOptions = {
+    gameboard: GameBoard;
+};
 
 export class KBMController extends InputController {
     private _cameraUpKey: Phaser.Input.Keyboard.Key;
     private _cameraDownKey: Phaser.Input.Keyboard.Key;
     private _cameraLeftKey: Phaser.Input.Keyboard.Key;
     private _cameraRightKey: Phaser.Input.Keyboard.Key;
+
+    readonly gameboard: GameBoard;
     
-    constructor(scene: Phaser.Scene) {
+    constructor(scene: Phaser.Scene, options: KBMControllerOptions) {
         super(scene);
+        this.gameboard = options.gameboard;
 
         this._setupMouseBindings();
         this._setupKeyBindings();
@@ -32,19 +40,19 @@ export class KBMController extends InputController {
         }, this);
 
         this.scene.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
-            const tileXY = WarGame.mapMgr.map.getTileAtCameraXY(pointer);
+            const tileXY = this.gameboard.getTileXYFromCameraXY(pointer);
             WarGame.evtMgr.notify(WarGame.EVENTS.POINTER_DOWN, tileXY);
         }).on(Phaser.Input.Events.POINTER_UP, (pointer: Phaser.Input.Pointer) => {
-            const tileXY = WarGame.mapMgr.map.getTileAtCameraXY(pointer);
+            const tileXY = this.gameboard.getTileXYFromCameraXY(pointer);
             WarGame.evtMgr.notify(WarGame.EVENTS.POINTER_UP, tileXY);
         }).on(Phaser.Input.Events.POINTER_OVER, (pointer: Phaser.Input.Pointer) => {
-            const tileXY = WarGame.mapMgr.map.getTileAtCameraXY(pointer);
+            const tileXY = this.gameboard.getTileXYFromCameraXY(pointer);
             WarGame.evtMgr.notify(WarGame.EVENTS.POINTER_OVER, tileXY);
         }).on(Phaser.Input.Events.POINTER_OUT, (pointer: Phaser.Input.Pointer) => {
-            const tileXY = WarGame.mapMgr.map.getTileAtCameraXY(pointer);
+            const tileXY = this.gameboard.getTileXYFromCameraXY(pointer);
             WarGame.evtMgr.notify(WarGame.EVENTS.POINTER_OUT, tileXY);
         }).on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
-            const tileXY = WarGame.mapMgr.map.getTileAtCameraXY(pointer);
+            const tileXY = this.gameboard.getTileXYFromCameraXY(pointer);
             WarGame.evtMgr.notify(WarGame.EVENTS.POINTER_MOVE, tileXY);
         });
     }

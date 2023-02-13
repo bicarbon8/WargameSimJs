@@ -1,80 +1,48 @@
-import { MapManager } from "../map/map-manager";
+import { TerrainTileManager } from "../terrain/terrain-tile-manager";
 import { IPlayer } from "../players/i-player";
 import { Team } from "../teams/team";
 import { XY } from "../ui/types/xy";
+import { GameEventManager } from "../utils/game-event-manager";
 import { WarGame } from "../war-game";
-import { IPhase } from "./i-phase";
+import { AbstractPhase } from "./abstract-phase";
 import { PhaseManager } from "./phase-manager";
 import { PhaseType } from "./phase-type";
+import { TeamManager } from "../teams/team-manager";
+import { GameMapTile } from "../terrain/game-map-tile";
 
-export class MovementPhase implements IPhase {
-    private readonly _phaseMgr: PhaseManager;
-    private readonly _mapMgr: MapManager;
+export class MovementPhase extends AbstractPhase {
+    readonly terrainManager: TerrainTileManager;
+    readonly teamManager: TeamManager;
+    
     private readonly _moveTracker: Set<string>;
-    private _active: boolean;
-
-    private _highlightedTiles: Phaser.Tilemaps.Tile[];
+    private _highlightedTiles: GameMapTile[];
     private _activePlayer: IPlayer;
     
-    constructor(phaseManager: PhaseManager, mapManager: MapManager) {
-        this._phaseMgr = phaseManager;
-        this._mapMgr = mapManager;
+    constructor(evtMgr: GameEventManager, phaseMgr: PhaseManager, terrainMgr: TerrainTileManager, teamMgr: TeamManager) {
+        super(evtMgr, phaseMgr);
+        this.terrainManager = terrainMgr;
+        this.teamManager = teamMgr;
         this._moveTracker = new Set<string>();
         this._highlightedTiles = [];
         this._startEventHandling();
     }
-
-    get active(): boolean {
-        return this._active;
-    }
     
-    start(): IPhase {
-        this.reset();
-        this._active = true;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_START, this);
-        this._highlightTeam(this._phaseMgr.priorityPhase.priorityTeam);
-        return this;
-    }
-
-    nextTeam(team?: Team): IPhase {
-        team = team || this._phaseMgr.priorityPhase.priorityTeam;
-        if (team) {
-            team.getPlayers().forEach((p: IPlayer) => this._moveTracker.add(p.id));
-            this._phaseMgr.priorityPhase.nextTeam();
-            if (this.allTeamsMoved()) {
-                this._complete();
-            } else {
-                this._highlightTeam(this._phaseMgr.priorityPhase.priorityTeam);
-            }
-        }
-        return this;
-    }
-
-    reset(): IPhase {
-        this._active = false;
+    override start(): this {
         this._activePlayer = null;
         this._moveTracker.clear();
-        return this;
+        this._highlightTeam(this.phaseManager.priorityPhase.priorityTeam);
+        return super.start();
     }
 
     getType(): PhaseType {
         return PhaseType.movement;
     }
 
-    getName(): string {
-        return PhaseType[this.getType()];
-    }
-
-    private _complete(): void {
-        this._active = false;
-        WarGame.evtMgr.notify(WarGame.EVENTS.PHASE_END, this);
-    }
-
     teamHasMoved(team: Team): boolean {
         let teamHasMoved: boolean = false;
 
         const playerMovedCount: number = Array.from(this._moveTracker.values()).filter((id: string) => {
-            return this._mapMgr.teamManager.playerManager.getPlayerById(id).teamId === team.id;
+            return this.teamManager.playerManager.getPlayerById(id).teamId === team.id;
         }).length;
         if (playerMovedCount >= team.getPlayers().length) {
             teamHasMoved = true;
@@ -86,7 +54,7 @@ export class MovementPhase implements IPhase {
     allTeamsMoved(): boolean {
         let moved: boolean = true;
 
-        this._mapMgr.teamManager.teams.forEach((t: Team) => {
+        this.teamManager.teams.forEach((t: Team) => {
             moved = moved && this.teamHasMoved(t);
         });
 
@@ -98,16 +66,16 @@ export class MovementPhase implements IPhase {
     }
 
     getEnemiesBlockingMovement(player: IPlayer): IPlayer[] {
-        const enemiesInRange: IPlayer[] = this._mapMgr.map
-        .getPlayersInRange(player.tileXY, 1)
-        .filter((p: IPlayer) => !p.isDead() && p.isEnemy(player));
+        const enemiesInRange: IPlayer[] = this.terrainManager
+            .getPlayersInRange(player.tileXY, 1)
+            .filter((p: IPlayer) => !p.isDead() && p.isEnemy(player));
         return enemiesInRange;
     }
 
     private _startEventHandling(): void {
         const owner = 'movement-phase';
         const condition = () => this.active;
-        WarGame.evtMgr
+        this.eventManger
             .subscribe(owner, WarGame.EVENTS.PLAYER_MOVED, (p: IPlayer) => this._handlePlayerMoved(p), condition)
             .subscribe(owner, WarGame.EVENTS.SWITCH_TEAMS, (t: Team) => this._handleTeamChange(t), condition)
             .subscribe(owner, WarGame.EVENTS.POINTER_DOWN, (tileXY: XY) => this._handlePlayerDown(tileXY), condition)
@@ -115,21 +83,15 @@ export class MovementPhase implements IPhase {
     }
 
     private _highlightTeam(team: Team): void {
-        const players: IPlayer[] = team.getPlayers()
-            .filter((p: IPlayer) => !this._moveTracker.has(p.id))
-            .filter((p: IPlayer) => this._mapMgr.map.getPlayersInRange(p.tileXY, 1)
-            .filter((o: IPlayer) => p.isEnemy(o)).length === 0);
-        if (players.length > 0) {
-            WarGame.uiMgr.gameplayScene.tweens.add({
-                targets: players.map((p: IPlayer) => p.obj),
-                alpha: 0.25,
-                ease: 'Sine.easeOut',
-                duration: 200,
-                yoyo: true,
-                loop: 1
-            });
+        const notMovedPlayers: IPlayer[] = team.getPlayers()
+            .filter((p: IPlayer) => !this._moveTracker.has(p.id));
+        const notBlockedPlayers = notMovedPlayers
+            .filter((p: IPlayer) => this.terrainManager.getPlayersInRange(p.tileXY, 1)
+                .filter((o: IPlayer) => p.isEnemy(o)).length === 0);
+        if (notBlockedPlayers.length > 0) {
+            this.eventManger.notify(WarGame.EVENTS.HIGHLIGHT_PLAYERS, ...notBlockedPlayers);
         } else {
-            this.nextTeam();
+            this.phaseManager.priorityPhase.nextTeam();
         }
     }
 
@@ -137,25 +99,25 @@ export class MovementPhase implements IPhase {
         this._removeTileHighlighting();
         const mover: IPlayer = player;
         if (mover) {
-            const tilesInRange: Phaser.Tilemaps.Tile[] = this._mapMgr.map
+            const tilesInRange = this.terrainManager
                 .getTilesInRange(mover.tileXY, mover.stats.move)
-                .filter((t: Phaser.Tilemaps.Tile) => !this._mapMgr.map.isTileOccupied(t));
+                .filter(t => !this.terrainManager.isTileOccupied(t.xy));
             if (tilesInRange.length > 0) {
                 this._highlightedTiles = tilesInRange;
             }
-            for (var i=0; i<this._highlightedTiles.length; i++) {
-                this._highlightedTiles[i].alpha = 0.5;
+            if (this._highlightedTiles.length) {
+                this.eventManger.notify(WarGame.EVENTS.HIGHLIGHT_TILES, ...this._highlightedTiles);
             }
         }
     }
 
     private _handlePlayerDown(tileXY: XY): void {
-        const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
+        const tile = this.terrainManager.getTileAt(tileXY);
         if (tile) {
-            const player: IPlayer = this._mapMgr.teamManager.playerManager.getPlayerAt(tile);
+            const player: IPlayer = this.teamManager.playerManager.getPlayerAt(tile.xy);
             if (!player) return; // no player selected
             if (this._moveTracker.has(player.id)) return; // player has already moved so don't move again
-            if (player?.teamId === this._phaseMgr.priorityPhase.priorityTeam.id) {
+            if (player?.teamId === this.phaseManager.priorityPhase.priorityTeam.id) {
                 if (!this.hasEnemiesBlockingMovement(player)) {
                     this._activePlayer = player;
                     this._highlightTiles(this._activePlayer);
@@ -167,32 +129,32 @@ export class MovementPhase implements IPhase {
     private _handleMapUp(tileXY: XY): void {
         const mover: IPlayer = this._activePlayer;
         if (mover) {
-            const tile: Phaser.Tilemaps.Tile = this._mapMgr.map.getTileAt(tileXY);
+            const tile = this.terrainManager.getTileAt(tileXY);
             if (tile && this._highlightedTiles.includes(tile)) {
                 this._removeTileHighlighting();
-                this._mapMgr.map.movePlayer(mover.tileXY, tile);
+                this.terrainManager.setPlayerTile(mover, tile.xy);
             }
         }
     }
 
     private _removeTileHighlighting(): void {
-        while (this._highlightedTiles.length) {
-            let tile: Phaser.Tilemaps.Tile = this._highlightedTiles.shift();
-            tile?.clearAlpha();
+        if (this._highlightedTiles.length) {
+            const tiles = this._highlightedTiles.splice(0, this._highlightedTiles.length);
+            this.eventManger.notify(WarGame.EVENTS.UNHIGHLIGHT_TILES, ...tiles);
         }
     }
 
     private _handlePlayerMoved(player: IPlayer): void {
         this._moveTracker.add(player.id);
-        if (this.teamHasMoved(this._phaseMgr.priorityPhase.priorityTeam)) {
-            this._phaseMgr.priorityPhase.nextTeam();
+        if (this.teamHasMoved(this.phaseManager.priorityPhase.priorityTeam)) {
+            this.phaseManager.priorityPhase.nextTeam();
         }
-        this._highlightTeam(this._phaseMgr.priorityPhase.priorityTeam);
+        this._highlightTeam(this.phaseManager.priorityPhase.priorityTeam);
     }
 
     private _handleTeamChange(team?: Team): void {
         if (this.allTeamsMoved()) {
-            this._complete();
+            this.end();
         } else {
             this._highlightTeam(team);
         }

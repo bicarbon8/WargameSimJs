@@ -1,34 +1,36 @@
 import { BattleManager } from "../battles/battle-manager";
-import { MapManager } from "../map/map-manager";
+import { TerrainTileManager } from "../terrain/terrain-tile-manager";
 import { FightingPhase } from "./fighting-phase";
-import { IPhase } from "./i-phase";
+import { AbstractPhase } from "./abstract-phase";
 import { MovementPhase } from "./movement-phase";
 import { PhaseType } from "./phase-type";
 import { PlacementPhase } from "./placement-phase";
 import { PriorityPhase } from "./priority-phase";
 import { ShootingPhase } from "./shooting-phase";
+import { GameEventManager } from "../utils/game-event-manager";
+import { TeamManager } from "../teams/team-manager";
 
 export class PhaseManager {
-    private readonly _phases: IPhase[];
+    private readonly _phases: AbstractPhase[];
     private _phaseIndex: number = 0;
     private _completedPlacement: boolean;
 
-    constructor(mapManager: MapManager, battleManager: BattleManager) {
+    constructor(evtMgr: GameEventManager, terrainMgr: TerrainTileManager, teamMgr: TeamManager, battleManager: BattleManager) {
         this._completedPlacement = false;
         this._phases = [
-            new PriorityPhase(this, mapManager.teamManager),
-            new PlacementPhase(this, mapManager),
-            new MovementPhase(this, mapManager), 
-            new ShootingPhase(this, battleManager, mapManager), 
-            new FightingPhase(this, battleManager, mapManager)
+            new PriorityPhase(evtMgr, this, teamMgr),
+            new PlacementPhase(evtMgr, this, terrainMgr, teamMgr),
+            new MovementPhase(evtMgr, this, terrainMgr, teamMgr), 
+            new ShootingPhase(evtMgr, this, battleManager, terrainMgr), 
+            new FightingPhase(evtMgr, this, battleManager, terrainMgr)
         ];
     }
 
-    get phases(): IPhase[] {
+    get phases(): AbstractPhase[] {
         return this._phases;
     }
 
-    get currentPhase(): IPhase {
+    get currentPhase(): AbstractPhase {
         return this._phases[this._phaseIndex];
     }
 
@@ -52,11 +54,11 @@ export class PhaseManager {
         return this._phases[PhaseType.fighting] as FightingPhase;
     }
 
-    startCurrentPhase(): IPhase {
+    startCurrentPhase(): AbstractPhase {
         return this.currentPhase.start();
     }
 
-    moveToNextPhase(): IPhase {
+    moveToNextPhase(): AbstractPhase {
         if (this._phaseIndex === PhaseType.placement) {
             this._completedPlacement = true;
         }
@@ -70,10 +72,9 @@ export class PhaseManager {
         return this.currentPhase;
     }
 
-    reset(): IPhase {
+    reset(): AbstractPhase {
         this._phaseIndex = 0;
         this._completedPlacement = false;
-        this._phases.forEach((p: IPhase) => p.reset());
         return this.currentPhase;
     }
 }

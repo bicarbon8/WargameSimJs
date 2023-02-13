@@ -1,15 +1,14 @@
 import { PhaseManager } from "./phases/phase-manager";
 import { PlayerManager } from "./players/player-manager";
-import { PlayerOptions } from "./players/player-options";
-import { PlayerSpritesheetMappings } from "./players/player-spritesheet-mappings";
 import { TeamManager } from "./teams/team-manager";
 import { UIManager } from "./ui/ui-manager";
 import { DiceManager } from "./utils/dice-manager";
 import { BattleManager } from "./battles/battle-manager";
 import { WarGameOptions } from "./war-game-options";
-import { MapManager } from "./map/map-manager";
+import { TerrainTileManager } from "./terrain/terrain-tile-manager";
 import { GameEventManager } from "./utils/game-event-manager";
 import { Logging } from "./utils/logging";
+import { PlayerOptions } from "./players/player";
 
 export module WarGame {
     export var playerMgr: PlayerManager;
@@ -18,7 +17,7 @@ export module WarGame {
     export var uiMgr: UIManager;
     export var dice: DiceManager;
     export var battleMgr: BattleManager;
-    export var mapMgr: MapManager;
+    export var terrainMgr: TerrainTileManager;
     export var evtMgr: GameEventManager;
 
     export function start(options?: WarGameOptions): void {
@@ -27,18 +26,17 @@ export module WarGame {
         dice = new DiceManager();
         playerMgr = new PlayerManager();
         teamMgr = new TeamManager(playerMgr);
-        mapMgr = new MapManager(teamMgr);
-        uiMgr = new UIManager(options?.uiMgrOpts);
-        battleMgr = new BattleManager(teamMgr, uiMgr);
-        phaseMgr = new PhaseManager(mapMgr, battleMgr);
-        uiMgr.start();
+        terrainMgr = new TerrainTileManager(playerMgr);
+        battleMgr = new BattleManager(teamMgr, terrainMgr);
+        phaseMgr = new PhaseManager(evtMgr, terrainMgr, teamMgr, battleMgr);
+        uiMgr = new UIManager(options?.uiMgrOpts).start();
     }
 
     export function stop(): void {
         uiMgr.destroy();
         uiMgr = null;
         phaseMgr = null;
-        mapMgr = null;
+        terrainMgr = null;
         playerMgr = null;
         teamMgr = null;
         dice = null;
@@ -99,17 +97,21 @@ export module WarGame {
         export const PLAYER_MISFIRED_SHOT = 'player-misfired-shot';
         export const PLAYER_HIT_SHOT = 'player-hit-shot';
         export const PLAYER_MISSED_SHOT = 'player-missed-shot';
+        export const PLAYER_WOUNDED = 'player-wounded';
         export const MESSAGE = 'wargame-message';
         export const POINTER_DOWN = 'pointer-down';
         export const POINTER_UP = 'pointer-up';
         export const POINTER_OUT = 'pointer-out';
         export const POINTER_MOVE = 'pointer-move';
         export const POINTER_OVER = 'pointer-over';
+        export const HIGHLIGHT_TILES = 'highlight-tiles';
+        export const UNHIGHLIGHT_TILES = 'unhighlight-tiles';
+        export const HIGHLIGHT_PLAYERS = 'highlight-players';
+        export const UNHIGHLIGHT_PLAYERS = 'unhighlight-players';
     }
     export module PLAYERS {
         export const BASIC: PlayerOptions = {
             name: 'basic',
-            spriteMapping: PlayerSpritesheetMappings.basic,
             stats: {
                 mele: 3,
                 ranged: 5,
@@ -128,7 +130,6 @@ export module WarGame {
         };
         export const HERO: PlayerOptions = {
             name: 'hero',
-            spriteMapping: PlayerSpritesheetMappings.hero,
             stats: {
                 mele: 6,
                 ranged: 3,
@@ -147,7 +148,6 @@ export module WarGame {
         };
         export const LIGHT: PlayerOptions = {
             name: 'light',
-            spriteMapping: PlayerSpritesheetMappings.light,
             stats: {
                 mele: 1,
                 ranged: 1,
@@ -166,7 +166,6 @@ export module WarGame {
         };
         export const HEAVY: PlayerOptions = {
             name: 'heavy',
-            spriteMapping: PlayerSpritesheetMappings.heavy,
             stats: {
                 mele: 5,
                 ranged: 5,

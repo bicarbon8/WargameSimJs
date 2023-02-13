@@ -20,7 +20,7 @@ class Hero implements PlayerSpritesheetMapping {
     readonly back: number = 85;
 }
 
-export module PlayerSpritesheetMappings {
+export module PlayerSpritesheetMapping {
     export var basic: PlayerSpritesheetMapping = new Basic();
     export var heavy: PlayerSpritesheetMapping = new Heavy();
     export var light: PlayerSpritesheetMapping = new Light();
