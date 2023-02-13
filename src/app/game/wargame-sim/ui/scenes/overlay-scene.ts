@@ -62,9 +62,8 @@ export class OverlayScene extends Phaser.Scene {
     }
 
     private _displayMessage(text: string, color: number): void {
-        const view: Phaser.Geom.Rectangle = this.cameras.main.worldView;
         const message: TextButton = new TextButton(this, {
-            width: view.width * 0.9,
+            width: this._messagesLayout.width,
             textConfig: {
                 text: text,
                 style: {fontSize: '20px',fontFamily: 'Courier'}
@@ -77,7 +76,7 @@ export class OverlayScene extends Phaser.Scene {
         message.setAlpha(0);
 
         this._messagesLayout.addContents(message);
-        this._messagesLayout.setPosition(view.centerX, view.bottom - (this._messagesLayout.height / 2));
+        this._messagesLayout.setPosition(0, -(this._messagesLayout.height / 2));
 
         this.tweens.add({
             targets: message,
