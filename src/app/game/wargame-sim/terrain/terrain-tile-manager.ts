@@ -7,7 +7,6 @@ import { XY } from "../ui/types/xy";
 import { GameMapTile } from "./game-map-tile";
 import { Helpers } from "../utils/helpers";
 import { PlayerManager } from "../players/player-manager";
-import { WarGame } from "../war-game";
 import { Logging } from "../utils/logging";
 
 export class TerrainTileManager {
@@ -91,6 +90,7 @@ export class TerrainTileManager {
 
     getUnoccupiedTiles(): GameMapTile[] {
         let locations: GameMapTile[] = this.tiles
+            .filter(tile => tile != null)
             .filter(tile => this.isTileOccupied(tile.xy) === false);
         return locations;
     }

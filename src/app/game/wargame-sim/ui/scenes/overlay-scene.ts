@@ -99,9 +99,17 @@ export class OverlayScene extends Phaser.Scene {
     }
 
     private _createMessagesLayout(): void {
+        const size = WarGame.uiMgr.getSize();
+        const maxWidth = 300;
+        let width: number = maxWidth;
+        if (size.width < maxWidth) {
+            width = size.width;
+        }
         this._messagesLayout = new LinearLayout(this, {
             x: 0,
             y: 0,
+            desiredWidth: width,
+            desiredHeight: size.height,
             orientation: 'vertical',
             padding: 10
         });
