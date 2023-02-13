@@ -19,9 +19,9 @@ export class GameEventManager {
      */
     notify(event: string, ...args: Array<any>): this {
         if ([WarGame.EVENTS.POINTER_MOVE].includes(event)) {
-            Logging.log('debug', 'notifying of', {event}, 'with', {args});
+            Logging.log('trace', 'notifying of', {event}, 'with', {args});
         } else {
-            Logging.log('info', 'notifying of', {event}, 'with', {args});
+            Logging.log('debug', 'notifying of', {event}, 'with', {args});
         }
         this._emitter.emit(event, ...args);
         return this;

@@ -19,11 +19,12 @@ export class UiPlayer extends Phaser.GameObjects.Container {
 
     constructor(scene: Phaser.Scene, options: UiPlayerOptions) {
         Logging.log('info', 'creating ui-player:', {options});
-        super(scene, options.x, options.y);
+        super(scene, options.x + 16, options.y + 16);
         this._playerId = options.playerId;
         this._spriteMapping = options.spriteMapping;
 
         this._createGameObject();
+        this.scene.add.existing(this);
     }
 
     get player(): IPlayer {

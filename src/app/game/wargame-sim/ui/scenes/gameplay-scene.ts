@@ -80,8 +80,8 @@ export class GameplayScene extends Phaser.Scene {
         if (spriteContainer) {
             this.tweens.add({
                 targets: spriteContainer,
-                x: worldXY.x,
-                y: worldXY.y,
+                x: worldXY.x + 16,
+                y: worldXY.y + 16,
                 duration: 500
             });
         } else {
